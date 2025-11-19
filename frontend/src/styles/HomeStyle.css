@@ -1,0 +1,88 @@
+body{
+    background-color: white;
+}
+
+button {
+    cursor: pointer;
+}
+
+.home {
+    height: 100vh;
+    display: grid;
+    grid-template-columns: 300px 1fr;
+}
+
+.navigation_bar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: rgb(30, 30, 59);
+}
+
+.account,
+.product,
+.category,
+.supplier,
+.audit_log {
+    height: 80px;
+}
+
+.product button,
+.category button,
+.supplier button,
+.audit_log button {
+    color: white;
+    text-align: left;
+    font-size: 1.2rem;
+    padding-left: 20px;
+    background-color: transparent;
+    border: none;
+    height: 70px;
+    width: 300px;
+}
+
+.product button:hover,
+.category button:hover,
+.supplier button:hover,
+.audit_log button:hover {
+    background-color: rgb(13, 146, 244);
+}
+
+#btn_register,
+#btn_login {
+    border: none;
+    height: 50px;
+    width: 125px;
+    margin: 10px;
+    border-radius: 25px;
+}
+
+#btn_register:hover {
+    background-color: rgb(220, 220, 220);
+}
+
+#btn_login {
+    color: white;
+    background-color: rgb(13, 146, 244);
+}
+
+#btn_login:hover{
+    background-color: blue;
+}
+
+.myaccount {
+    display: grid;
+    grid-template-columns: 50px 50px;
+    gap: 150px;
+    padding: 10px;
+}
+
+.my_profile,
+.log_out {
+    width: 50px;
+    height: 50px;
+    grid-column: inherit;
+    border: none;
+    border-radius: 100rem;
+    background-color: transparent;
+}
