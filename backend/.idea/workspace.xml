@@ -5,18 +5,42 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d48c7d98-64ba-4a2f-bd61-d6e4ba3942ef" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/../.gitignore" beforeDir="false" />
+      <change afterPath="$PROJECT_DIR$/core/dependencies.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/core/jwt.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/core/security.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/models/classroom_model.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/models/document_model.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/models/exam_model.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/models/join_request_model.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/models/log_model.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/models/nontify_model.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/models/question_model.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/models/result_model.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/models/user_model.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/routers/classroom_router.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/routers/user_router.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/schemas/base_schema.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/schemas/classroom_schema.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/schemas/user_schema.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/services/ai_service.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.env.template" beforeDir="false" afterPath="$PROJECT_DIR$/.env.template" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../frontend/node_modules/.package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/node_modules/.package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../frontend/node_modules/.vite/deps/_metadata.json" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/node_modules/.vite/deps/_metadata.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../frontend/node_modules/.vite/deps/react-dom.js" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/node_modules/.vite/deps/react-dom.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../frontend/node_modules/.vite/deps/react-dom_client.js" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/node_modules/.vite/deps/react-dom_client.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../frontend/node_modules/.vite/deps/react.js" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/node_modules/.vite/deps/react.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../frontend/node_modules/.vite/deps/react_jsx-dev-runtime.js" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/node_modules/.vite/deps/react_jsx-dev-runtime.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../frontend/node_modules/.vite/deps/react_jsx-runtime.js" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/node_modules/.vite/deps/react_jsx-runtime.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/db/mongodb.py" beforeDir="false" afterPath="$PROJECT_DIR$/db/mongodb.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../documents/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/../documents/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../documents/images/Db_design.png" beforeDir="false" afterPath="$PROJECT_DIR$/../documents/images/Db_design.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/package-lock.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/package.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../frontend/src/App.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/src/App.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../frontend/src/index.css" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/src/index.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../frontend/src/pages/Home.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/src/pages/Home.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../frontend/src/pages/Login.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/src/pages/Login.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../frontend/src/pages/Register.jsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../frontend/src/styles/HomeStyle.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../frontend/src/styles/LoginStyle.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../frontend/src/styles/RegisterStyle.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../frontend/vite.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/vite.config.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -64,6 +88,13 @@
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\DoAnTotNghiep\LearnAssist\backend\core" />
+      <recent name="D:\DoAnTotNghiep\LearnAssist\backend\config" />
+      <recent name="D:\DoAnTotNghiep\LearnAssist\backend\api\endpoints" />
+    </key>
+  </component>
   <component name="RunManager">
     <configuration name="backend" type="Python.FastAPI">
       <option name="file" value="$PROJECT_DIR$/main.py" />
@@ -104,6 +135,28 @@
       <workItem from="1763360913622" duration="721000" />
       <workItem from="1763362527213" duration="697000" />
       <workItem from="1763467017851" duration="1791000" />
+      <workItem from="1763567888310" duration="1004000" />
+      <workItem from="1763817137561" duration="2833000" />
+      <workItem from="1763886449144" duration="4051000" />
+      <workItem from="1763890777376" duration="3238000" />
+      <workItem from="1764051515262" duration="1920000" />
+      <workItem from="1764076517813" duration="2391000" />
+      <workItem from="1764137301740" duration="1465000" />
+      <workItem from="1764155603149" duration="38000" />
+      <workItem from="1764163995051" duration="2452000" />
+      <workItem from="1764208872768" duration="1763000" />
+      <workItem from="1764246946838" duration="1106000" />
+      <workItem from="1764249829744" duration="5232000" />
+      <workItem from="1764309836702" duration="3878000" />
+      <workItem from="1764338679312" duration="4469000" />
+      <workItem from="1764343189413" duration="220000" />
+      <workItem from="1764343413674" duration="1155000" />
+      <workItem from="1764344737955" duration="561000" />
+      <workItem from="1764416968791" duration="4933000" />
+      <workItem from="1764424887376" duration="4428000" />
+      <workItem from="1764497807395" duration="4049000" />
+      <workItem from="1764504325476" duration="4153000" />
+      <workItem from="1764591174638" duration="9397000" />
     </task>
     <servers />
   </component>
@@ -111,6 +164,6 @@
     <option name="version" value="3" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/backend$backend.coverage" NAME="backend Coverage Results" MODIFIED="1763344408733" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
+    <SUITE FILE_PATH="coverage/backend$backend.coverage" NAME="backend Coverage Results" MODIFIED="1764343375179" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
   </component>
 </project>

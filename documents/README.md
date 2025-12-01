@@ -1,4 +1,4 @@
-# Nghiên cứu xây dựng Website tự động tạo bộ câu hỏi ôn tập từ tài liệu
+# Nghiên cứu xây dựng Website tự động tạo bộ câu hỏi ôn tập từ tài liệu hỗ trợ giáo viên kiểm tra sinh viên ôn luyện kèm hệ thống thống kê
 
 ## 1. Giới thiệu đề tài
 Hệ thống hỗ trợ giáo viên tạo bộ câu hỏi ôn tập tự động từ tài liệu
@@ -35,7 +35,6 @@ và cơ sở dữ liệu MongoDB.
 -   Backend: FastAPI.
 -   Database: MongoDB (NoSQL).
 -   AI Service: OpenAI API (GPT-5.0-nano).
--   Authentication: JWT.
 
 ## 5. Thiết kế cơ sở dữ liệu
 !["db"](images/Db_design.png)
