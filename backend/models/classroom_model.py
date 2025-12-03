@@ -8,6 +8,8 @@ from models.user_model import UserModel
 
 class ClassroomModel(Document):
     name: str
+    description: str
+    subject: str
     creator: Link[UserModel]
     class_code: str = Indexed(str, unique=True)
     members: List[Link[UserModel]] = Field(default_factory=list)

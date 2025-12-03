@@ -1,11 +1,12 @@
-from datetime import datetime, timezone
-from fastapi import APIRouter, HTTPException, Depends
-from core.dependencies import get_current_user
-from schemas.user_schema import UserRegister, UserLogin, UserUpdate
-from schemas.base_schema import BaseResponse, TokenResponse
-from models.user_model import UserModel
-from core.security import get_password_hash, verify_password
+from fastapi import APIRouter
+
+from fastapi import HTTPException
+
 from core.jwt import create_access_token, create_refresh_token
+from core.security import get_password_hash, verify_password
+from models.user_model import UserModel
+from schemas.base_schema import BaseResponse, TokenResponse
+from schemas.user_schema import UserRegister, UserLogin
 
 router = APIRouter()
 
@@ -22,7 +23,9 @@ async def register(user_in: UserRegister):
         email=user_in.email,
         full_name=user_in.full_name,
         hashed_password=hashed,
-        role=user_in.role
+        role=user_in.role,
+        dob = user_in.dob,
+        phone_number=user_in.phone_number,
     )
     await user.insert()
     return BaseResponse(data={})
@@ -50,28 +53,19 @@ async def login(login_data: UserLogin):
                            refresh_token=refresh,
                            role=user.role))
 
-@router.get("/me", response_model=BaseResponse[dict])
-async def my_profile(current_user: UserModel = Depends(get_current_user)):
-    return BaseResponse(data={
-        "full_name": current_user.full_name,
-        "email": current_user.email,
-        "created_at": current_user.created_at
-    })
+@router.post("/refresh", response_model=BaseResponse[TokenResponse])
+async def refresh(refresh_data: TokenResponse):
+    user = await UserModel.find_one({"id": refresh_data.user_id})
+    if not user:
+        raise HTTPException(401, "Invalid credentials")
+    access = create_access_token({"sub": str(user.id), "role": user.role})
+    refresh = create_refresh_token({"sub": str(user.id)})
+    return BaseResponse(data=TokenResponse(access_token=access,refresh_token=refresh))
 
-@router.put("/update_profile", response_model=BaseResponse[dict])
-async def update_my_profile(update_data: UserUpdate, current_user: UserModel = Depends(get_current_user)):
-    update_dict = update_data.model_dump(exclude_unset=True)
+@router.post("/forgot-password-request", response_model=BaseResponse[TokenResponse])
+async def forgot_password():
+    return BaseResponse(data={})
 
-    if not update_dict:
-        raise HTTPException(400, "Không có dữ liệu để cập nhật")
-
-    update_dict.pop("role", None)
-
-    for key, value in update_dict.items():
-        setattr(current_user, key, value)
-
-    current_user.updated_at =lambda :datetime.now(timezone.utc)
-
-    await current_user.save()
-
+@router.post("/reset-password", response_model=BaseResponse[TokenResponse])
+async def reset_password():
     return BaseResponse(data={})

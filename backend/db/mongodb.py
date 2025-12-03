@@ -2,6 +2,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from beanie import init_beanie
 from core.config import settings
 from models.classroom_model import ClassroomModel
+from models.join_request_model import JoinRequestModel
 from models.user_model import UserModel
 
 async def init_db():
@@ -11,5 +12,6 @@ async def init_db():
         document_models=[
             UserModel,
             ClassroomModel,
+            JoinRequestModel
         ]
     )

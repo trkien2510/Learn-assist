@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from core.config import settings
 from db.mongodb import init_db
-from routers import user_router, classroom_router
+from api import user_router, classroom_router, auth_router, document_router
 
 
 @asynccontextmanager
@@ -25,8 +25,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth_router.router, prefix=f"{settings.API_PREFIX}/auth", tags=["Auth"])
 app.include_router(user_router.router, prefix=f"{settings.API_PREFIX}/user", tags=["User"])
 app.include_router(classroom_router.router, prefix=f"{settings.API_PREFIX}/classroom", tags=["ClassRooms"])
+app.include_router(document_router.router, prefix=f"{settings.API_PREFIX}/document", tags=["Documents"])
 
 @app.get("/")
 def root():

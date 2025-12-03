@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 from pydantic import BaseModel, EmailStr, Field
 from models.user_model import UserRole
 
@@ -7,6 +7,8 @@ class UserRegister(BaseModel):
     email: EmailStr
     password: str = Field(..., min_length=8, max_length=64)
     full_name: str
+    dob: date
+    phone_number: str | None
     role: UserRole = UserRole.STUDENT
 
 class UserLogin(BaseModel):
@@ -18,11 +20,14 @@ class UserProfile(BaseModel):
     email: EmailStr
     full_name: str
     role: UserRole
+    dob: date
+    phone_number: str | None
     created_at: datetime
 
 class UserUpdate(BaseModel):
     current_password: str = Field(..., min_length=8, max_length=64)
-    new_email: EmailStr = None
     new_password: str = Field(..., min_length=8, max_length=64)
-    new_full_name: str = None
     confirm_password: str = Field(..., min_length=8, max_length=64)
+    new_email: EmailStr | None
+    new_full_name: str | None
+    new_phone_number: str | None
