@@ -1,4 +1,4 @@
-from _pydatetime import datetime
+from datetime import datetime
 from typing import Dict, Any
 
 from beanie import Document, Link

@@ -18,7 +18,7 @@ class UserModel(Document):
     role: UserRole = UserRole.STUDENT
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    is_active: bool = Field(default=True)
+    is_activate: bool = Field(default=True)
 
     class Settings:
         name = "users"

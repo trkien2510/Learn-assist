@@ -22,13 +22,3 @@ async def get_current_user(cred: HTTPAuthorizationCredentials = Depends(bearer_s
     if not user:
         raise HTTPException(status_code=404, detail="User không tồn tại")
     return user
-
-async def require_admin(user: UserModel = Depends(get_current_user)):
-    if user.role != "admin":
-        raise HTTPException(status_code=403, detail="Chỉ admin mới có quyền")
-    return user
-
-async def require_owner_or_admin(user_id: str, current_user: UserModel = Depends(get_current_user)):
-    if current_user.role == "admin" or str(current_user.id) == user_id:
-        return current_user
-    raise HTTPException(status_code=403, detail="Không có quyền")

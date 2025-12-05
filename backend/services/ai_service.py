@@ -1,62 +1,60 @@
 import json
 from openai import OpenAI
 
+from core.config import settings
 
 def call_openai_for_questions(prompt: str):
-    client = OpenAI()
+    client = OpenAI(api_key=settings.OPENAI_API_KEY)
+
     try:
         response = client.responses.create(
             model="gpt-5-nano",
-            input="",
-            response_format={"type": "json_object"}
+            input=[
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "input_text", "text": prompt}
+                    ]
+                }
+            ]
         )
 
-        json_string = response.choices[0].message.content.strip()
+        json_text = response.output_text
 
-        data = json.loads(json_string)
-
-        return data
+        return json.loads(json_text)
 
     except Exception as e:
         print(f"Lỗi gọi OpenAI hoặc JSON parse: {e}")
         return None
 
-def create_question_generation_prompt(text_chunk: str, num_questions: int, difficulty: str) -> str:
-    json_format_example = {
+def create_question_generation_prompt(text_chunk: str, num_questions: int) -> str:
+    example_json = {
         "questions": [
             {
-                "content": "Câu hỏi số 1 dựa trên đoạn văn bản là gì?",
-                "options": [
-                    "Lựa chọn A",
-                    "Lựa chọn B",
-                    "Lựa chọn C",
-                    "Lựa chọn D"
-                ],
-                "answer": "Lựa chọn phải khớp với đáp án chính xác của câu hỏi",
-                "difficulty": difficulty
+                "content": "Câu hỏi mẫu",
+                "options": ["A", "B", "C", "D"],
+                "answer": "A",
+                "difficulty": "dễ"
             }
         ]
     }
 
-    prompt = f"""
-    ### SYSTEM INSTRUCTION ###
-    Bạn là một chuyên gia biên soạn đề thi giáo dục. Nhiệm vụ của bạn là tạo ra các câu hỏi trắc nghiệm khách quan (MCQ) chất lượng cao.
+    return f"""
+Bạn là chuyên gia tạo câu hỏi trắc nghiệm.
 
-    ### USER REQUEST ###
-    1. VAI TRÒ: Bạn là người biên soạn đề kiểm tra.
-    2. ĐỘ KHÓ: Tạo các câu hỏi có độ khó '{difficulty}'.
-    3. SỐ LƯỢNG: Tạo chính xác {num_questions} câu hỏi.
-    4. YÊU CẦU ĐẶC BIỆT: Đáp án phải là một trong các lựa chọn trong trường 'options'.
+Tạo đúng {num_questions} câu hỏi dựa trên nội dung sau:
 
-    ### INPUT DATA (Tài liệu tham khảo) ###
-    ---
-    {text_chunk}
-    ---
+--- Tài liệu ---
+{text_chunk}
+---
 
-    ### OUTPUT FORMAT (Định dạng Đầu ra Bắt buộc) ###
-    Trả lời bằng tiếng Việt và chỉ cung cấp đầu ra JSON. KHÔNG thêm bất kỳ văn bản giải thích nào khác ngoài cấu trúc JSON.
+YÊU CẦU:
+- Trả về duy nhất JSON.
+- Không trả lời thêm chữ nào ngoài JSON.
+- Theo đúng cấu trúc ví dụ dưới đây.
+- 'answer' phải nằm trong 'options'.
+- difficulty: 'dễ', 'trung bình', hoặc 'khó'.
 
-    {json.dumps(json_format_example, indent=2)}
-    """
-
-    return prompt
+Ví dụ JSON:
+{json.dumps(example_json, indent=2)}
+""".strip()

@@ -1,9 +1,12 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
+from api.admin import admin_router
 from core.config import settings
 from db.mongodb import init_db
-from api import user_router, classroom_router, auth_router, document_router
+from api import user_router, classroom_router, auth_router, document_router, exam_router, question_router, \
+    statistical_router
 
 
 @asynccontextmanager
@@ -29,7 +32,7 @@ app.include_router(auth_router.router, prefix=f"{settings.API_PREFIX}/auth", tag
 app.include_router(user_router.router, prefix=f"{settings.API_PREFIX}/user", tags=["User"])
 app.include_router(classroom_router.router, prefix=f"{settings.API_PREFIX}/classroom", tags=["ClassRooms"])
 app.include_router(document_router.router, prefix=f"{settings.API_PREFIX}/document", tags=["Documents"])
-
-@app.get("/")
-def root():
-    return {"message": "API is running", "docs": "/docs"}
+app.include_router(exam_router.router, prefix=f"{settings.API_PREFIX}/exam", tags=["Exam"])
+app.include_router(question_router.router, prefix=f"{settings.API_PREFIX}/question", tags=["Question"])
+app.include_router(statistical_router.router, prefix=f"{settings.API_PREFIX}/statistics", tags=["Statistics"])
+app.include_router(admin_router.router, prefix=f"{settings.API_PREFIX}/admin", tags=["Admin"])

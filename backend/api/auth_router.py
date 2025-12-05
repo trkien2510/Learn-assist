@@ -53,7 +53,7 @@ async def login(login_data: UserLogin):
                            refresh_token=refresh,
                            role=user.role))
 
-@router.post("/refresh", response_model=BaseResponse[TokenResponse])
+@router.post("/refresh-token", response_model=BaseResponse[TokenResponse])
 async def refresh(refresh_data: TokenResponse):
     user = await UserModel.find_one({"id": refresh_data.user_id})
     if not user:

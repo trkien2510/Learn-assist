@@ -5,20 +5,31 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d48c7d98-64ba-4a2f-bd61-d6e4ba3942ef" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/api/user_router.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/admin/admin_classroom_router.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/admin/admin_classroom_router.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/admin/admin_control_router.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/admin/admin_document_router.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/admin/admin_document_router.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/admin/admin_question_router.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/admin/admin_question_router.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/admin/admin_user_router.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/admin/admin_user_router.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/auth_router.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/auth_router.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/classroom_router.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/classroom_router.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/document_router.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/document_router.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/exam_router.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/exam_router.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/log_router.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/notify_router.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/result_router.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/result_router.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/user_router.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/user_router.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/dependencies.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/dependencies.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/db/mongodb.py" beforeDir="false" afterPath="$PROJECT_DIR$/db/mongodb.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/models/classroom_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/classroom_model.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/models/join_request_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/join_request_model.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/result_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/result_model.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/models/user_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/user_model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/routers/classroom_router.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/classroom_router.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/routers/user_router.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/schemas/base_schema.py" beforeDir="false" afterPath="$PROJECT_DIR$/schemas/base_schema.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/schemas/classroom_schema.py" beforeDir="false" afterPath="$PROJECT_DIR$/schemas/classroom_schema.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/schemas/user_schema.py" beforeDir="false" afterPath="$PROJECT_DIR$/schemas/user_schema.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/services/ai_service.py" beforeDir="false" afterPath="$PROJECT_DIR$/services/ai_service.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/services/auth_service.py" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -141,6 +152,13 @@
       <workItem from="1764763293301" duration="1616000" />
       <workItem from="1764767240325" duration="785000" />
       <workItem from="1764768479525" duration="8899000" />
+      <workItem from="1764828095004" duration="3002000" />
+      <workItem from="1764849549589" duration="9767000" />
+      <workItem from="1764862414725" duration="1667000" />
+      <workItem from="1764914147064" duration="4961000" />
+      <workItem from="1764933887415" duration="460000" />
+      <workItem from="1764934547794" duration="1045000" />
+      <workItem from="1764938611951" duration="650000" />
     </task>
     <servers />
   </component>

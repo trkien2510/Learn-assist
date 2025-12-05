@@ -3,6 +3,8 @@ from fastapi import APIRouter, UploadFile, File, Depends, HTTPException
 from core.dependencies import get_current_user
 from models.user_model import UserModel
 from schemas.base_schema import BaseResponse
+from schemas.document_schema import ListQuestionSchema
+from services.ai_service import call_openai_for_questions, create_question_generation_prompt
 from services.document_service import read_and_clean_uploaded_file
 
 router = APIRouter()
@@ -12,8 +14,8 @@ ALLOWED_MIME_TYPES = [
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 ]
 
-@router.post("/upload", response_model=BaseResponse)
-async def upload_files(file: UploadFile = File(...), current_user: UserModel = Depends(get_current_user)):
+@router.post("/upload/{number_question}", response_model=BaseResponse)
+async def upload_files(number_question: int, file: UploadFile = File(...), current_user: UserModel = Depends(get_current_user)):
     if current_user.role.value != "teacher":
         raise HTTPException(403, "Chỉ giáo viên mới có quyền")
 
@@ -25,14 +27,11 @@ async def upload_files(file: UploadFile = File(...), current_user: UserModel = D
     if not document_content.strip():
         raise HTTPException(400, "Tài liệu rỗng hoặc không có văn bản.")
 
-    return BaseResponse(data={document_content})
+    data = call_openai_for_questions(create_question_generation_prompt(document_content.strip(), number_question))
 
-@router.post("/save", response_model=BaseResponse)
-async def save_document():
+    return BaseResponse(data=data)
 
-    return BaseResponse()
+@router.post("/save-questions", response_model=BaseResponse)
+async def save_question(list_question: ListQuestionSchema, current_user: UserModel = Depends(get_current_user)):
 
-@router.post("/cancel", response_model=BaseResponse)
-async def cancel_save_document():
-
-    return BaseResponse()
+    return BaseResponse(data=list_question)

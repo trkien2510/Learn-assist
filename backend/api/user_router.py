@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException, Depends
 from core.dependencies import get_current_user
 from core.security import verify_password
-from schemas.user_schema import UserUpdate
+from schemas.user_schema import UserUpdate, UserDeactivate
 from schemas.base_schema import BaseResponse
 from models.user_model import UserModel
 
@@ -42,3 +42,15 @@ async def update_my_profile(update_data: UserUpdate, current_user: UserModel = D
     await current_user.save()
 
     return BaseResponse(data={})
+
+
+@router.post("/deactivate", response_model=BaseResponse)
+async def deactivate(pass_data: UserDeactivate, current_user: UserModel = Depends(get_current_user)):
+    if not verify_password(pass_data.password, current_user.hashed_password):
+        raise HTTPException(401, "Invalid credentials")
+
+    current_user.is_activated = False
+    current_user.updated_at = lambda :datetime.now(timezone.utc)
+    await current_user.save()
+
+    return BaseResponse()

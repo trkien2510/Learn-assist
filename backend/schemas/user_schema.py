@@ -15,6 +15,9 @@ class UserLogin(BaseModel):
     login_identifier: str
     password: str
 
+class UserDeactivate(BaseModel):
+    password: str
+
 class UserProfile(BaseModel):
     id: str
     email: EmailStr
