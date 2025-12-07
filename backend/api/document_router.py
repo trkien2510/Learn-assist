@@ -1,11 +1,10 @@
-from fastapi import APIRouter, UploadFile, File, Depends, HTTPException
+from fastapi import APIRouter, UploadFile, File, Depends
 
 from core.dependencies import get_current_user
 from models.user_model import UserModel
 from schemas.base_schema import BaseResponse
 from schemas.document_schema import ListQuestionSchema
-from services.ai_service import call_openai_for_questions, create_question_generation_prompt
-from services.document_service import read_and_clean_uploaded_file
+from services import document_service
 
 router = APIRouter()
 
@@ -14,24 +13,21 @@ ALLOWED_MIME_TYPES = [
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 ]
 
+@router.get("/all", response_model=BaseResponse)
+async def get_my_documents_list(current_user: UserModel = Depends(get_current_user)):
+    data = await document_service.get_my_documents(current_user)
+    return BaseResponse(data=data)
+
 @router.post("/upload/{number_question}", response_model=BaseResponse)
-async def upload_files(number_question: int, file: UploadFile = File(...), current_user: UserModel = Depends(get_current_user)):
-    if current_user.role.value != "teacher":
-        raise HTTPException(403, "Chỉ giáo viên mới có quyền")
-
-    document_content = await read_and_clean_uploaded_file(file)
-
-    if document_content is None:
-        raise HTTPException(415, "Loại file không được hỗ trợ hoặc lỗi trích xuất.")
-
-    if not document_content.strip():
-        raise HTTPException(400, "Tài liệu rỗng hoặc không có văn bản.")
-
-    data = call_openai_for_questions(create_question_generation_prompt(document_content.strip(), number_question))
-
+async def handle_upload_file(number_question: int, file: UploadFile = File(...), current_user: UserModel = Depends(get_current_user)):
+    data = await document_service.process_upload(number_question, file, current_user)
     return BaseResponse(data=data)
 
 @router.post("/save-questions", response_model=BaseResponse)
-async def save_question(list_question: ListQuestionSchema, current_user: UserModel = Depends(get_current_user)):
-
+async def handle_save_questions(list_question: ListQuestionSchema, current_user: UserModel = Depends(get_current_user)):
     return BaseResponse(data=list_question)
+
+@router.delete("/{document_id}", response_model=BaseResponse)
+async def handle_delete_document(document_id: str, current_user: UserModel = Depends(get_current_user)):
+    await document_service.delete_document(document_id, current_user)
+    return BaseResponse()

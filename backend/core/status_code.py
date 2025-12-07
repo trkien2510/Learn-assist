@@ -31,17 +31,28 @@ class StatusCode(int, Enum):
 
 
 # Map các mã lỗi với thông báo mặc định
+# Map các mã lỗi với thông báo mặc định
 STATUS_MESSAGES = {
-    StatusCode.SUCCESS: "Success",
-    StatusCode.CREATED: "Success",
+    StatusCode.SUCCESS: "Thành công",
+    StatusCode.CREATED: "Tạo mới thành công",
 
-    StatusCode.BAD_REQUEST: "Invalid data",
-    StatusCode.UNAUTHORIZED: "Auth Failed",
-    StatusCode.FORBIDDEN: "Not have permission to action",
-    StatusCode.NOT_FOUND: "No data found",
-    StatusCode.DUPLICATE_ENTRY: "Data already exists",
-    StatusCode.UNSUPPORTED_TYPE: "Unsupported type",
+    StatusCode.BAD_REQUEST: "Dữ liệu không hợp lệ",
+    StatusCode.UNAUTHORIZED: "Xác thực thất bại",
+    StatusCode.FORBIDDEN: "Không có quyền thực hiện hành động này",
+    StatusCode.NOT_FOUND: "Không tìm thấy dữ liệu",
+    StatusCode.DUPLICATE_ENTRY: "Dữ liệu đã tồn tại",
+    StatusCode.UNSUPPORTED_TYPE: "Loại dữ liệu không hỗ trợ",
+    StatusCode.VALIDATION_ERROR: "Lỗi xác thực dữ liệu",
+    StatusCode.TOO_MANY_REQUESTS: "Gửi quá nhiều yêu cầu",
 
-    StatusCode.INTERNAL_SERVER_ERROR: "Server error",
-    StatusCode.DATABASE_ERROR: "Database error",
+    StatusCode.ALREADY_MEMBER: "Người dùng đã là thành viên của lớp học",
+    StatusCode.NOT_A_MEMBER: "Người dùng không phải là thành viên của lớp học",
+    StatusCode.JOIN_REQUEST_EXISTS: "Yêu cầu tham gia đã tồn tại",
+    StatusCode.INVALID_CLASS_CODE: "Mã lớp không hợp lệ",
+    StatusCode.DOCUMENT_ACCESS_DENIED: "Không có quyền truy cập tài liệu",
+
+    StatusCode.INTERNAL_SERVER_ERROR: "Lỗi hệ thống",
+    StatusCode.DATABASE_ERROR: "Lỗi cơ sở dữ liệu",
+    StatusCode.FILE_PROCESSING_ERROR: "Lỗi xử lý file",
+    StatusCode.EXTERNAL_API_ERROR: "Lỗi API bên ngoài",
 }

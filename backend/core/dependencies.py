@@ -1,6 +1,5 @@
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-
 from jose import jwt, JWTError
 from core.config import settings
 from models.user_model import UserModel

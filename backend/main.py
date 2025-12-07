@@ -14,6 +14,8 @@ async def lifespan(app: FastAPI):
     await init_db()
     yield
 
+from core.exception_handler import AppException, app_exception_handler
+
 app = FastAPI(
     title=settings.PROJECT_NAME,
     lifespan=lifespan,
@@ -27,6 +29,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.add_exception_handler(AppException, app_exception_handler)
 
 app.include_router(auth_router.router, prefix=f"{settings.API_PREFIX}/auth", tags=["Auth"])
 app.include_router(user_router.router, prefix=f"{settings.API_PREFIX}/user", tags=["User"])

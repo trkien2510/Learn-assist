@@ -1,35 +1,76 @@
 from fastapi import UploadFile
-from utils.document_util import extract_text_from_docx_python_docx, extract_text_from_pdf_pypdf
+from utils.document_util import read_and_clean_uploaded_file
+from services.ai_service import call_openai_for_questions, create_question_generation_prompt
+from core.exception_handler import AppException
+from core.status_code import StatusCode
 
-DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-PDF_MIME = "application/pdf"
+from models.document_model import DocumentModel
 
 
-async def read_and_clean_uploaded_file(file: UploadFile) -> str | None:
-    mime_type = file.content_type
+async def process_upload(number_question: int, file: UploadFile, current_user):
+    if current_user.role.value != "teacher":
+        raise AppException(StatusCode.FORBIDDEN, "Chỉ giáo viên mới có quyền")
 
-    if mime_type not in [DOCX_MIME, PDF_MIME]:
-        return None
+    document_content = await read_and_clean_uploaded_file(file)
+
+    if document_content is None:
+        raise AppException(StatusCode.UNSUPPORTED_TYPE, "Loại file không được hỗ trợ hoặc lỗi trích xuất.")
+
+    if not document_content.strip():
+        raise AppException(StatusCode.BAD_REQUEST, "Tài liệu rỗng hoặc không có văn bản.")
+
+    data = call_openai_for_questions(create_question_generation_prompt(document_content.strip(), number_question))
+    return data
+
+
+async def get_all_documents(page: int, page_size: int):
+    if page < 1:
+        page = 1
+    if page_size < 1 or page_size > 100:
+        page_size = 20
+
+    skip = (page - 1) * page_size
+
+    total = await DocumentModel.find_all().count()
+    items = await DocumentModel.find_all().skip(skip).limit(page_size).to_list()
+
+    total_pages = (total + page_size - 1) // page_size
+
+    return {
+        "items": items,
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "total_pages": total_pages,
+        "has_next": page < total_pages,
+        "has_previous": page > 1
+    }
+
+
+async def get_my_documents(current_user):
+    if current_user.role.value != "teacher":
+        raise AppException(StatusCode.FORBIDDEN, "Chỉ giáo viên mới có quyền xem danh sách tài liệu")
+
+    items = await DocumentModel.find(DocumentModel.creator.id == current_user.id).to_list()
+
+    return items
+
+
+async def delete_document(document_id: str, current_user):
+    from beanie import PydanticObjectId
 
     try:
-        file_content = await file.read()
+        obj_id = PydanticObjectId(document_id)
+    except:
+        raise AppException(StatusCode.BAD_REQUEST, "ID tài liệu không hợp lệ")
 
-        extracted_text = ""
+    document = await DocumentModel.get(obj_id)
+    if not document:
+        raise AppException(StatusCode.NOT_FOUND, "Tài liệu không tồn tại")
 
-        if mime_type == PDF_MIME:
-            extracted_text = extract_text_from_pdf_pypdf(file_content)
+    # Chỉ cho phép creator hoặc admin xóa
+    if document.creator.id != current_user.id and current_user.role.value != "admin":
+        raise AppException(StatusCode.FORBIDDEN, "Không có quyền xóa tài liệu này")
 
-        elif mime_type == DOCX_MIME:
-            extracted_text = extract_text_from_docx_python_docx(file_content)
-
-        if not extracted_text:
-            return None
-
-        return extracted_text
-
-    except Exception as e:
-        print(f"Lỗi trong quá trình đọc và trích xuất file: {e}")
-        return None
-
-    finally:
-        await file.close()
+    await document.delete()
+    return {}
