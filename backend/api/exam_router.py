@@ -2,27 +2,43 @@ from fastapi import APIRouter, Depends
 from core.dependencies import get_current_user
 from models.user_model import UserModel
 from schemas.base_schema import BaseResponse
-from schemas.exam_schema import CreateExamSchema
+from schemas.exam_schema import CreateExamSchema, SubmitExamSchema
 from services import exam_service
 
 router = APIRouter()
 
+
 @router.post("/create", response_model=BaseResponse)
-async def handle_create_exam(exam_data: CreateExamSchema, current_user: UserModel = Depends(get_current_user)):
+async def create_exam(exam_data: CreateExamSchema, current_user: UserModel = Depends(get_current_user)):
     await exam_service.create_exam(exam_data, current_user)
     return BaseResponse(data={})
 
-@router.delete("/delete/{exam_id}", response_model=BaseResponse)
-async def handle_delete_exam(exam_id: str, current_user: UserModel = Depends(get_current_user)):
+
+@router.get("/all", response_model=BaseResponse)
+async def get_all_exams(page: int = 1, page_size: int = 20, current_user: UserModel = Depends(get_current_user)):
+    data = await exam_service.get_my_exams(page, page_size, current_user)
+    return BaseResponse(data=data)
+
+
+@router.get("/class/{class_id}", response_model=BaseResponse)
+async def get_exams_by_class(class_id: str, page: int = 1, page_size: int = 20, current_user: UserModel = Depends(get_current_user)):
+    data = await exam_service.get_exams_by_class(class_id, page, page_size, current_user)
+    return BaseResponse(data=data)
+
+
+@router.delete("/{exam_id}", response_model=BaseResponse)
+async def delete_exam(exam_id: str, current_user: UserModel = Depends(get_current_user)):
     await exam_service.delete_exam(exam_id, current_user)
     return BaseResponse()
 
-@router.post("/start_exam/{exam_id}", response_model=BaseResponse)
-async def handle_start_exam(exam_id: str, current_user: UserModel = Depends(get_current_user)):
+
+@router.post("/{exam_id}/start", response_model=BaseResponse)
+async def start_exam(exam_id: str, current_user: UserModel = Depends(get_current_user)):
     data = await exam_service.start_exam(exam_id, current_user)
     return BaseResponse(data=data)
 
-@router.post("/submit/{exam_id}", response_model=BaseResponse)
-async def handle_submit_exam(exam_id: str, answers: dict, current_user: UserModel = Depends(get_current_user)):
-    data = await exam_service.submit_exam(exam_id, answers, current_user)
+
+@router.post("/{exam_id}/submit", response_model=BaseResponse)
+async def submit_exam(exam_id: str, submit_data: SubmitExamSchema, current_user: UserModel = Depends(get_current_user)):
+    data = await exam_service.submit_exam(exam_id, submit_data, current_user)
     return BaseResponse(data=data)

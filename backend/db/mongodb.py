@@ -10,10 +10,13 @@ from models.question_model import QuestionModel
 from models.result_model import ResultModel
 from models.user_model import UserModel
 
+
 async def init_db():
     client = AsyncIOMotorClient(settings.MONGO_URI)
+    db = client[settings.DATABASE_NAME]
+
     await init_beanie(
-        database=client[settings.DATABASE_NAME],
+        database=db,
         document_models=[
             UserModel,
             ClassroomModel,
@@ -25,3 +28,11 @@ async def init_db():
             LogModel,
         ]
     )
+
+    try:
+        await db.logs.create_index(
+            "created_at",
+            expireAfterSeconds=2592000
+        )
+    except Exception:
+        pass

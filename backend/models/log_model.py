@@ -1,19 +1,18 @@
 from datetime import datetime, timezone
-from typing import Any, Dict
+from typing import Optional, Dict, Any
 
 from beanie import Document
 from pydantic import Field
 
-from models.user_model import UserModel
-
 
 class LogModel(Document):
-    user_id: UserModel
     action: str
-    target_collection: str
-    target_id: str
+    user_id: Optional[str] = None
+    resource_type: Optional[str] = None
+    resource_id: Optional[str] = None
     details: Dict[str, Any] = Field(default_factory=dict)
-    timestamp: datetime = Field(default_factory=datetime.now(timezone.utc))
+    status: str = "success"
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     class Settings:
-        name = "log"
+        name = "logs"

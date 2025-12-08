@@ -19,11 +19,3 @@ async def login(login_data: UserLogin):
 async def refresh(refresh_data: str):
     data = await refresh_token_service(refresh_data)
     return BaseResponse(data=data)
-
-# @router.post("/forgot-password-request", response_model=BaseResponse[TokenResponse])
-# async def forgot_password():
-#     return BaseResponse(data={})
-
-# @router.post("/reset-password", response_model=BaseResponse[TokenResponse])
-# async def reset_password():
-#     return BaseResponse(data={})

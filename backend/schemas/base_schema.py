@@ -7,7 +7,7 @@ T = TypeVar('T')
 class BaseResponse(BaseModel, Generic[T]):
     code: StatusCode = Field(default=StatusCode.SUCCESS)
     success: bool = True
-    message: str = "Thành công"
+    message: str = "Success"
     data: Optional[T] = None
 
 class TokenResponse(BaseModel):

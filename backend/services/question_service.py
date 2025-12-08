@@ -4,17 +4,18 @@ from core.status_code import StatusCode
 from models.question_model import QuestionModel
 from models.document_model import DocumentModel
 from models.classroom_model import ClassroomModel
+from services import log_service
 
 
 async def get_question_by_id(question_id: str):
     try:
         q_id = PydanticObjectId(question_id)
     except:
-        raise AppException(StatusCode.BAD_REQUEST, "ID câu hỏi không hợp lệ")
+        raise AppException(StatusCode.BAD_REQUEST, "Invalid question ID")
 
     question = await QuestionModel.get(q_id)
     if not question:
-        raise AppException(StatusCode.NOT_FOUND, "Câu hỏi không tồn tại")
+        raise AppException(StatusCode.NOT_FOUND, "Question not found")
     return question
 
 
@@ -36,30 +37,40 @@ async def create_question(question_data, current_user):
         difficulty=question_data.difficulty
     )
     await new_question.insert()
+
+    await log_service.log_question("create_question", str(new_question.id), current_user, {
+        "difficulty": question_data.difficulty
+    })
+
     return new_question
 
 
 async def update_question(question_id: str, update_data, current_user):
     question = await get_question_by_id(question_id)
 
-    # Check permission? Assuming only creator or teacher can update
-    if question.creator_id.id != current_user.id and current_user.role != "admin":  # simplified
-        raise AppException(StatusCode.FORBIDDEN, "Không có quyền chỉnh sửa")
+    if question.creator_id.ref.id != current_user.id and current_user.role != "admin":
+        raise AppException(StatusCode.FORBIDDEN, "Permission denied")
 
     update_dict = update_data.model_dump(exclude_unset=True)
     for key, value in update_dict.items():
         setattr(question, key, value)
 
     await question.save()
+
+    await log_service.log_question("update_question", question_id, current_user, {
+        "fields_updated": list(update_dict.keys())
+    })
+
     return question
 
 
 async def delete_question(question_id: str, current_user):
     question = await get_question_by_id(question_id)
 
-    # Check permission
-    if question.creator_id.id != current_user.id and current_user.role != "admin":
-        raise AppException(StatusCode.FORBIDDEN, "Không có quyền xóa")
+    if question.creator_id.ref.id != current_user.id and current_user.role != "admin":
+        raise AppException(StatusCode.FORBIDDEN, "Permission denied")
+
+    await log_service.log_question("delete_question", question_id, current_user)
 
     await question.delete()
     return {}
@@ -92,3 +103,40 @@ async def get_all_questions(page: int = 1, page_size: int = 20):
 async def get_available_subjects():
     subjects = await ClassroomModel.distinct("subject")
     return subjects
+
+
+async def get_my_questions(page: int, page_size: int, current_user):
+    if page < 1:
+        page = 1
+    if page_size < 1 or page_size > 100:
+        page_size = 20
+
+    skip = (page - 1) * page_size
+
+    items = []
+    total = 0
+
+    if current_user.role == "admin":
+        query = QuestionModel.find_all()
+        total = await query.count()
+        items = await query.skip(skip).limit(page_size).to_list()
+
+    elif current_user.role == "teacher":
+        query = QuestionModel.find({"creator_id.$id": current_user.id})
+        total = await query.count()
+        items = await query.skip(skip).limit(page_size).to_list()
+
+    else:
+        raise AppException(StatusCode.FORBIDDEN, "Students cannot view question list")
+
+    total_pages = (total + page_size - 1) // page_size
+
+    return {
+        "items": items,
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "total_pages": total_pages,
+        "has_next": page < total_pages,
+        "has_previous": page > 1
+    }

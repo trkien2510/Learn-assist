@@ -5,33 +5,56 @@ from schemas.base_schema import BaseResponse
 from schemas.user_schema import UserUpdate
 from core.exception_handler import AppException
 from core.status_code import StatusCode
+from services import user_service
+from pydantic import BaseModel
 
 router = APIRouter()
 
+
+class ToggleStatusRequest(BaseModel):
+    is_active: bool
+
+
 @router.get("", response_model=BaseResponse)
-async def get_all_users_admin(current_user: UserModel = Depends(get_current_user)):
+async def get_all_users_admin(page: int = 1, page_size: int = 20, current_user: UserModel = Depends(get_current_user)):
     if current_user.role != "admin":
-        raise AppException(StatusCode.FORBIDDEN, "Không có quyền truy cập")
+        raise AppException(StatusCode.FORBIDDEN, "Access denied")
 
+    data = await user_service.get_all_users(page, page_size)
+    return BaseResponse(data=data)
+
+
+@router.get("/{user_id}", response_model=BaseResponse)
+async def get_user_profile_admin(user_id: str, current_user: UserModel = Depends(get_current_user)):
+    if current_user.role != "admin":
+        raise AppException(StatusCode.FORBIDDEN, "Access denied")
+
+    data = await user_service.get_user_by_id(user_id)
+    return BaseResponse(data=data)
+
+
+@router.put("/{user_id}", response_model=BaseResponse)
+async def update_user_admin(user_id: str, update_data: UserUpdate, current_user: UserModel = Depends(get_current_user)):
+    if current_user.role != "admin":
+        raise AppException(StatusCode.FORBIDDEN, "Access denied")
+
+    data = await user_service.update_user_by_admin(user_id, update_data, current_user)
+    return BaseResponse(data=data)
+
+
+@router.delete("/{user_id}", response_model=BaseResponse)
+async def delete_user_admin(user_id: str, current_user: UserModel = Depends(get_current_user)):
+    if current_user.role != "admin":
+        raise AppException(StatusCode.FORBIDDEN, "Access denied")
+
+    await user_service.delete_user_by_admin(user_id, current_user)
     return BaseResponse()
 
-@router.get("/{id}", response_model=BaseResponse)
-async def get_user_profile_admin(id: str, current_user: UserModel = Depends(get_current_user)):
+
+@router.patch("/{user_id}/status", response_model=BaseResponse)
+async def toggle_user_status(user_id: str, request: ToggleStatusRequest, current_user: UserModel = Depends(get_current_user)):
     if current_user.role != "admin":
-        raise AppException(StatusCode.FORBIDDEN, "Không có quyền truy cập")
+        raise AppException(StatusCode.FORBIDDEN, "Access denied")
 
-    return BaseResponse()
-
-@router.put("/{id}", response_model=BaseResponse)
-async def update_user_admin(id: str, update_data: UserUpdate, current_user: UserModel = Depends(get_current_user)):
-    if current_user.role != "admin":
-        raise AppException(StatusCode.FORBIDDEN, "Không có quyền truy cập")
-
-    return BaseResponse()
-
-@router.delete("/{id}", response_model=BaseResponse)
-async def delete_user_admin(id: str, current_user: UserModel = Depends(get_current_user)):
-    if current_user.role != "admin":
-        raise AppException(StatusCode.FORBIDDEN, "Không có quyền truy cập")
-
-    return BaseResponse()
+    data = await user_service.toggle_user_status(user_id, request.is_active, current_user)
+    return BaseResponse(data=data)

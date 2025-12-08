@@ -6,12 +6,26 @@ from services import result_service
 
 router = APIRouter()
 
-@router.get("/result/{exam_id}", response_model=BaseResponse)
-async def get_result_by_exam_id(exam_id: str, page: int = 1, page_size: int = 20, current_user: UserModel = Depends(get_current_user)):
-    data = await result_service.get_results_by_exam_id(exam_id, page, page_size)
+
+@router.get("/all", response_model=BaseResponse)
+async def get_all_results(page: int = 1, page_size: int = 20, current_user: UserModel = Depends(get_current_user)):
+    data = await result_service.get_my_results(page, page_size, current_user)
     return BaseResponse(data=data)
 
-@router.delete("/result/{result_id}", response_model=BaseResponse)
-async def delete_result_by_id(result_id: str, current_user: UserModel = Depends(get_current_user)):
+
+@router.get("/exam/{exam_id}", response_model=BaseResponse)
+async def get_results_by_exam(exam_id: str, page: int = 1, page_size: int = 20, current_user: UserModel = Depends(get_current_user)):
+    data = await result_service.get_results_by_exam_id(exam_id, page, page_size, current_user)
+    return BaseResponse(data=data)
+
+
+@router.get("/class/{class_id}", response_model=BaseResponse)
+async def get_results_by_class(class_id: str, page: int = 1, page_size: int = 20, current_user: UserModel = Depends(get_current_user)):
+    data = await result_service.get_results_by_class_id(class_id, page, page_size, current_user)
+    return BaseResponse(data=data)
+
+
+@router.delete("/{result_id}", response_model=BaseResponse)
+async def delete_result(result_id: str, current_user: UserModel = Depends(get_current_user)):
     await result_service.delete_result(result_id, current_user)
     return BaseResponse()
