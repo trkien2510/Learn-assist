@@ -6,7 +6,7 @@ from models.exam_model import ExamModel
 from models.classroom_model import ClassroomModel
 from models.question_model import QuestionModel
 from models.result_model import ResultModel
-from services import log_service
+from services import log_service, notification_service
 
 
 async def create_exam(exam_data, current_user):
@@ -47,6 +47,21 @@ async def create_exam(exam_data, current_user):
         "class_code": exam_data.class_code,
         "question_count": len(question_links)
     })
+
+    # Notify all students in the classroom
+    await notification_service.notify_students_exam_created(
+        exam=new_exam,
+        classroom=classroom,
+        creator_name=current_user.full_name
+    )
+
+    # Notify teacher about successful exam creation
+    await notification_service.notify_teacher_exam_created(
+        user=current_user,
+        exam=new_exam,
+        classroom_name=classroom.name,
+        question_count=len(question_links)
+    )
 
     return {}
 
@@ -130,6 +145,13 @@ async def start_exam(exam_id: str, current_user):
         "title": exam.title
     })
 
+    # Notify student that they started the exam
+    await notification_service.notify_student_exam_started(
+        user=current_user,
+        exam=exam,
+        classroom_name=classroom.name if classroom else "Unknown"
+    )
+
     return {
         "exam": exam,
         "result_id": str(new_result.id),
@@ -199,6 +221,15 @@ async def submit_exam(exam_id: str, submit_data, current_user):
         "correct_count": correct_count,
         "total_questions": total_questions
     })
+
+    # Notify student about their result
+    await notification_service.notify_student_exam_submitted(
+        user=current_user,
+        exam=exam,
+        score=result.score,
+        correct_count=correct_count,
+        total_questions=total_questions
+    )
 
     return {
         "result_id": str(result.id),

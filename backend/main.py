@@ -6,7 +6,7 @@ from api.admin import admin_router
 from core.config import settings
 from db.mongodb import init_db
 from api import user_router, classroom_router, auth_router, document_router, exam_router, question_router, \
-    statistical_router, result_router, dashboard_router
+    statistical_router, result_router, dashboard_router, notification_router
 
 
 @asynccontextmanager
@@ -43,3 +43,4 @@ app.include_router(exam_router.router, prefix=f"{settings.API_PREFIX}/exam", tag
 app.include_router(result_router.router, prefix=f"{settings.API_PREFIX}/result", tags=["Result"])
 app.include_router(statistical_router.router, prefix=f"{settings.API_PREFIX}/statistics", tags=["Statistics"])
 app.include_router(admin_router.router, prefix=f"{settings.API_PREFIX}/admin", tags=["Admin"])
+app.include_router(notification_router.router, prefix=f"{settings.API_PREFIX}/notifications", tags=["Notifications"])

@@ -3,7 +3,7 @@ from utils.document_util import read_and_clean_uploaded_file
 from services.ai_service import call_openai_for_questions, create_question_generation_prompt
 from core.exception_handler import AppException
 from core.status_code import StatusCode
-from services import log_service
+from services import log_service, notification_service
 
 from models.document_model import DocumentModel
 
@@ -14,35 +14,71 @@ async def process_upload(number_question: int, file: UploadFile, current_user):
     if current_user.role.value != "teacher":
         raise AppException(StatusCode.FORBIDDEN, "Only teachers can upload documents")
 
-    document_content = await read_and_clean_uploaded_file(file)
+    try:
+        document_content = await read_and_clean_uploaded_file(file)
 
-    if document_content is None:
-        raise AppException(StatusCode.UNSUPPORTED_TYPE, "Unsupported file type or extraction error")
+        if document_content is None:
+            await notification_service.notify_teacher_document_upload_failed(
+                user=current_user,
+                document_name=file.filename,
+                error_message="Unsupported file type or extraction error"
+            )
+            raise AppException(StatusCode.UNSUPPORTED_TYPE, "Unsupported file type or extraction error")
 
-    if not document_content.strip():
-        raise AppException(StatusCode.BAD_REQUEST, "Document is empty or has no text content")
+        if not document_content.strip():
+            await notification_service.notify_teacher_document_upload_failed(
+                user=current_user,
+                document_name=file.filename,
+                error_message="Document is empty or has no text content"
+            )
+            raise AppException(StatusCode.BAD_REQUEST, "Document is empty or has no text content")
 
-    new_document = DocumentModel(
-        name=os.path.splitext(file.filename)[0],
-        creator=current_user,
-        file_name=file.filename,
-        file_path=file.filename,
-        file_type=file.content_type or "application/octet-stream"
-    )
-    await new_document.insert()
+        new_document = DocumentModel(
+            name=os.path.splitext(file.filename)[0],
+            creator=current_user,
+            file_name=file.filename,
+            file_path=file.filename,
+            file_type=file.content_type or "application/octet-stream"
+        )
+        await new_document.insert()
 
-    data = call_openai_for_questions(create_question_generation_prompt(document_content.strip(), number_question))
+        data = call_openai_for_questions(create_question_generation_prompt(document_content.strip(), number_question))
 
-    await log_service.log_document("upload_document", str(new_document.id), current_user, {
-        "filename": file.filename,
-        "number_question": number_question
-    })
+        await log_service.log_document("upload_document", str(new_document.id), current_user, {
+            "filename": file.filename,
+            "number_question": number_question
+        })
 
-    return {
-        "document_id": str(new_document.id),
-        "document_name": new_document.name,
-        "questions": data
-    }
+        # Notify teacher about successful upload
+        question_count = len(data) if isinstance(data, list) else 0
+        await notification_service.notify_teacher_document_upload_success(
+            user=current_user,
+            document_name=new_document.name,
+            document_id=str(new_document.id),
+            question_count=question_count
+        )
+
+        return {
+            "document_id": str(new_document.id),
+            "document_name": new_document.name,
+            "questions": data
+        }
+    except AppException:
+        raise
+    except Exception as e:
+        # Notify teacher about failed upload
+        await notification_service.notify_teacher_document_upload_failed(
+            user=current_user,
+            document_name=file.filename,
+            error_message=str(e)
+        )
+        # Notify admins about potential system error
+        await notification_service.notify_admins_system_error(
+            error_type="Document Processing",
+            error_message=str(e),
+            details={"filename": file.filename, "user_id": str(current_user.id)}
+        )
+        raise AppException(StatusCode.FILE_PROCESSING_ERROR, f"Failed to process document: {str(e)}")
 
 
 async def get_all_documents(page: int, page_size: int):

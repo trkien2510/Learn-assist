@@ -6,6 +6,7 @@ from models.document_model import DocumentModel
 from models.exam_model import ExamModel
 from models.join_request_model import JoinRequestModel
 from models.log_model import LogModel
+from models.notification_model import NotificationModel
 from models.question_model import QuestionModel
 from models.result_model import ResultModel
 from models.user_model import UserModel
@@ -26,6 +27,7 @@ async def init_db():
             ExamModel,
             ResultModel,
             LogModel,
+            NotificationModel,
         ]
     )
 
@@ -33,6 +35,14 @@ async def init_db():
         await db.logs.create_index(
             "created_at",
             expireAfterSeconds=2592000
+        )
+    except Exception:
+        pass
+
+    try:
+        await db.notifications.create_index(
+            "created_at",
+            expireAfterSeconds=604800
         )
     except Exception:
         pass
