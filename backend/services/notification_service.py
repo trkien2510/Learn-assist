@@ -20,7 +20,6 @@ async def create_notification(
     related_id: str = None,
     related_type: str = None
 ):
-    """Create a single notification for a user."""
     notification = NotificationModel(
         user_id=user,
         notification_type=notification_type,
@@ -41,7 +40,6 @@ async def create_bulk_notifications(
     related_id: str = None,
     related_type: str = None
 ):
-    """Create notifications for multiple users."""
     notifications = []
     for user in users:
         notification = NotificationModel(
@@ -65,7 +63,6 @@ async def get_user_notifications(
     page_size: int = 20,
     unread_only: bool = False
 ):
-    """Get notifications for the current user."""
     if page < 1:
         page = 1
     if page_size < 1 or page_size > 100:
@@ -82,7 +79,6 @@ async def get_user_notifications(
     total = await query.count()
     items = await query.skip(skip).limit(page_size).to_list()
     
-    # Get unread count
     unread_count = await NotificationModel.find({
         "user_id.$id": current_user.id,
         "is_read": False
@@ -103,7 +99,6 @@ async def get_user_notifications(
 
 
 async def mark_as_read(current_user: UserModel, notification_ids: List[str] = None):
-    """Mark notifications as read. If notification_ids is None, mark all as read."""
     if notification_ids is None:
         # Mark all as read
         result = await NotificationModel.find({
@@ -112,7 +107,6 @@ async def mark_as_read(current_user: UserModel, notification_ids: List[str] = No
         }).update({"$set": {"is_read": True}})
         return {"marked_count": result.modified_count if result else 0}
     else:
-        # Mark specific notifications as read
         obj_ids = []
         for nid in notification_ids:
             try:
@@ -131,7 +125,6 @@ async def mark_as_read(current_user: UserModel, notification_ids: List[str] = No
 
 
 async def delete_notification(notification_id: str, current_user: UserModel):
-    """Delete a notification."""
     try:
         obj_id = PydanticObjectId(notification_id)
     except:
@@ -149,24 +142,18 @@ async def delete_notification(notification_id: str, current_user: UserModel):
 
 
 async def delete_all_notifications(current_user: UserModel):
-    """Delete all notifications for the current user."""
     result = await NotificationModel.find({"user_id.$id": current_user.id}).delete()
     return {"deleted_count": result.deleted_count if result else 0}
 
 
 async def get_unread_count(current_user: UserModel):
-    """Get unread notification count."""
     count = await NotificationModel.find({
         "user_id.$id": current_user.id,
         "is_read": False
     }).count()
     return {"unread_count": count}
 
-
-# ===== Student Notifications =====
-
 async def notify_students_exam_created(exam: ExamModel, classroom: ClassroomModel, creator_name: str):
-    """Notify all students in a classroom when a new exam is created."""
     students = []
     for member_link in classroom.members:
         member = await UserModel.get(member_link.ref.id)
@@ -187,7 +174,6 @@ async def notify_students_exam_created(exam: ExamModel, classroom: ClassroomMode
 
 
 async def notify_student_exam_started(user: UserModel, exam: ExamModel, classroom_name: str):
-    """Notify a student that they have started an exam."""
     await create_notification(
         user=user,
         notification_type=NotificationType.EXAM_STARTED,
@@ -209,11 +195,7 @@ async def notify_student_exam_submitted(user: UserModel, exam: ExamModel, score:
         related_type="exam"
     )
 
-
-# ===== Teacher Notifications =====
-
 async def notify_teacher_document_upload_success(user: UserModel, document_name: str, document_id: str, question_count: int):
-    """Notify teacher when document upload and question generation is successful."""
     await create_notification(
         user=user,
         notification_type=NotificationType.DOCUMENT_UPLOAD_SUCCESS,
@@ -225,7 +207,28 @@ async def notify_teacher_document_upload_success(user: UserModel, document_name:
 
 
 async def notify_teacher_document_upload_failed(user: UserModel, document_name: str, error_message: str):
-    """Notify teacher when document upload fails."""
+    await create_notification(
+        user=user,
+        notification_type=NotificationType.DOCUMENT_UPLOAD_FAILED,
+        title=f"Document upload failed: {document_name}",
+        message=f"Failed to upload or process document '{document_name}'. Error: {error_message}",
+        related_id=None,
+        related_type="document"
+    )
+
+
+async def notify_document_upload_success(user: UserModel, document_name: str, document_id: str, question_count: int):
+    await create_notification(
+        user=user,
+        notification_type=NotificationType.DOCUMENT_UPLOAD_SUCCESS,
+        title=f"Document uploaded: {document_name}",
+        message=f"Your document '{document_name}' has been uploaded and processed successfully. {question_count} questions have been generated.",
+        related_id=document_id,
+        related_type="document"
+    )
+
+
+async def notify_document_upload_failed(user: UserModel, document_name: str, error_message: str):
     await create_notification(
         user=user,
         notification_type=NotificationType.DOCUMENT_UPLOAD_FAILED,
@@ -237,7 +240,6 @@ async def notify_teacher_document_upload_failed(user: UserModel, document_name: 
 
 
 async def notify_teacher_exam_created(user: UserModel, exam: ExamModel, classroom_name: str, question_count: int):
-    """Notify teacher that exam was created successfully."""
     await create_notification(
         user=user,
         notification_type=NotificationType.EXAM_CREATION_SUCCESS,
@@ -249,7 +251,6 @@ async def notify_teacher_exam_created(user: UserModel, exam: ExamModel, classroo
 
 
 async def notify_teacher_exam_ended(user: UserModel, exam: ExamModel, classroom_name: str, participant_count: int):
-    """Notify teacher when their exam has ended and statistics are available."""
     await create_notification(
         user=user,
         notification_type=NotificationType.EXAM_STATISTICS_AVAILABLE,
@@ -259,11 +260,18 @@ async def notify_teacher_exam_ended(user: UserModel, exam: ExamModel, classroom_
         related_type="exam"
     )
 
+async def notify_personal_exam_created(user: UserModel, exam: ExamModel, question_count: int):
+    await create_notification(
+        user=user,
+        notification_type=NotificationType.EXAM_CREATION_SUCCESS,
+        title=f"Personal exam created: {exam.title}",
+        message=f"Your personal practice exam '{exam.title}' has been created with {question_count} questions. Duration: {exam.duration} minutes. You can start practicing anytime!",
+        related_id=str(exam.id),
+        related_type="exam"
+    )
 
-# ===== Admin Notifications =====
 
 async def notify_admins_system_error(error_type: str, error_message: str, details: Dict[str, Any] = None):
-    """Notify all admins about a system error."""
     admins = await UserModel.find(UserModel.role == UserRole.ADMIN).to_list()
     
     if admins:
@@ -284,7 +292,6 @@ async def notify_admins_system_error(error_type: str, error_message: str, detail
 
 
 async def notify_admins_system_warning(warning_type: str, warning_message: str, details: Dict[str, Any] = None):
-    """Notify all admins about a system warning."""
     admins = await UserModel.find(UserModel.role == UserRole.ADMIN).to_list()
     
     if admins:
@@ -305,7 +312,6 @@ async def notify_admins_system_warning(warning_type: str, warning_message: str, 
 
 
 async def notify_admins_user_anomaly(user_id: str, anomaly_type: str, description: str):
-    """Notify admins about user anomaly (suspicious activity)."""
     admins = await UserModel.find(UserModel.role == UserRole.ADMIN).to_list()
     
     if admins:
@@ -322,7 +328,6 @@ async def notify_admins_user_anomaly(user_id: str, anomaly_type: str, descriptio
 
 
 async def notify_admins_high_error_rate(error_count: int, time_period: str, affected_service: str = None):
-    """Notify admins when error rate is high."""
     admins = await UserModel.find(UserModel.role == UserRole.ADMIN).to_list()
     
     if admins:
@@ -340,10 +345,7 @@ async def notify_admins_high_error_rate(error_count: int, time_period: str, affe
     return len(admins)
 
 
-# ===== Cleanup Functions =====
-
 async def cleanup_old_notifications(days: int = 30):
-    """Delete notifications older than specified days."""
     from datetime import timedelta
     cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
     result = await NotificationModel.find(NotificationModel.created_at < cutoff_date).delete()

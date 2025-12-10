@@ -1,11 +1,24 @@
+from datetime import datetime, timezone, timedelta
 from beanie import PydanticObjectId
 from core.jwt import create_access_token, create_refresh_token, decode_token
 from core.security import get_password_hash, verify_password
 from models.user_model import UserModel
+from models.otp_model import OTPPurpose
 from schemas.base_schema import TokenResponse
 from core.exception_handler import AppException
 from core.status_code import StatusCode
 from services import log_service
+from services.email_service import send_otp_email
+import random
+import string
+
+
+OTP_LENGTH = 6
+OTP_EXPIRY_MINUTES = 5
+
+
+def generate_otp_code() -> str:
+    return ''.join(random.choices(string.digits, k=OTP_LENGTH))
 
 
 async def register(user_in):
@@ -14,6 +27,7 @@ async def register(user_in):
         raise AppException(StatusCode.BAD_REQUEST, "Account already exists")
 
     hashed = get_password_hash(user_in.password)
+    verification_expires = datetime.now(timezone.utc) + timedelta(minutes=5)
     user = UserModel(
         username=user_in.username,
         email=user_in.email,
@@ -22,12 +36,35 @@ async def register(user_in):
         role=user_in.role,
         dob=user_in.dob,
         phone_number=user_in.phone_number,
+        email_verified=False,
+        verification_expires_at=verification_expires,
     )
     await user.insert()
 
     await log_service.log_auth("register", user=user)
 
-    return {}
+    from models.otp_model import OTPModel
+    
+    await OTPModel.find(
+        OTPModel.email == user_in.email,
+        OTPModel.purpose == OTPPurpose.REGISTRATION,
+        OTPModel.is_used == False
+    ).update({"$set": {"is_used": True}})
+    
+    otp_code = generate_otp_code()
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=OTP_EXPIRY_MINUTES)
+    
+    otp = OTPModel(
+        email=user_in.email,
+        otp_code=otp_code,
+        purpose=OTPPurpose.REGISTRATION,
+        expires_at=expires_at
+    )
+    await otp.insert()
+    
+    await send_otp_email(user_in.email, otp_code, OTPPurpose.REGISTRATION, user.full_name)
+
+    return {"message": "Registration successful. OTP has been sent to your email for verification"}
 
 
 async def login(login_data):
@@ -47,6 +84,9 @@ async def login(login_data):
             status="error"
         )
         raise AppException(StatusCode.UNAUTHORIZED, "Invalid username or password")
+
+    if not user.email_verified:
+        raise AppException(StatusCode.FORBIDDEN, "Email not verified. Please verify your email first")
 
     access = create_access_token({"sub": str(user.id), "role": user.role})
     refresh = create_refresh_token({"sub": str(user.id)})

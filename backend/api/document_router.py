@@ -20,9 +20,9 @@ async def upload_document(number_question: int, file: UploadFile = File(...), cu
     return BaseResponse(data=data)
 
 
-@router.post("/save-questions", response_model=BaseResponse)
-async def save_questions(list_question: ListQuestionSchema, current_user: UserModel = Depends(get_current_user)):
-    data = await document_service.save_questions(list_question, current_user)
+@router.post("/save-questions/{document_id}", response_model=BaseResponse)
+async def save_questions(document_id: str, list_question: ListQuestionSchema, current_user: UserModel = Depends(get_current_user)):
+    data = await document_service.save_questions(list_question, document_id, current_user)
     return BaseResponse(data=data)
 
 

@@ -10,12 +10,14 @@ class UserRole(str, Enum):
 
 class UserModel(Document):
     username: str = Indexed(str, unique=True)
-    email: EmailStr = Indexed(EmailStr)
+    email: EmailStr = Indexed(EmailStr, unique=True)
     hashed_password: str
     full_name: str
     dob: date
     phone_number: str | None
     role: UserRole = UserRole.STUDENT
+    email_verified: bool = Field(default=False)
+    verification_expires_at: datetime | None = Field(default=None)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     is_activate: bool = Field(default=True)

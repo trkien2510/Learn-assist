@@ -11,14 +11,22 @@ class CreateExamSchema(BaseModel):
     end_at: datetime
     question_ids: List[str] = []
 
+
+class CreatePersonalExamSchema(BaseModel):
+    title: str
+    duration: int  # Duration in minutes
+    question_ids: List[str] = []  # List of question IDs to include
+
+
 class ExamResponseSchema(BaseModel):
     id: PydanticObjectId = Field(alias="_id")
     title: str
     duration: int
     start_at: datetime
     end_at: datetime
-    class_id: PydanticObjectId
+    class_id: Optional[PydanticObjectId] = None
     creator_id: PydanticObjectId
+    is_personal: bool = False
 
 
 class SubmitExamSchema(BaseModel):

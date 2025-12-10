@@ -3,15 +3,14 @@ from datetime import datetime, timedelta, timezone
 
 from core.dependencies import get_current_admin
 from core.status_code import StatusCode
-from schemas.base_schema import ApiResponse
+from schemas.base_schema import BaseResponse
 from services import notification_service
-from models.notification_model import NotificationModel
 from models.log_model import LogModel
 
 router = APIRouter()
 
 
-@router.get("/system-notifications", response_model=ApiResponse)
+@router.get("/system-notifications", response_model=BaseResponse)
 async def get_system_notifications(
     page: int = 1,
     page_size: int = 20,
@@ -53,7 +52,7 @@ async def get_system_notifications(
     )
 
 
-@router.get("/system-health", response_model=ApiResponse)
+@router.get("/system-health", response_model=BaseResponse)
 async def get_system_health(current_admin=Depends(get_current_admin)):
     """Check system health and detect anomalies."""
     one_hour_ago = datetime.now(timezone.utc) - timedelta(hours=1)
@@ -94,17 +93,17 @@ async def get_system_health(current_admin=Depends(get_current_admin)):
     )
 
 
-@router.post("/cleanup-notifications", response_model=ApiResponse)
+@router.post("/cleanup-notifications", response_model=BaseResponse)
 async def cleanup_old_notifications(
     days: int = 30,
     current_admin=Depends(get_current_admin)
 ):
     """Cleanup old notifications older than specified days."""
     result = await notification_service.cleanup_old_notifications(days=days)
-    return ApiResponse(code=StatusCode.SUCCESS, data=result)
+    return BaseResponse(code=StatusCode.SUCCESS, data=result)
 
 
-@router.post("/test-notification", response_model=ApiResponse)
+@router.post("/test-notification", response_model=BaseResponse)
 async def send_test_notification(
     current_admin=Depends(get_current_admin)
 ):
@@ -114,7 +113,7 @@ async def send_test_notification(
         warning_message="This is a test notification from the admin panel",
         details={"triggered_by": current_admin.email}
     )
-    return ApiResponse(
+    return BaseResponse(
         code=StatusCode.SUCCESS,
         data={"message": "Test notification sent successfully"}
     )

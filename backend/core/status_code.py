@@ -22,6 +22,10 @@ class StatusCode(int, Enum):
     JOIN_REQUEST_EXISTS = 4303
     INVALID_CLASS_CODE = 4304
     DOCUMENT_ACCESS_DENIED = 4310
+    
+    # OTP errors (44xx)
+    OTP_INVALID = 4401
+    OTP_EXPIRED = 4402
 
     # Server/System errors (5xxx)
     INTERNAL_SERVER_ERROR = 5000
@@ -48,6 +52,9 @@ STATUS_MESSAGES = {
     StatusCode.JOIN_REQUEST_EXISTS: "Join request already exists",
     StatusCode.INVALID_CLASS_CODE: "Invalid class code",
     StatusCode.DOCUMENT_ACCESS_DENIED: "Document access denied",
+
+    StatusCode.OTP_INVALID: "Invalid OTP code",
+    StatusCode.OTP_EXPIRED: "OTP has expired",
 
     StatusCode.INTERNAL_SERVER_ERROR: "Internal server error",
     StatusCode.DATABASE_ERROR: "Database error",

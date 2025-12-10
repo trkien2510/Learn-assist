@@ -120,14 +120,10 @@ async def get_my_questions(page: int, page_size: int, current_user):
         query = QuestionModel.find_all()
         total = await query.count()
         items = await query.skip(skip).limit(page_size).to_list()
-
-    elif current_user.role == "teacher":
+    else:
         query = QuestionModel.find({"creator_id.$id": current_user.id})
         total = await query.count()
         items = await query.skip(skip).limit(page_size).to_list()
-
-    else:
-        raise AppException(StatusCode.FORBIDDEN, "Students cannot view question list")
 
     total_pages = (total + page_size - 1) // page_size
 
@@ -140,3 +136,4 @@ async def get_my_questions(page: int, page_size: int, current_user):
         "has_next": page < total_pages,
         "has_previous": page > 1
     }
+

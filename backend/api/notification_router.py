@@ -3,21 +3,20 @@ from typing import Optional
 
 from core.dependencies import get_current_user
 from core.status_code import StatusCode
-from schemas.base_schema import ApiResponse
+from schemas.base_schema import BaseResponse
 from schemas.notification_schema import MarkReadRequest
 from services import notification_service
 
 router = APIRouter()
 
 
-@router.get("/", response_model=ApiResponse)
+@router.get("/", response_model=BaseResponse)
 async def get_notifications(
     page: int = 1,
     page_size: int = 20,
     unread_only: bool = False,
     current_user=Depends(get_current_user)
 ):
-    """Get notifications for the current user."""
     result = await notification_service.get_user_notifications(
         current_user=current_user,
         page=page,
@@ -38,7 +37,7 @@ async def get_notifications(
             "created_at": notification.created_at.isoformat()
         })
     
-    return ApiResponse(
+    return BaseResponse(
         code=StatusCode.SUCCESS,
         data={
             "items": items,
@@ -53,39 +52,35 @@ async def get_notifications(
     )
 
 
-@router.get("/unread-count", response_model=ApiResponse)
+@router.get("/unread-count", response_model=BaseResponse)
 async def get_unread_count(current_user=Depends(get_current_user)):
-    """Get the count of unread notifications."""
     result = await notification_service.get_unread_count(current_user)
-    return ApiResponse(code=StatusCode.SUCCESS, data=result)
+    return BaseResponse(code=StatusCode.SUCCESS, data=result)
 
 
-@router.post("/mark-read", response_model=ApiResponse)
+@router.post("/mark-read", response_model=BaseResponse)
 async def mark_notifications_as_read(
     request: Optional[MarkReadRequest] = None,
     current_user=Depends(get_current_user)
 ):
-    """Mark notifications as read. Send empty body or null notification_ids to mark all as read."""
     notification_ids = None
     if request and request.notification_ids:
         notification_ids = request.notification_ids
     
     result = await notification_service.mark_as_read(current_user, notification_ids)
-    return ApiResponse(code=StatusCode.SUCCESS, data=result)
+    return BaseResponse(code=StatusCode.SUCCESS, data=result)
 
 
-@router.delete("/{notification_id}", response_model=ApiResponse)
+@router.delete("/{notification_id}", response_model=BaseResponse)
 async def delete_notification(
     notification_id: str,
     current_user=Depends(get_current_user)
 ):
-    """Delete a specific notification."""
     result = await notification_service.delete_notification(notification_id, current_user)
-    return ApiResponse(code=StatusCode.SUCCESS, data=result)
+    return BaseResponse(code=StatusCode.SUCCESS, data=result)
 
 
-@router.delete("/", response_model=ApiResponse)
+@router.delete("/", response_model=BaseResponse)
 async def delete_all_notifications(current_user=Depends(get_current_user)):
-    """Delete all notifications for the current user."""
     result = await notification_service.delete_all_notifications(current_user)
-    return ApiResponse(code=StatusCode.SUCCESS, data=result)
+    return BaseResponse(code=StatusCode.SUCCESS, data=result)

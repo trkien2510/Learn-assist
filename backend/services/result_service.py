@@ -27,19 +27,33 @@ async def get_results_by_exam_id(exam_id: str, page: int, page_size: int, curren
     items = []
     total = 0
 
+    is_personal_exam = exam.is_personal if hasattr(exam, 'is_personal') else False
+
     if current_user.role == "admin":
         query = ResultModel.find({"exam_id.$id": obj_id})
         total = await query.count()
         items = await query.skip(skip).limit(page_size).to_list()
 
-    elif current_user.role == "teacher":
-        classroom = await ClassroomModel.get(exam.class_id.ref.id)
-        if classroom:
-            is_creator = classroom.creator.ref.id == current_user.id
-            is_member = any(m.ref.id == current_user.id for m in classroom.members)
+    elif is_personal_exam:
+        if exam.creator_id.ref.id != current_user.id:
+            raise AppException(StatusCode.FORBIDDEN, "You can only view your own personal exam results")
+        
+        query = ResultModel.find({
+            "exam_id.$id": obj_id,
+            "user_id.$id": current_user.id
+        })
+        total = await query.count()
+        items = await query.skip(skip).limit(page_size).to_list()
 
-            if not is_creator and not is_member:
-                raise AppException(StatusCode.FORBIDDEN, "You do not have permission to view results of this exam")
+    elif current_user.role == "teacher":
+        if exam.class_id:
+            classroom = await ClassroomModel.get(exam.class_id.ref.id)
+            if classroom:
+                is_creator = classroom.creator.ref.id == current_user.id
+                is_member = any(m.ref.id == current_user.id for m in classroom.members)
+
+                if not is_creator and not is_member:
+                    raise AppException(StatusCode.FORBIDDEN, "You do not have permission to view results of this exam")
 
         query = ResultModel.find({"exam_id.$id": obj_id})
         total = await query.count()
@@ -220,3 +234,102 @@ async def delete_result(result_id: str, current_user):
         )
         await result.delete()
     return {}
+
+
+async def get_personal_results(page: int, page_size: int, current_user):
+    if page < 1:
+        page = 1
+    if page_size < 1 or page_size > 100:
+        page_size = 20
+
+    skip = (page - 1) * page_size
+
+    personal_exams = await ExamModel.find({
+        "creator_id.$id": current_user.id,
+        "is_personal": True
+    }).to_list()
+
+    exam_ids = [e.id for e in personal_exams]
+
+    items = []
+    total = 0
+
+    if exam_ids:
+        query = ResultModel.find({
+            "exam_id.$id": {"$in": exam_ids},
+            "user_id.$id": current_user.id
+        })
+        total = await query.count()
+        items = await query.skip(skip).limit(page_size).to_list()
+
+    total_pages = (total + page_size - 1) // page_size
+
+    return {
+        "items": items,
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "total_pages": total_pages,
+        "has_next": page < total_pages,
+        "has_previous": page > 1
+    }
+
+
+async def get_user_overall_statistics(current_user):
+    from models.question_model import QuestionModel
+    from models.document_model import DocumentModel
+
+    all_results = await ResultModel.find({
+        "user_id.$id": current_user.id,
+        "submitted": True
+    }).to_list()
+
+    personal_exams = await ExamModel.find({
+        "creator_id.$id": current_user.id,
+        "is_personal": True
+    }).to_list()
+    personal_exam_ids = set(str(e.id) for e in personal_exams)
+
+    personal_results = []
+    classroom_results = []
+
+    for r in all_results:
+        exam_id_str = str(r.exam_id.ref.id)
+        if exam_id_str in personal_exam_ids:
+            personal_results.append(r)
+        else:
+            classroom_results.append(r)
+
+    personal_scores = [r.score for r in personal_results]
+    personal_stats = {
+        "total_attempts": len(personal_results),
+        "average_score": round(sum(personal_scores) / len(personal_scores), 2) if personal_scores else 0,
+        "highest_score": max(personal_scores) if personal_scores else 0,
+        "lowest_score": min(personal_scores) if personal_scores else 0,
+        "total_questions_answered": sum(len(r.answer_map) for r in personal_results)
+    }
+
+    classroom_scores = [r.score for r in classroom_results]
+    classroom_stats = {
+        "total_attempts": len(classroom_results),
+        "average_score": round(sum(classroom_scores) / len(classroom_scores), 2) if classroom_scores else 0,
+        "highest_score": max(classroom_scores) if classroom_scores else 0,
+        "lowest_score": min(classroom_scores) if classroom_scores else 0,
+        "total_questions_answered": sum(len(r.answer_map) for r in classroom_results)
+    }
+
+    documents = await DocumentModel.find({"creator.$id": current_user.id}).to_list()
+    questions = await QuestionModel.find({"creator_id.$id": current_user.id}).to_list()
+
+    return {
+        "personal_practice": personal_stats,
+        "classroom_exams": classroom_stats,
+        "total_documents_created": len(documents),
+        "total_questions_created": len(questions),
+        "total_personal_exams": len(personal_exams),
+        "overall": {
+            "total_exams_taken": len(all_results),
+            "all_scores_average": round(sum(r.score for r in all_results) / len(all_results), 2) if all_results else 0
+        }
+    }
+

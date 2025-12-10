@@ -11,14 +11,12 @@ import os
 
 
 async def process_upload(number_question: int, file: UploadFile, current_user):
-    if current_user.role.value != "teacher":
-        raise AppException(StatusCode.FORBIDDEN, "Only teachers can upload documents")
-
+    # All authenticated users can upload documents
     try:
         document_content = await read_and_clean_uploaded_file(file)
 
         if document_content is None:
-            await notification_service.notify_teacher_document_upload_failed(
+            await notification_service.notify_document_upload_failed(
                 user=current_user,
                 document_name=file.filename,
                 error_message="Unsupported file type or extraction error"
@@ -26,7 +24,7 @@ async def process_upload(number_question: int, file: UploadFile, current_user):
             raise AppException(StatusCode.UNSUPPORTED_TYPE, "Unsupported file type or extraction error")
 
         if not document_content.strip():
-            await notification_service.notify_teacher_document_upload_failed(
+            await notification_service.notify_document_upload_failed(
                 user=current_user,
                 document_name=file.filename,
                 error_message="Document is empty or has no text content"
@@ -49,9 +47,9 @@ async def process_upload(number_question: int, file: UploadFile, current_user):
             "number_question": number_question
         })
 
-        # Notify teacher about successful upload
+        # Notify user about successful upload
         question_count = len(data) if isinstance(data, list) else 0
-        await notification_service.notify_teacher_document_upload_success(
+        await notification_service.notify_document_upload_success(
             user=current_user,
             document_name=new_document.name,
             document_id=str(new_document.id),
@@ -66,8 +64,8 @@ async def process_upload(number_question: int, file: UploadFile, current_user):
     except AppException:
         raise
     except Exception as e:
-        # Notify teacher about failed upload
-        await notification_service.notify_teacher_document_upload_failed(
+        # Notify user about failed upload
+        await notification_service.notify_document_upload_failed(
             user=current_user,
             document_name=file.filename,
             error_message=str(e)
@@ -127,7 +125,10 @@ async def get_my_documents(page: int, page_size: int, current_user):
         items = await query.skip(skip).limit(page_size).to_list()
 
     else:
-        raise AppException(StatusCode.FORBIDDEN, "Students cannot view document list")
+        # Students can view their own documents
+        query = DocumentModel.find({"creator.$id": current_user.id})
+        total = await query.count()
+        items = await query.skip(skip).limit(page_size).to_list()
 
     total_pages = (total + page_size - 1) // page_size
 
@@ -163,19 +164,30 @@ async def delete_document(document_id: str, current_user):
     return {}
 
 
-async def save_questions(list_question_data, current_user):
+async def save_questions(list_question_data, document_id: str, current_user):
     from models.question_model import QuestionModel
+    from beanie import PydanticObjectId
 
-    if current_user.role.value != "teacher":
-        raise AppException(StatusCode.FORBIDDEN, "Only teachers can save questions")
-
+    # All authenticated users can save questions
     questions = list_question_data.questions
     if not questions:
         raise AppException(StatusCode.BAD_REQUEST, "Question list is empty")
 
+    # Validate document exists if provided
+    doc_ref = None
+    if document_id:
+        try:
+            doc_obj_id = PydanticObjectId(document_id)
+            doc = await DocumentModel.get(doc_obj_id)
+            if doc:
+                doc_ref = doc
+        except:
+            pass
+
     saved_questions = []
     for q in questions:
         new_question = QuestionModel(
+            document_id=doc_ref,
             creator_id=current_user,
             content=q.content,
             options=q.options,
