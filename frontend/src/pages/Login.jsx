@@ -15,15 +15,15 @@ const Login = () => {
   const navigate = useNavigate();
 
   const roles = [
-    {
-      id: ROLES.ADMIN,
-      name: 'Quản trị viên',
-      description: 'Quản lý hệ thống',
-      icon: AdminIcon,
-      color: 'from-purple-500 to-pink-500',
-      hoverBg: 'hover:bg-purple-500/10',
-      borderColor: 'border-purple-500/50'
-    },
+    // {
+    //   id: ROLES.ADMIN,
+    //   name: 'Quản trị viên',
+    //   description: 'Quản lý hệ thống',
+    //   icon: AdminIcon,
+    //   color: 'from-purple-500 to-pink-500',
+    //   hoverBg: 'hover:bg-purple-500/10',
+    //   borderColor: 'border-purple-500/50'
+    // },
     {
       id: ROLES.TEACHER,
       name: 'Giảng viên',
@@ -199,10 +199,6 @@ const Login = () => {
             </Link>
           </p>
         </div>
-
-        <p className="text-center text-slate-500 text-sm mt-8">
-          © 2024 Learn Assist System - trkien2510
-        </p>
       </div>
     </div>
   );
