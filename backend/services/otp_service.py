@@ -115,11 +115,9 @@ async def verify_registration_otp(email: str, otp_code: str) -> dict:
         
         await log_service.create_log(
             action="email_verified",
+            user=user,
             resource_type="user",
             resource_id=str(user.id),
-            user_id=str(user.id),
-            user_email=user.email,
-            user_role=user.role.value,
             details={"email": email},
             status="success"
         )
@@ -154,11 +152,9 @@ async def reset_password(email: str, otp_code: str, new_password: str, confirm_p
 
     await log_service.create_log(
         action="password_reset",
+        user=user,
         resource_type="user",
         resource_id=str(user.id),
-        user_id=str(user.id),
-        user_email=user.email,
-        user_role=user.role.value,
         details={"email": email},
         status="success"
     )
@@ -190,11 +186,9 @@ async def reactivate_account(email: str, otp_code: str) -> dict:
 
     await log_service.create_log(
         action="account_reactivated",
+        user=user,
         resource_type="user",
         resource_id=str(user.id),
-        user_id=str(user.id),
-        user_email=user.email,
-        user_role=user.role.value,
         details={"email": email},
         status="success"
     )
