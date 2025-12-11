@@ -29,4 +29,4 @@ class NotificationListResponse(BaseModel):
 
 
 class MarkReadRequest(BaseModel):
-    notification_ids: Optional[List[str]] = None  # None means mark all as read
+    notification_ids: Optional[List[str]] = None

@@ -15,7 +15,7 @@ class ExamModel(Document):
     expiry_at: datetime
     start_at: datetime
     end_at: datetime
-    is_personal: bool = Field(default=False)  # True for student personal practice exams
+    is_personal: bool = Field(default=False)
 
     class Settings:
         name="exam"

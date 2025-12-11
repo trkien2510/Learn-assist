@@ -38,15 +38,6 @@ def extract_text_from_docx_python_docx(file_content: bytes) -> str:
 
 
 async def read_and_clean_uploaded_file(file: UploadFile) -> str | None:
-    """
-    Đọc và trích xuất nội dung văn bản từ file tải lên (PDF hoặc DOCX).
-    
-    Args:
-        file: File tải lên từ FastAPI UploadFile
-        
-    Returns:
-        Nội dung văn bản đã trích xuất, hoặc None nếu lỗi hoặc không hỗ trợ
-    """
     mime_type = file.content_type
 
     if mime_type not in [DOCX_MIME, PDF_MIME]:

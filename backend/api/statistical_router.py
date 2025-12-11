@@ -7,8 +7,6 @@ from services import result_service, statistics_service
 router = APIRouter()
 
 
-# ===== Basic Statistics =====
-
 @router.get("/exam/{exam_id}", response_model=BaseResponse[dict])
 async def get_exam_statistics(exam_id: str, page: int = 1, page_size: int = 20, current_user: UserModel = Depends(get_current_user)):
     data = await result_service.get_results_by_exam_id(exam_id, page, page_size, current_user)
@@ -26,8 +24,6 @@ async def get_personal_practice_results(page: int = 1, page_size: int = 20, curr
     data = await result_service.get_personal_results(page, page_size, current_user)
     return BaseResponse(data=data)
 
-
-# ===== Comprehensive Statistics =====
 
 @router.get("/comprehensive", response_model=BaseResponse[dict])
 async def get_comprehensive_statistics(current_user: UserModel = Depends(get_current_user)):
@@ -64,8 +60,6 @@ async def get_classroom_detailed_statistics(class_id: str, current_user: UserMod
     data = await statistics_service.get_classroom_detailed_statistics(class_id, current_user)
     return BaseResponse(data=data)
 
-
-# ===== Platform Statistics (Admin) =====
 
 @router.get("/platform", response_model=BaseResponse[dict])
 async def get_platform_statistics(current_user: UserModel = Depends(get_current_user)):

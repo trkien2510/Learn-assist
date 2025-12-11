@@ -4,7 +4,14 @@ from core.security import get_password_hash
 from models.user_model import UserModel
 from schemas.base_schema import BaseResponse, TokenResponse
 from schemas.user_schema import UserRegister, UserLogin
-from schemas.otp_schema import OTPRequest, OTPVerify
+from schemas.otp_schema import (
+    OTPRequest, 
+    OTPVerify, 
+    ForgotPasswordRequest, 
+    ResetPasswordRequest,
+    ReactivateAccountRequest,
+    ReactivateAccountVerify
+)
 from services.auth_service import register as register_service, login as login_service, refresh_token as refresh_token_service
 from services import otp_service
 
@@ -56,35 +63,32 @@ async def request_registration_otp(request: OTPRequest):
 async def verify_registration_otp(request: OTPVerify):
     data = await otp_service.verify_registration_otp(request.email, request.otp_code)
     return BaseResponse(data=data)
-#
-# @router.post("/forgot-password", response_model=BaseResponse[dict])
-# async def forgot_password(request: ForgotPasswordRequest):
-#     """Request OTP for password reset"""
-#     data = await otp_service.request_forgot_password_otp(request.email)
-#     return BaseResponse(data=data)
-#
-#
-# @router.post("/reset-password", response_model=BaseResponse[dict])
-# async def reset_password(request: ResetPasswordRequest):
-#     """Reset password using OTP"""
-#     data = await otp_service.reset_password(
-#         request.email,
-#         request.otp_code,
-#         request.new_password,
-#         request.confirm_password
-#     )
-#     return BaseResponse(data=data)
-#
-#
-# @router.post("/reactivate/request", response_model=BaseResponse[dict])
-# async def reactivate_request(request: ReactivateAccountRequest):
-#     """Request OTP for account reactivation"""
-#     data = await otp_service.request_reactivate_otp(request.email)
-#     return BaseResponse(data=data)
-#
-#
-# @router.post("/reactivate/verify", response_model=BaseResponse[dict])
-# async def reactivate_verify(request: ReactivateAccountVerify):
-#     """Verify OTP and reactivate account"""
-#     data = await otp_service.reactivate_account(request.email, request.otp_code)
-#     return BaseResponse(data=data)
+
+
+@router.post("/forgot-password", response_model=BaseResponse[dict])
+async def forgot_password(request: ForgotPasswordRequest):
+    data = await otp_service.request_forgot_password_otp(request.email)
+    return BaseResponse(data=data)
+
+
+@router.post("/reset-password", response_model=BaseResponse[dict])
+async def reset_password(request: ResetPasswordRequest):
+    data = await otp_service.reset_password(
+        request.email,
+        request.otp_code,
+        request.new_password,
+        request.confirm_password
+    )
+    return BaseResponse(data=data)
+
+
+@router.post("/reactivate/request", response_model=BaseResponse[dict])
+async def reactivate_request(request: ReactivateAccountRequest):
+    data = await otp_service.request_reactivate_otp(request.email)
+    return BaseResponse(data=data)
+
+
+@router.post("/reactivate/verify", response_model=BaseResponse[dict])
+async def reactivate_verify(request: ReactivateAccountVerify):
+    data = await otp_service.reactivate_account(request.email, request.otp_code)
+    return BaseResponse(data=data)

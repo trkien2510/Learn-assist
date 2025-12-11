@@ -168,12 +168,10 @@ async def save_questions(list_question_data, document_id: str, current_user):
     from models.question_model import QuestionModel
     from beanie import PydanticObjectId
 
-    # All authenticated users can save questions
     questions = list_question_data.questions
     if not questions:
         raise AppException(StatusCode.BAD_REQUEST, "Question list is empty")
 
-    # Validate document exists if provided
     doc_ref = None
     if document_id:
         try:

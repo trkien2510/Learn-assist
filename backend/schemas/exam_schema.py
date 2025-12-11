@@ -14,8 +14,8 @@ class CreateExamSchema(BaseModel):
 
 class CreatePersonalExamSchema(BaseModel):
     title: str
-    duration: int  # Duration in minutes
-    question_ids: List[str] = []  # List of question IDs to include
+    duration: int
+    question_ids: List[str] = []
 
 
 class ExamResponseSchema(BaseModel):
