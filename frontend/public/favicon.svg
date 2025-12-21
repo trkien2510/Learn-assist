@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background Circle -->
+  <circle cx="256" cy="256" r="256" fill="#1e40af"/>
+  
+  <!-- Book Icon -->
+  <g transform="translate(140, 140)">
+    <!-- Left Page -->
+    <path d="M 50 40 L 50 200 Q 50 220 70 220 L 106 220 L 106 40 Z" 
+          fill="#3b82f6" stroke="#ffffff" stroke-width="4"/>
+    
+    <!-- Right Page -->
+    <path d="M 126 40 L 126 220 L 162 220 Q 182 220 182 200 L 182 40 Z" 
+          fill="#60a5fa" stroke="#ffffff" stroke-width="4"/>
+    
+    <!-- Center Spine -->
+    <rect x="104" y="40" width="24" height="180" fill="#2563eb"/>
+    
+    <!-- Bookmark -->
+    <path d="M 140 40 L 140 130 L 150 120 L 160 130 L 160 40 Z" 
+          fill="#f97316" stroke="#ffffff" stroke-width="2"/>
+    
+    <!-- Graduation Cap on Book -->
+    <g transform="translate(66, 10)">
+      <!-- Cap Top -->
+      <path d="M 50 30 L 10 45 L 50 60 L 90 45 Z" 
+            fill="#fb923c" stroke="#ffffff" stroke-width="3"/>
+      <!-- Tassel -->
+      <circle cx="85" cy="45" r="6" fill="#fbbf24" stroke="#ffffff" stroke-width="2"/>
+      <line x1="85" y1="51" x2="85" y2="65" stroke="#fbbf24" stroke-width="3"/>
+      <!-- Cap Base -->
+      <ellipse cx="50" cy="45" rx="40" ry="8" fill="#f97316" opacity="0.7"/>
+    </g>
+  </g>
+  
+  <!-- Sparkle Effects -->
+  <circle cx="100" cy="100" r="4" fill="#ffffff" opacity="0.8"/>
+  <circle cx="412" cy="120" r="5" fill="#ffffff" opacity="0.8"/>
+  <circle cx="420" cy="380" r="4" fill="#ffffff" opacity="0.8"/>
+  <circle cx="90" cy="400" r="5" fill="#ffffff" opacity="0.8"/>
+</svg>

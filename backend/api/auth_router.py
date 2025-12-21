@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, BackgroundTasks
 
 from core.security import get_password_hash
 from models.user_model import UserModel
@@ -36,8 +36,8 @@ async def add_user(user_in: UserRegister):
     return BaseResponse()
 
 @router.post("/register", response_model=BaseResponse[dict])
-async def register(user_in: UserRegister):
-    data = await register_service(user_in)
+async def register(user_in: UserRegister, background_tasks: BackgroundTasks):
+    data = await register_service(user_in, background_tasks)
     return BaseResponse(data=data)
 
 
@@ -54,8 +54,8 @@ async def refresh(refresh_data: str):
 
 
 @router.post("/otp/request", response_model=BaseResponse[dict])
-async def request_registration_otp(request: OTPRequest):
-    data = await otp_service.request_registration_otp(request.email)
+async def request_registration_otp(request: OTPRequest, background_tasks: BackgroundTasks):
+    data = await otp_service.request_registration_otp(request.email, background_tasks)
     return BaseResponse(data=data)
 
 
@@ -66,8 +66,8 @@ async def verify_registration_otp(request: OTPVerify):
 
 
 @router.post("/forgot-password", response_model=BaseResponse[dict])
-async def forgot_password(request: ForgotPasswordRequest):
-    data = await otp_service.request_forgot_password_otp(request.email)
+async def forgot_password(request: ForgotPasswordRequest, background_tasks: BackgroundTasks):
+    data = await otp_service.request_forgot_password_otp(request.email, background_tasks)
     return BaseResponse(data=data)
 
 
@@ -83,8 +83,8 @@ async def reset_password(request: ResetPasswordRequest):
 
 
 @router.post("/reactivate/request", response_model=BaseResponse[dict])
-async def reactivate_request(request: ReactivateAccountRequest):
-    data = await otp_service.request_reactivate_otp(request.email)
+async def reactivate_request(request: ReactivateAccountRequest, background_tasks: BackgroundTasks):
+    data = await otp_service.request_reactivate_otp(request.email, background_tasks)
     return BaseResponse(data=data)
 
 

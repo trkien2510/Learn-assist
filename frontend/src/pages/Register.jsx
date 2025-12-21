@@ -1,11 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth, ROLES } from '../contexts/AuthContext';
 import { EmailIcon, LockIcon, EyeIcon, EyeOffIcon, UserIcon, AdminIcon, TeacherIcon, StudentIcon } from '../components/icons/Icons';
 
 const Register = () => {
-    const [name, setName] = useState('');
+    const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
+    const [fullName, setFullName] = useState('');
+    const [dateOfBirth, setDateOfBirth] = useState('');
+    const [phoneNumber, setPhoneNumber] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [selectedRole, setSelectedRole] = useState('');
@@ -14,8 +17,15 @@ const Register = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
 
-    const { register } = useAuth();
+    const { register, isAuthenticated, isLoading: authLoading } = useAuth();
     const navigate = useNavigate();
+
+    // Redirect to dashboard if already logged in
+    useEffect(() => {
+        if (!authLoading && isAuthenticated) {
+            navigate('/app/dashboard', { replace: true });
+        }
+    }, [isAuthenticated, authLoading, navigate]);
 
     const roles = [
         {
@@ -23,9 +33,9 @@ const Register = () => {
             name: 'Giảng viên',
             description: 'Tạo đề, Thống kê',
             icon: TeacherIcon,
-            color: 'from-blue-500 to-cyan-500',
-            hoverBg: 'hover:bg-blue-500/10',
-            borderColor: 'border-blue-500/50'
+            color: 'from-orange-500 to-amber-500',
+            hoverBg: 'hover:bg-orange-500/10',
+            borderColor: 'border-orange-500/50'
         },
         {
             id: ROLES.STUDENT,
@@ -42,9 +52,35 @@ const Register = () => {
         e.preventDefault();
         setError('');
 
-        if (!name || !email || !password || !confirmPassword) {
-            setError('Vui lòng nhập đầy đủ thông tin');
+        // Check required fields (phone number is optional)
+        if (!username || !email || !fullName || !dateOfBirth || !password || !confirmPassword) {
+            setError('Vui lòng nhập đầy đủ các trường bắt buộc');
             return;
+        }
+
+        // Validate username
+        if (username.length < 3) {
+            setError('Tên đăng nhập phải có ít nhất 3 ký tự');
+            return;
+        }
+
+        // Validate email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            setError('Email không hợp lệ');
+            return;
+        }
+
+        // Validate phone number (only if provided)
+        if (phoneNumber && phoneNumber.trim() !== '') {
+            // Remove spaces and common separators
+            const cleanedPhone = phoneNumber.replace(/[\s\-\(\)]/g, '');
+            // Vietnamese phone: 10-11 digits, starts with 0
+            const phoneRegex = /^0\d{9,10}$/;
+            if (!phoneRegex.test(cleanedPhone)) {
+                setError('Số điện thoại phải có 10-11 chữ số và bắt đầu bằng số 0');
+                return;
+            }
         }
 
         if (password !== confirmPassword) {
@@ -52,8 +88,8 @@ const Register = () => {
             return;
         }
 
-        if (password.length < 6) {
-            setError('Mật khẩu phải có ít nhất 6 ký tự');
+        if (password.length < 8) {
+            setError('Mật khẩu phải có ít nhất 8 ký tự');
             return;
         }
 
@@ -64,10 +100,27 @@ const Register = () => {
 
         setIsLoading(true);
         try {
-            await register(name, email, password, selectedRole);
-            navigate('/dashboard');
+            const userData = {
+                username: username,
+                email: email,
+                password: password,
+                full_name: fullName,
+                dob: dateOfBirth,
+                phone_number: phoneNumber && phoneNumber.trim() !== '' ? phoneNumber : null,
+                role: selectedRole
+            };
+
+            await register(userData);
+
+            // After successful registration, navigate to OTP verification
+            navigate('/otp-verification', {
+                state: {
+                    email: email,
+                    purpose: 'registration'
+                }
+            });
         } catch (err) {
-            setError('Đăng ký thất bại. Vui lòng thử lại.');
+            setError(err.message || 'Đăng ký thất bại. Email hoặc tên đăng nhập có thể đã được sử dụng.');
         } finally {
             setIsLoading(false);
         }
@@ -75,25 +128,25 @@ const Register = () => {
 
     return (
         <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900">
-                <div className="absolute top-0 -left-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float"></div>
+            <div className="absolute inset-0 bg-linear-to-br from-blue-50 via-white to-orange-50">
+                <div className="absolute top-0 -left-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float"></div>
                 <div className="absolute top-0 -right-40 w-80 h-80 bg-cyan-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float" style={{ animationDelay: '2s' }}></div>
-                <div className="absolute bottom-0 left-1/2 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float" style={{ animationDelay: '4s' }}></div>
+                <div className="absolute bottom-0 left-1/2 w-80 h-80 bg-orange-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float" style={{ animationDelay: '4s' }}></div>
             </div>
 
             <div className="relative z-10 w-full max-w-md animate-fadeIn">
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-500 mb-4 glow-success">
-                        <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-linear-to-br from-blue-500 to-cyan-500 mb-4 glow-primary">
+                        <svg className="w-8 h-8 text-gray-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                         </svg>
                     </div>
-                    <h1 className="text-3xl font-bold gradient-text-secondary mb-2">Đăng ký</h1>
-                    <p className="text-slate-400">Tạo tài khoản mới để bắt đầu</p>
+                    <h1 className="text-3xl font-bold text-shadow-black mb-2">Đăng ký</h1>
+                    <p className="text-gray-500">Tạo tài khoản mới để bắt đầu</p>
                 </div>
 
                 <div className="glass rounded-3xl p-8 shadow-2xl">
-                    <h2 className="text-2xl font-bold text-white mb-6 text-center">Tạo tài khoản</h2>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Tạo tài khoản</h2>
 
                     {error && (
                         <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm animate-fadeIn">
@@ -103,23 +156,23 @@ const Register = () => {
 
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-2">Họ và tên</label>
+                            <label className="block text-sm font-medium text-gray-600 mb-2">Tên đăng nhập <span className="text-red-500">*</span></label>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                     <UserIcon className="w-5 h-5 text-slate-500" />
                                 </div>
                                 <input
                                     type="text"
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                    placeholder="Nguyễn Văn A"
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value)}
+                                    placeholder="username123"
                                     className="input-glass pl-12"
                                 />
                             </div>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-2">Email</label>
+                            <label className="block text-sm font-medium text-gray-600 mb-2">Email <span className="text-red-500">*</span></label>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                     <EmailIcon className="w-5 h-5 text-slate-500" />
@@ -135,7 +188,62 @@ const Register = () => {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-2">Mật khẩu</label>
+                            <label className="block text-sm font-medium text-gray-600 mb-2">Tên đầy đủ <span className="text-red-500">*</span></label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <svg className="w-5 h-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                    </svg>
+                                </div>
+                                <input
+                                    type="text"
+                                    value={fullName}
+                                    onChange={(e) => setFullName(e.target.value)}
+                                    placeholder="Nguyễn Văn A"
+                                    className="input-glass pl-12"
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-600 mb-2">Ngày sinh <span className="text-red-500">*</span></label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <svg className="w-5 h-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                </div>
+                                <input
+                                    type="date"
+                                    value={dateOfBirth}
+                                    onChange={(e) => setDateOfBirth(e.target.value)}
+                                    className="input-glass pl-12"
+                                    max={new Date().toISOString().split('T')[0]}
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-600 mb-2">Số điện thoại <span className="text-gray-400 text-xs">(Không bắt buộc)</span></label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <svg className="w-5 h-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                    </svg>
+                                </div>
+                                <input
+                                    type="tel"
+                                    value={phoneNumber}
+                                    onChange={(e) => setPhoneNumber(e.target.value)}
+                                    placeholder="0123456789"
+                                    className="input-glass pl-12"
+                                    maxLength={11}
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-600 mb-2">Mật khẩu <span className="text-red-500">*</span> <span className="text-gray-400 text-xs">(Tối thiểu 8 ký tự)</span></label>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                     <LockIcon className="w-5 h-5 text-slate-500" />
@@ -150,7 +258,7 @@ const Register = () => {
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-500 hover:text-white transition-colors"
+                                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-500 hover:text-gray-900 transition-colors"
                                 >
                                     {showPassword ? <EyeOffIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
                                 </button>
@@ -158,7 +266,7 @@ const Register = () => {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-2">Xác nhận mật khẩu</label>
+                            <label className="block text-sm font-medium text-gray-600 mb-2">Xác nhận mật khẩu <span className="text-red-500">*</span></label>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                     <LockIcon className="w-5 h-5 text-slate-500" />
@@ -173,7 +281,7 @@ const Register = () => {
                                 <button
                                     type="button"
                                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-500 hover:text-white transition-colors"
+                                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-500 hover:text-gray-900 transition-colors"
                                 >
                                     {showConfirmPassword ? <EyeOffIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
                                 </button>
@@ -181,7 +289,7 @@ const Register = () => {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-3">Chọn vai trò</label>
+                            <label className="block text-sm font-medium text-gray-600 mb-3">Chọn vai trò <span className="text-red-500">*</span></label>
                             <div className="grid grid-cols-2 gap-3">
                                 {roles.map((role) => {
                                     const IconComponent = role.icon;
@@ -194,13 +302,13 @@ const Register = () => {
                                             className={`
                         relative p-4 rounded-xl border transition-all duration-300 text-center
                         ${isSelected
-                                                    ? `bg-gradient-to-br ${role.color} border-transparent shadow-lg`
-                                                    : `border-white/10 ${role.hoverBg} hover:border-white/20`
+                                                    ? `bg-linear-to-br ${role.color} border-transparent shadow-lg`
+                                                    : `border-gray-200 ${role.hoverBg} hover:border-gray-300`
                                                 }
                       `}
                                         >
-                                            <IconComponent className={`w-6 h-6 mx-auto mb-2 ${isSelected ? 'text-white' : 'text-slate-400'}`} />
-                                            <span className={`text-sm font-medium block ${isSelected ? 'text-white' : 'text-slate-400'}`}>
+                                            <IconComponent className={`w-6 h-6 mx-auto mb-2 ${isSelected ? 'text-gray-900' : 'text-gray-500'}`} />
+                                            <span className={`text-sm font-medium block ${isSelected ? 'text-gray-900' : 'text-gray-500'}`}>
                                                 {role.name}
                                             </span>
                                             <span className={`text-xs ${isSelected ? 'text-white/70' : 'text-slate-500'}`}>
@@ -215,7 +323,7 @@ const Register = () => {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full py-4 text-lg font-semibold rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:shadow-lg hover:shadow-green-500/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full py-4 text-lg font-semibold rounded-xl bg-linear-to-r from-blue-500 to-cyan-500 text-gray-900 hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {isLoading ? (
                                 <span className="flex items-center justify-center gap-2">
@@ -231,24 +339,17 @@ const Register = () => {
 
                     <div className="relative my-6">
                         <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t border-white/10"></div>
-                        </div>
-                        <div className="relative flex justify-center text-sm">
-                            <span className="px-4 bg-transparent text-slate-500">hoặc</span>
+                            <div className="w-full border-t border-gray-200"></div>
                         </div>
                     </div>
 
-                    <p className="text-center text-slate-400">
+                    <p className="pt-4 text-center text-gray-500">
                         Đã có tài khoản?{' '}
-                        <Link to="/login" className="text-green-400 hover:text-green-300 font-medium transition-colors">
+                        <Link to="/login" className="text-blue-400 hover:text-blue-300 font-medium transition-colors">
                             Đăng nhập
                         </Link>
                     </p>
                 </div>
-
-                <p className="text-center text-slate-500 text-sm mt-8">
-                    © 2024 Learn Assist System - trkien2510
-                </p>
             </div>
         </div>
     );

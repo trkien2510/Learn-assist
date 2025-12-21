@@ -1,0 +1,41 @@
+import httpClient from './httpClient';
+import { API_ENDPOINTS } from '../config/api';
+
+export const notificationService = {
+    // Get notifications with pagination
+    async getNotifications(page = 1, pageSize = 20, unreadOnly = false) {
+        const params = { page, page_size: pageSize };
+        if (unreadOnly) {
+            params.unread_only = true;
+        }
+        return httpClient.get(API_ENDPOINTS.NOTIFICATIONS_GET, params);
+    },
+
+    // Get unread count
+    async getUnreadCount() {
+        return httpClient.get(API_ENDPOINTS.NOTIFICATIONS_UNREAD_COUNT);
+    },
+
+    // Mark notifications as read
+    async markAsRead(notificationIds = null) {
+        const body = notificationIds ? { notification_ids: notificationIds } : {};
+        return httpClient.post(API_ENDPOINTS.NOTIFICATIONS_MARK_READ, body);
+    },
+
+    // Mark all as read
+    async markAllAsRead() {
+        return httpClient.post(API_ENDPOINTS.NOTIFICATIONS_MARK_READ, {});
+    },
+
+    // Delete notification
+    async deleteNotification(notificationId) {
+        return httpClient.delete(API_ENDPOINTS.NOTIFICATIONS_DELETE(notificationId));
+    },
+
+    // Delete all notifications
+    async deleteAllNotifications() {
+        return httpClient.delete(API_ENDPOINTS.NOTIFICATIONS_DELETE_ALL);
+    }
+};
+
+export default notificationService;

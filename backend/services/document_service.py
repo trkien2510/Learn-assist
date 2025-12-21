@@ -184,13 +184,22 @@ async def save_questions(list_question_data, document_id: str, current_user):
 
     saved_questions = []
     for q in questions:
+        # Map difficulty from Vietnamese to English Enum values
+        raw_diff = q.difficulty.lower()
+        if "dễ" in raw_diff or "easy" in raw_diff:
+            diff_val = "Easy"
+        elif "khó" in raw_diff or "hard" in raw_diff:
+            diff_val = "Hard"
+        else:
+            diff_val = "Medium"
+
         new_question = QuestionModel(
             document_id=doc_ref,
             creator_id=current_user,
             content=q.content,
             options=q.options,
             answers=q.answer,
-            difficulty=q.difficulty
+            difficulty=diff_val
         )
         await new_question.insert()
         saved_questions.append({

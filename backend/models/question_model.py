@@ -5,8 +5,8 @@ from models.document_model import DocumentModel
 from models.user_model import UserModel
 
 class Difficulty(str, Enum):
-    EASY = "Easy",
-    MEDIUM = "Medium",
+    EASY = "Easy"
+    MEDIUM = "Medium"
     HARD = "Hard"
 
 class QuestionModel(Document):

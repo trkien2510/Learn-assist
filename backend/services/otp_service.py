@@ -26,7 +26,7 @@ async def invalidate_existing_otps(email: str, purpose: OTPPurpose):
     ).update({"$set": {"is_used": True}})
 
 
-async def create_and_send_otp(email: str, purpose: OTPPurpose, full_name: str = None) -> dict:
+async def create_and_send_otp(email: str, purpose: OTPPurpose, full_name: str = None, background_tasks = None) -> dict:
     await invalidate_existing_otps(email, purpose)
 
     otp_code = generate_otp_code()
@@ -40,7 +40,11 @@ async def create_and_send_otp(email: str, purpose: OTPPurpose, full_name: str = 
     )
     await otp.insert()
 
-    await send_otp_email(email, otp_code, purpose, full_name)
+    # Send email in background if background_tasks is provided, otherwise send immediately
+    if background_tasks:
+        background_tasks.add_task(send_otp_email, email, otp_code, purpose, full_name)
+    else:
+        await send_otp_email(email, otp_code, purpose, full_name)
 
     await log_service.create_log(
         action="otp_sent",
@@ -95,12 +99,12 @@ async def verify_otp(email: str, otp_code: str, purpose: OTPPurpose) -> bool:
     return True
 
 
-async def request_registration_otp(email: str) -> dict:
+async def request_registration_otp(email: str, background_tasks = None) -> dict:
     existing_user = await UserModel.find_one({"email": email})
     if existing_user:
         raise AppException(StatusCode.BAD_REQUEST, "Email is already registered")
 
-    return await create_and_send_otp(email, OTPPurpose.REGISTRATION)
+    return await create_and_send_otp(email, OTPPurpose.REGISTRATION, background_tasks=background_tasks)
 
 
 async def verify_registration_otp(email: str, otp_code: str) -> dict:
@@ -125,7 +129,7 @@ async def verify_registration_otp(email: str, otp_code: str) -> dict:
     return {"verified": True, "message": "Email verified successfully. You can now login"}
 
 
-async def request_forgot_password_otp(email: str) -> dict:
+async def request_forgot_password_otp(email: str, background_tasks = None) -> dict:
     user = await UserModel.find_one({"email": email})
     if not user:
         raise AppException(StatusCode.NOT_FOUND, "No account found with this email")
@@ -133,7 +137,7 @@ async def request_forgot_password_otp(email: str) -> dict:
     if not user.is_activate:
         raise AppException(StatusCode.FORBIDDEN, "Account is deactivated")
 
-    return await create_and_send_otp(email, OTPPurpose.FORGOT_PASSWORD, user.full_name)
+    return await create_and_send_otp(email, OTPPurpose.FORGOT_PASSWORD, user.full_name, background_tasks)
 
 
 async def reset_password(email: str, otp_code: str, new_password: str, confirm_password: str) -> dict:
@@ -162,7 +166,7 @@ async def reset_password(email: str, otp_code: str, new_password: str, confirm_p
     return {"message": "Password has been reset successfully"}
 
 
-async def request_reactivate_otp(email: str) -> dict:
+async def request_reactivate_otp(email: str, background_tasks = None) -> dict:
     user = await UserModel.find_one({"email": email})
     if not user:
         raise AppException(StatusCode.NOT_FOUND, "No account found with this email")
@@ -170,7 +174,7 @@ async def request_reactivate_otp(email: str) -> dict:
     if user.is_activate:
         raise AppException(StatusCode.BAD_REQUEST, "Account is already active")
 
-    return await create_and_send_otp(email, OTPPurpose.REACTIVATE_ACCOUNT, user.full_name)
+    return await create_and_send_otp(email, OTPPurpose.REACTIVATE_ACCOUNT, user.full_name, background_tasks)
 
 
 async def reactivate_account(email: str, otp_code: str) -> dict:

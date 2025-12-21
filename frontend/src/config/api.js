@@ -1,0 +1,113 @@
+// API Configuration
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+
+export const API_ENDPOINTS = {
+  // Auth
+  REGISTER: '/auth/register',
+  LOGIN: '/auth/login',
+  REFRESH_TOKEN: '/auth/refresh-token',
+  OTP_REQUEST: '/auth/otp/request',
+  OTP_VERIFY: '/auth/otp/verify',
+  FORGOT_PASSWORD: '/auth/forgot-password',
+  RESET_PASSWORD: '/auth/reset-password',
+
+  // User
+  GET_ME: '/user/me',
+  UPDATE_PROFILE: '/user/profile',
+  DEACTIVATE: '/user/deactivate',
+
+  // Dashboard
+  DASHBOARD: '/dashboard',
+
+  // Classroom
+  CLASSROOM_CREATE: '/classroom/create',
+  CLASSROOM_ALL: '/classroom/all',
+  CLASSROOM_MEMBERS: (classCode) => `/classroom/${classCode}/members`,
+  CLASSROOM_DELETE: (classCode) => `/classroom/${classCode}`,
+  CLASSROOM_JOIN_REQUEST: (classCode) => `/classroom/${classCode}/join-request`,
+  CLASSROOM_ACCEPT: (classCode, requestId) => `/classroom/${classCode}/accept/${requestId}`,
+  CLASSROOM_REJECT: (classCode, requestId) => `/classroom/${classCode}/reject/${requestId}`,
+  CLASSROOM_ACCEPT_ALL: (classCode) => `/classroom/${classCode}/accept-all`,
+  CLASSROOM_REJECT_ALL: (classCode) => `/classroom/${classCode}/reject-all`,
+  CLASSROOM_LEAVE: (classCode) => `/classroom/${classCode}/leave`,
+  CLASSROOM_REMOVE_MEMBER: (classCode, memberId) => `/classroom/${classCode}/members/${memberId}`,
+  CLASSROOM_PENDING_REQUESTS: '/classroom/pending-requests',
+
+  // Document
+  DOCUMENT_ALL: '/document/all',
+  DOCUMENT_UPLOAD: (numQuestions) => `/document/upload/${numQuestions}`,
+  DOCUMENT_SAVE_QUESTIONS: (documentId) => `/document/save-questions/${documentId}`,
+  DOCUMENT_DELETE: (documentId) => `/document/${documentId}`,
+
+  // Question
+  QUESTION_CREATE: '/question/create',
+  QUESTION_ALL: '/question/all',
+  QUESTION_SUBJECTS: '/question/subject/list',
+  QUESTION_GET: (questionId) => `/question/${questionId}`,
+  QUESTION_UPDATE: (questionId) => `/question/${questionId}`,
+  QUESTION_DELETE: (questionId) => `/question/${questionId}`,
+
+  // Exam
+  EXAM_CREATE: '/exam/create',
+  EXAM_ALL: '/exam/all',
+  EXAM_BY_CLASS: (classId) => `/exam/class/${classId}`,
+  EXAM_DELETE: (examId) => `/exam/${examId}`,
+  EXAM_START: (examId) => `/exam/${examId}/start`,
+  EXAM_SUBMIT: (examId) => `/exam/${examId}/submit`,
+
+  // Result
+  RESULT_ALL: '/result/all',
+  RESULT_BY_EXAM: (examId) => `/result/exam/${examId}`,
+  RESULT_BY_CLASS: (classId) => `/result/class/${classId}`,
+  RESULT_DELETE: (resultId) => `/result/${resultId}`,
+
+  // Statistics
+  STATS_BY_EXAM: (examId) => `/statistics/exam/${examId}`,
+  STATS_BY_CLASS: (classId) => `/statistics/class/${classId}`,
+  STATS_PERSONAL: '/statistics/personal',
+  STATS_OVERALL: '/statistics/overall',
+  STATS_COMPREHENSIVE: '/statistics/comprehensive',
+  STATS_STUDENT_COMPREHENSIVE: '/statistics/student/comprehensive',
+  STATS_TEACHER_COMPREHENSIVE: '/statistics/teacher/comprehensive',
+  STATS_EXAM_DETAILED: (examId) => `/statistics/exam/${examId}/detailed`,
+  STATS_CLASS_DETAILED: (classId) => `/statistics/class/${classId}/detailed`,
+  STATS_PLATFORM: '/statistics/platform',
+
+  // Notifications
+  NOTIFICATIONS_GET: '/notifications/',
+  NOTIFICATIONS_UNREAD_COUNT: '/notifications/unread-count',
+  NOTIFICATIONS_MARK_READ: '/notifications/mark-read',
+  NOTIFICATIONS_DELETE: (notificationId) => `/notifications/${notificationId}`,
+  NOTIFICATIONS_DELETE_ALL: '/notifications/',
+
+  // Practice
+  PRACTICE_CREATE: '/practice/exam/create',
+  PRACTICE_GET_EXAMS: '/practice/exams',
+  PRACTICE_START: (examId) => `/practice/exam/${examId}/start`,
+  PRACTICE_SUBMIT: (examId) => `/practice/exam/${examId}/submit`,
+  PRACTICE_DELETE: (examId) => `/practice/exam/${examId}`,
+  PRACTICE_STATS: '/practice/statistics',
+  PRACTICE_STATS_DETAILED: '/practice/statistics/detailed',
+  PRACTICE_EXAM_STATS: (examId) => `/practice/exam/${examId}/statistics`,
+  PRACTICE_DOCUMENT_STATS: '/practice/documents/statistics',
+
+  // Admin
+  ADMIN_USERS: '/admin/users/',
+  ADMIN_USER_GET: (userId) => `/admin/users/${userId}`,
+  ADMIN_USER_UPDATE: (userId) => `/admin/users/${userId}`,
+  ADMIN_USER_DELETE: (userId) => `/admin/users/${userId}`,
+  ADMIN_USER_STATUS: (userId) => `/admin/users/${userId}/status`,
+  ADMIN_CLASSROOM_GET: (classroomId) => `/admin/classroom/${classroomId}`,
+  ADMIN_CLASSROOM_UPDATE: (classroomId) => `/admin/classroom/${classroomId}`,
+  ADMIN_CLASSROOM_DELETE: (classroomId) => `/admin/classroom/${classroomId}`,
+  ADMIN_LOGS: '/admin/logs/',
+  ADMIN_LOG_STATS: '/admin/logs/statistics',
+  ADMIN_LOG_GET: (logId) => `/admin/logs/${logId}`,
+  ADMIN_LOG_CLEANUP: '/admin/logs/cleanup',
+  ADMIN_NOTIFICATIONS: '/admin/notifications/system-notifications',
+  ADMIN_SYSTEM_HEALTH: '/admin/notifications/system-health',
+  ADMIN_CLEANUP_NOTIFICATIONS: '/admin/notifications/cleanup-notifications',
+  ADMIN_TEST_NOTIFICATION: '/admin/notifications/test-notification',
+};
+
+export default API_BASE_URL;

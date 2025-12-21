@@ -21,7 +21,7 @@ def generate_otp_code() -> str:
     return ''.join(random.choices(string.digits, k=OTP_LENGTH))
 
 
-async def register(user_in):
+async def register(user_in, background_tasks):
     exists = await UserModel.find_one({"email": user_in.email})
     if exists:
         raise AppException(StatusCode.BAD_REQUEST, "Account already exists")
@@ -62,7 +62,8 @@ async def register(user_in):
     )
     await otp.insert()
     
-    await send_otp_email(user_in.email, otp_code, OTPPurpose.REGISTRATION, user.full_name)
+    # Send email in background to improve response time
+    background_tasks.add_task(send_otp_email, user_in.email, otp_code, OTPPurpose.REGISTRATION, user.full_name)
 
     return {"message": "Registration successful. OTP has been sent to your email for verification"}
 
