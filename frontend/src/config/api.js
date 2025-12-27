@@ -32,6 +32,13 @@ export const API_ENDPOINTS = {
   CLASSROOM_LEAVE: (classCode) => `/classroom/${classCode}/leave`,
   CLASSROOM_REMOVE_MEMBER: (classCode, memberId) => `/classroom/${classCode}/members/${memberId}`,
   CLASSROOM_PENDING_REQUESTS: '/classroom/pending-requests',
+  CLASSROOM_DETAIL: (classCode) => `/classroom/${classCode}`,
+
+  // Messages
+  MESSAGE_SEND: (classCode) => `/message/${classCode}/send`,
+  MESSAGE_GET: (classCode) => `/message/${classCode}/messages`,
+  MESSAGE_DELETE: (messageId) => `/message/${messageId}`,
+
 
   // Document
   DOCUMENT_ALL: '/document/all',
@@ -52,8 +59,12 @@ export const API_ENDPOINTS = {
   EXAM_ALL: '/exam/all',
   EXAM_BY_CLASS: (classId) => `/exam/class/${classId}`,
   EXAM_DELETE: (examId) => `/exam/${examId}`,
+  EXAM_GET: (examId) => `/exam/${examId}`,
   EXAM_START: (examId) => `/exam/${examId}/start`,
   EXAM_SUBMIT: (examId) => `/exam/${examId}/submit`,
+  EXAM_PREVIEW: '/exam/preview',
+  EXAM_REPLACE_QUESTION: '/exam/replace-question',
+
 
   // Result
   RESULT_ALL: '/result/all',
@@ -108,6 +119,12 @@ export const API_ENDPOINTS = {
   ADMIN_SYSTEM_HEALTH: '/admin/notifications/system-health',
   ADMIN_CLEANUP_NOTIFICATIONS: '/admin/notifications/cleanup-notifications',
   ADMIN_TEST_NOTIFICATION: '/admin/notifications/test-notification',
+
+  // Admin Statistics & Analytics
+  ADMIN_STATISTICS: '/admin/stats/statistics',
+  ADMIN_USER_ACTIVITY: (userId) => `/admin/stats/users/${userId}/activity`,
+  ADMIN_USER_GROWTH: '/admin/stats/analytics/user-growth',
+  ADMIN_ACTIVITY_HEATMAP: '/admin/stats/analytics/activity-heatmap',
 };
 
 export default API_BASE_URL;

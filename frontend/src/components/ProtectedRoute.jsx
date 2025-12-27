@@ -2,7 +2,6 @@ import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Navigate, Outlet } from 'react-router-dom';
 
-// Loading component
 const LoadingScreen = () => (
     <div className="min-h-screen bg-linear-to-br from-blue-50 via-white to-orange-50 flex items-center justify-center">
         <div className="text-center">
@@ -16,7 +15,6 @@ const LoadingScreen = () => (
     </div>
 );
 
-// Protected Route - requires authentication
 export const ProtectedRoute = () => {
     const { isAuthenticated, isLoading } = useAuth();
 
@@ -31,7 +29,6 @@ export const ProtectedRoute = () => {
     return <Outlet />;
 };
 
-// Public Route - redirects to dashboard if authenticated
 export const PublicRoute = () => {
     const { isAuthenticated, isLoading } = useAuth();
 
@@ -46,7 +43,6 @@ export const PublicRoute = () => {
     return <Outlet />;
 };
 
-// Role-based Route - requires specific role
 export const RoleRoute = ({ allowedRoles }) => {
     const { isAuthenticated, hasRole, isLoading } = useAuth();
 

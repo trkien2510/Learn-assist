@@ -64,8 +64,8 @@ const NotificationItem = ({ notification, onMarkAsRead, onDelete, onClick }) => 
         <div
             onClick={handleClick}
             className={`p-4 rounded-xl border transition-all cursor-pointer group ${notification.is_read
-                    ? 'border-gray-200 hover:border-gray-300 bg-white/5'
-                    : 'border-blue-500/30 bg-blue-500/10 hover:bg-blue-500/20'
+                ? 'border-gray-200 hover:border-gray-300 bg-white/5'
+                : 'border-blue-500/30 bg-blue-500/10 hover:bg-blue-500/20'
                 }`}
         >
             <div className="flex items-start gap-3">
@@ -75,7 +75,7 @@ const NotificationItem = ({ notification, onMarkAsRead, onDelete, onClick }) => 
 
                 <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
-                        <h4 className={`text-sm font-medium ${notification.is_read ? 'text-gray-600' : 'text-gray-900'}`}>
+                        <h4 className={`text-sm font-medium ${notification.is_read ? 'text-gray-600 dark:text-gray-400' : 'text-gray-900 dark:text-gray-100'}`}>
                             {notification.title}
                         </h4>
                         {!notification.is_read && (

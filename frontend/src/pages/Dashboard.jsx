@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth, ROLES } from '../contexts/AuthContext';
 import dashboardService from '../services/dashboardService';
 import StatsCard from '../components/dashboard/StatsCard';
@@ -16,11 +17,11 @@ import {
 
 const Dashboard = () => {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [dashboardData, setDashboardData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Fetch dashboard data
     useEffect(() => {
         const fetchDashboard = async () => {
             try {
@@ -40,7 +41,6 @@ const Dashboard = () => {
         fetchDashboard();
     }, []);
 
-    // Map backend data to stats format
     const getStats = () => {
         if (!dashboardData) return [];
 
@@ -129,31 +129,30 @@ const Dashboard = () => {
         }
     };
 
-    // TODO: Get recent activities from backend
     const getRecentActivities = () => {
-        // Return empty array for now, will implement backend call later
-        return [];
+        if (!dashboardData || !dashboardData.recent_activities) return [];
+        return dashboardData.recent_activities;
     };
 
-    // Quick actions based on role
     const getQuickActions = () => {
         switch (user?.role) {
             case ROLES.ADMIN:
                 return [
-                    { name: 'Quản lý người dùng', description: 'Xem và quản lý tài khoản', href: '/app/admin/users' },
-                    { name: 'Quản lý lớp học', description: 'Xem tất cả lớp học', href: '/app/admin/classrooms' },
-                    { name: 'Xem logs hệ thống', description: 'Theo dõi hoạt động', href: '/app/admin/logs' }
+                    { name: 'Quản lý người dùng', description: 'Xem và quản lý tài khoản', href: '/app/users' },
+                    { name: 'Quản lý lớp học', description: 'Xem tất cả lớp học', href: '/app/classrooms' },
+                    { name: 'Xem logs hệ thống', description: 'Theo dõi hoạt động', href: '/app/logs' },
+                    { name: 'Thống kê hệ thống', description: 'Xem thống kê tổng quan', href: '/app/statistics' }
                 ];
             case ROLES.TEACHER:
                 return [
-                    { name: 'Tạo đề thi', description: 'Tạo đề thi mới từ ngân hàng câu hỏi', href: '/app/exams/create' },
-                    { name: 'Upload tài liệu', description: 'Thêm tài liệu học tập', href: '/app/documents/upload' },
-                    { name: 'Xem kết quả', description: 'Xem điểm của học sinh', href: '/app/results' }
+                    { name: 'Tạo đề thi', description: 'Tạo đề thi mới từ ngân hàng câu hỏi', href: '/app/exams' },
+                    { name: 'Upload tài liệu', description: 'Thêm tài liệu học tập', href: '/app/documents' },
+                    { name: 'Ngân hàng câu hỏi', description: 'Quản lý câu hỏi', href: '/app/questions' }
                 ];
             case ROLES.STUDENT:
                 return [
-                    { name: 'Làm bài thi', description: 'Xem các bài thi đang mở', href: '/app/my-exams' },
-                    { name: 'Xem điểm', description: 'Kiểm tra kết quả học tập', href: '/app/my-results' },
+                    { name: 'Làm bài thi', description: 'Xem các bài thi đang mở', href: '/app/exams' },
+                    { name: 'Xem điểm', description: 'Kiểm tra kết quả học tập', href: '/app/results' },
                     { name: 'Luyện tập', description: 'Tạo bài thi thử', href: '/app/practice' }
                 ];
             default:
@@ -168,7 +167,6 @@ const Dashboard = () => {
         return 'Chào buổi tối';
     };
 
-    // Loading state
     if (loading) {
         return (
             <div className="space-y-6 animate-fadeIn">
@@ -183,7 +181,6 @@ const Dashboard = () => {
         );
     }
 
-    // Error state
     if (error) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
@@ -210,7 +207,6 @@ const Dashboard = () => {
 
     return (
         <div className="space-y-6 animate-fadeIn">
-            {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
                     <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
@@ -224,31 +220,33 @@ const Dashboard = () => {
                 </div>
             </div>
 
-            {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {stats.map((stat, index) => (
                     <StatsCard key={stat.name} stat={stat} index={index} />
                 ))}
             </div>
 
-            {/* Content Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Recent Activity - 2/3 width */}
                 <div className="lg:col-span-2 card-glass">
                     <div className="flex items-center justify-between mb-6">
                         <h2 className="text-lg font-semibold text-gray-900">Hoạt động gần đây</h2>
-                        <button className="text-sm text-blue-400 hover:text-blue-300 flex items-center gap-1 transition-colors">
-                            Xem tất cả <ArrowRightIcon className="w-4 h-4" />
-                        </button>
+                        {user?.role === ROLES.ADMIN && (
+                            <button
+                                onClick={() => navigate('/app/logs')}
+                                className="text-sm text-blue-400 hover:text-blue-300 flex items-center gap-1 transition-colors"
+                            >
+                                Xem tất cả <ArrowRightIcon className="w-4 h-4" />
+                            </button>
+                        )}
                     </div>
-                    <RecentActivity activities={activities} />
+                    <div className="max-h-[500px] overflow-y-auto custom-scrollbar">
+                        <RecentActivity activities={activities} />
+                    </div>
                 </div>
 
-                {/* Quick Actions - 1/3 width */}
                 <QuickActions actions={quickActions} />
             </div>
 
-            {/* Student: Upcoming Exams Section */}
             {user?.role === ROLES.STUDENT && (
                 <div className="card-glass">
                     <div className="flex items-center justify-between mb-6">
@@ -259,7 +257,6 @@ const Dashboard = () => {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {/* TODO: Get from backend */}
                         <div className="text-center py-8">
                             <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
                                 <span className="text-3xl">📅</span>

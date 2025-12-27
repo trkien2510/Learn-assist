@@ -403,8 +403,6 @@ async def get_teacher_comprehensive_statistics(current_user) -> Dict[str, Any]:
 
 
 async def get_exam_detailed_statistics(exam_id: str, current_user) -> Dict[str, Any]:
-    """Get detailed statistics for a specific exam"""
-    
     try:
         obj_id = PydanticObjectId(exam_id)
     except:

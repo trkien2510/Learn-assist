@@ -30,15 +30,31 @@ async def create_exam(exam_data, current_user):
             except:
                 pass
 
+    # Ensure datetime objects have UTC timezone
+    start_at = exam_data.start_at
+    end_at = exam_data.end_at
+    
+    # If datetime is naive (no timezone), assume it's UTC
+    # If it has timezone, convert to UTC
+    if start_at.tzinfo is None:
+        start_at = start_at.replace(tzinfo=timezone.utc)
+    else:
+        start_at = start_at.astimezone(timezone.utc)
+        
+    if end_at.tzinfo is None:
+        end_at = end_at.replace(tzinfo=timezone.utc)
+    else:
+        end_at = end_at.astimezone(timezone.utc)
+
     new_exam = ExamModel(
         creator_id=current_user,
         class_id=classroom,
         title=exam_data.title,
         questions=question_links,
         duration=exam_data.duration,
-        start_at=exam_data.start_at,
-        end_at=exam_data.end_at,
-        expiry_at=exam_data.end_at
+        start_at=start_at,
+        end_at=end_at,
+        expiry_at=end_at
     )
     await new_exam.insert()
 
@@ -85,6 +101,42 @@ async def delete_exam(exam_id: str, current_user):
     return {}
 
 
+async def get_exam_detail(exam_id: str, current_user):
+    try:
+        obj_id = PydanticObjectId(exam_id)
+    except:
+        raise AppException(StatusCode.BAD_REQUEST, "Invalid exam ID")
+
+    exam = await ExamModel.get(obj_id)
+    if not exam:
+        raise AppException(StatusCode.NOT_FOUND, "Exam not found")
+
+    questions_data = []
+    for q_link in exam.questions:
+        question = await QuestionModel.get(q_link.ref.id)
+        if question:
+            questions_data.append({
+                "id": str(question.id),
+                "_id": str(question.id),
+                "content": question.content,
+                "options": question.options,
+                "answers": question.answers,
+                "difficulty": question.difficulty
+            })
+
+    return {
+        "exam": {
+            "id": str(exam.id),
+            "_id": str(exam.id),
+            "title": exam.title,
+            "duration": exam.duration,
+            "start_at": exam.start_at,
+            "end_at": exam.end_at,
+            "questions": questions_data
+        }
+    }
+
+
 async def start_exam(exam_id: str, current_user):
     try:
         obj_id = PydanticObjectId(exam_id)
@@ -104,11 +156,24 @@ async def start_exam(exam_id: str, current_user):
         raise AppException(StatusCode.FORBIDDEN, "You are not a member of this class")
 
     now = datetime.now(timezone.utc)
+    
+    exam_start = exam.start_at
+    exam_end = exam.end_at
+    
+    if exam_start.tzinfo is None:
+        exam_start = exam_start.replace(tzinfo=timezone.utc)
+    else:
+        exam_start = exam_start.astimezone(timezone.utc)
+        
+    if exam_end.tzinfo is None:
+        exam_end = exam_end.replace(tzinfo=timezone.utc)
+    else:
+        exam_end = exam_end.astimezone(timezone.utc)
 
-    if now < exam.start_at:
+    if now < exam_start:
         raise AppException(StatusCode.BAD_REQUEST, "Exam has not started yet")
 
-    if now > exam.end_at:
+    if now > exam_end:
         raise AppException(StatusCode.BAD_REQUEST, "Exam has ended")
 
     existing_result = await ResultModel.find_one({
@@ -120,15 +185,44 @@ async def start_exam(exam_id: str, current_user):
         if existing_result.submitted:
             raise AppException(StatusCode.BAD_REQUEST, "You have already submitted this exam")
 
-        time_elapsed = (now - existing_result.started_at).total_seconds() / 60
+        started_at = existing_result.started_at
+        if started_at.tzinfo is None:
+            started_at = started_at.replace(tzinfo=timezone.utc)
+        else:
+            started_at = started_at.astimezone(timezone.utc)
+
+        time_elapsed = (now - started_at).total_seconds() / 60
         if time_elapsed > exam.duration:
             raise AppException(StatusCode.BAD_REQUEST, "Time limit exceeded")
 
+        questions_data = []
+        for q_link in exam.questions:
+            question = await QuestionModel.get(q_link.ref.id)
+            if question:
+                questions_data.append({
+                    "id": str(question.id),
+                    "_id": str(question.id),
+                    "content": question.content,
+                    "options": question.options,
+                    "answers": question.answers,
+                    "difficulty": question.difficulty
+                })
+
+        time_remaining_minutes = max(0, exam.duration - time_elapsed)
+        
         return {
-            "exam": exam,
+            "exam": {
+                "id": str(exam.id),
+                "_id": str(exam.id),
+                "title": exam.title,
+                "duration": exam.duration,
+                "start_at": exam.start_at,
+                "end_at": exam.end_at,
+                "questions": questions_data
+            },
             "result_id": str(existing_result.id),
             "started_at": existing_result.started_at,
-            "time_remaining": max(0, exam.duration - time_elapsed),
+            "time_remaining": time_remaining_minutes * 60,
             "is_continuing": True
         }
 
@@ -149,11 +243,32 @@ async def start_exam(exam_id: str, current_user):
         classroom_name=classroom.name if classroom else "Unknown"
     )
 
+    questions_data = []
+    for q_link in exam.questions:
+        question = await QuestionModel.get(q_link.ref.id)
+        if question:
+            questions_data.append({
+                "id": str(question.id),
+                "_id": str(question.id),
+                "content": question.content,
+                "options": question.options,
+                "answers": question.answers,
+                "difficulty": question.difficulty
+            })
+
     return {
-        "exam": exam,
+        "exam": {
+            "id": str(exam.id),
+            "_id": str(exam.id),
+            "title": exam.title,
+            "duration": exam.duration,
+            "start_at": exam.start_at,
+            "end_at": exam.end_at,
+            "questions": questions_data
+        },
         "result_id": str(new_result.id),
         "started_at": new_result.started_at,
-        "time_remaining": exam.duration,
+        "time_remaining": exam.duration * 60,
         "is_continuing": False
     }
 
@@ -181,7 +296,13 @@ async def submit_exam(exam_id: str, submit_data, current_user):
     if result.submitted:
         raise AppException(StatusCode.BAD_REQUEST, "You have already submitted this exam")
 
-    time_elapsed = (now - result.started_at).total_seconds() / 60
+    started_at = result.started_at
+    if started_at.tzinfo is None:
+        started_at = started_at.replace(tzinfo=timezone.utc)
+    else:
+        started_at = started_at.astimezone(timezone.utc)
+
+    time_elapsed = (now - started_at).total_seconds() / 60
     if time_elapsed > exam.duration + 1:
         result.submitted = True
         result.submit_at = now
@@ -219,7 +340,6 @@ async def submit_exam(exam_id: str, submit_data, current_user):
         "total_questions": total_questions
     })
 
-    # Notify student about their result
     await notification_service.notify_student_exam_submitted(
         user=current_user,
         exam=exam,
@@ -231,7 +351,7 @@ async def submit_exam(exam_id: str, submit_data, current_user):
     return {
         "result_id": str(result.id),
         "score": result.score,
-        "correct_count": correct_count,
+        "correct_answers": correct_count,
         "total_questions": total_questions,
         "submitted_at": result.submit_at
     }
@@ -311,8 +431,8 @@ async def get_my_exams(page: int, page_size: int, current_user):
     total = 0
 
     if current_user.role == "admin":
-        query = ExamModel.find_all()
-        total = await query.count()
+        query = ExamModel.find_all().sort([("created_at", -1)])
+        total = await ExamModel.find_all().count()
         exams = await query.skip(skip).limit(page_size).to_list()
 
     elif current_user.role == "teacher":
@@ -325,8 +445,8 @@ async def get_my_exams(page: int, page_size: int, current_user):
         class_ids = [c.id for c in classrooms]
 
         if class_ids:
-            query = ExamModel.find({"class_id.$id": {"$in": class_ids}})
-            total = await query.count()
+            query = ExamModel.find({"class_id.$id": {"$in": class_ids}}).sort([("created_at", -1)])
+            total = await ExamModel.find({"class_id.$id": {"$in": class_ids}}).count()
             exams = await query.skip(skip).limit(page_size).to_list()
 
     elif current_user.role == "student":
@@ -336,8 +456,8 @@ async def get_my_exams(page: int, page_size: int, current_user):
         class_ids = [c.id for c in classrooms]
 
         if class_ids:
-            query = ExamModel.find({"class_id.$id": {"$in": class_ids}})
-            total = await query.count()
+            query = ExamModel.find({"class_id.$id": {"$in": class_ids}}).sort([("created_at", -1)])
+            total = await ExamModel.find({"class_id.$id": {"$in": class_ids}}).count()
             exams = await query.skip(skip).limit(page_size).to_list()
 
     total_pages = (total + page_size - 1) // page_size
@@ -405,7 +525,6 @@ async def create_personal_exam(exam_data, current_user):
 
 
 async def start_personal_exam(exam_id: str, current_user):
-    """Start a personal practice exam"""
     try:
         obj_id = PydanticObjectId(exam_id)
     except:
@@ -470,7 +589,6 @@ async def start_personal_exam(exam_id: str, current_user):
 
 
 async def get_my_personal_exams(page: int, page_size: int, current_user):
-    """Get user's personal practice exams"""
     if page < 1:
         page = 1
     if page_size < 1 or page_size > 100:
@@ -481,8 +599,11 @@ async def get_my_personal_exams(page: int, page_size: int, current_user):
     query = ExamModel.find({
         "creator_id.$id": current_user.id,
         "is_personal": True
-    })
-    total = await query.count()
+    }).sort([("created_at", -1)])
+    total = await ExamModel.find({
+        "creator_id.$id": current_user.id,
+        "is_personal": True
+    }).count()
     exams = await query.skip(skip).limit(page_size).to_list()
 
     total_pages = (total + page_size - 1) // page_size
@@ -499,7 +620,6 @@ async def get_my_personal_exams(page: int, page_size: int, current_user):
 
 
 async def delete_personal_exam(exam_id: str, current_user):
-    """Delete a personal exam"""
     try:
         obj_id = PydanticObjectId(exam_id)
     except:
@@ -515,7 +635,6 @@ async def delete_personal_exam(exam_id: str, current_user):
     if exam.creator_id.ref.id != current_user.id:
         raise AppException(StatusCode.FORBIDDEN, "You can only delete your own personal exams")
 
-    # Delete associated results
     await ResultModel.find({"exam_id.$id": obj_id}).delete()
 
     await log_service.log_exam("delete_personal_exam", exam_id, current_user, {
@@ -527,8 +646,6 @@ async def delete_personal_exam(exam_id: str, current_user):
 
 
 async def get_personal_exam_statistics(current_user):
-    """Get statistics for user's personal practice exams"""
-    # Get all personal exams created by user
     personal_exams = await ExamModel.find({
         "creator_id.$id": current_user.id,
         "is_personal": True
@@ -548,7 +665,6 @@ async def get_personal_exam_statistics(current_user):
             "exams": []
         }
 
-    # Get all results for personal exams
     results = await ResultModel.find({
         "exam_id.$id": {"$in": exam_ids},
         "user_id.$id": current_user.id
@@ -557,7 +673,6 @@ async def get_personal_exam_statistics(current_user):
     completed_results = [r for r in results if r.submitted]
     scores = [r.score for r in completed_results]
 
-    # Get per-exam statistics
     exam_stats = []
     for exam in personal_exams:
         exam_results = [r for r in results if r.exam_id.ref.id == exam.id]
@@ -588,20 +703,16 @@ async def get_personal_exam_statistics(current_user):
 
 
 async def get_user_document_statistics(current_user):
-    """Get statistics for user's documents and questions"""
     from models.document_model import DocumentModel
 
-    # Get all documents created by user
     documents = await DocumentModel.find({
         "creator.$id": current_user.id
     }).to_list()
 
-    # Get all questions created by user
     questions = await QuestionModel.find({
         "creator_id.$id": current_user.id
     }).to_list()
 
-    # Group questions by difficulty
     difficulty_stats = {}
     for q in questions:
         diff = q.difficulty.value if hasattr(q.difficulty, 'value') else str(q.difficulty)
@@ -609,7 +720,6 @@ async def get_user_document_statistics(current_user):
             difficulty_stats[diff] = 0
         difficulty_stats[diff] += 1
 
-    # Get questions used in personal exams
     personal_exams = await ExamModel.find({
         "creator_id.$id": current_user.id,
         "is_personal": True
@@ -635,4 +745,107 @@ async def get_user_document_statistics(current_user):
             for d in documents
         ]
     }
+
+
+async def preview_exam_questions(class_code: str, total_questions: int, easy_count: int, medium_count: int, hard_count: int, current_user):
+    from models.question_model import Difficulty
+    import random
+    
+    classroom = await ClassroomModel.find_one(ClassroomModel.class_code == class_code)
+    if not classroom:
+        raise AppException(StatusCode.CLASSROOM_NOT_FOUND)
+    
+    if classroom.creator.ref.id != current_user.id:
+        raise AppException(StatusCode.FORBIDDEN, "Only the classroom creator can create exams")
+    
+    if easy_count + medium_count + hard_count != total_questions:
+        raise AppException(StatusCode.BAD_REQUEST, "Sum of difficulty counts must equal total questions")
+    
+    all_questions = await QuestionModel.find({"creator_id.$id": current_user.id}).to_list()
+    
+    questions_by_diff = {
+        "Easy": [q for q in all_questions if q.difficulty == Difficulty.EASY],
+        "Medium": [q for q in all_questions if q.difficulty == Difficulty.MEDIUM],
+        "Hard": [q for q in all_questions if q.difficulty == Difficulty.HARD]
+    }
+    
+    if len(questions_by_diff["Easy"]) < easy_count:
+        raise AppException(StatusCode.BAD_REQUEST, f"Not enough easy questions. Available: {len(questions_by_diff['Easy'])}, Required: {easy_count}")
+    if len(questions_by_diff["Medium"]) < medium_count:
+        raise AppException(StatusCode.BAD_REQUEST, f"Not enough medium questions. Available: {len(questions_by_diff['Medium'])}, Required: {medium_count}")
+    if len(questions_by_diff["Hard"]) < hard_count:
+        raise AppException(StatusCode.BAD_REQUEST, f"Not enough hard questions. Available: {len(questions_by_diff['Hard'])}, Required: {hard_count}")
+    
+    selected_easy = random.sample(questions_by_diff["Easy"], easy_count) if easy_count > 0 else []
+    selected_medium = random.sample(questions_by_diff["Medium"], medium_count) if medium_count > 0 else []
+    selected_hard = random.sample(questions_by_diff["Hard"], hard_count) if hard_count > 0 else []
+    
+    all_selected = selected_easy + selected_medium + selected_hard
+    random.shuffle(all_selected)
+    
+    questions_list = [
+        {
+            "id": str(q.id),
+            "content": q.content,
+            "options": q.options,
+            "answer": q.answers,
+            "difficulty": q.difficulty.value
+        }
+        for q in all_selected
+    ]
+    
+    return {
+        "questions": questions_list,
+        "total": len(questions_list),
+        "distribution": {
+            "easy": easy_count,
+            "medium": medium_count,
+            "hard": hard_count
+        }
+    }
+
+
+async def replace_question_in_preview(class_code: str, question_id: str, excluded_ids: list, difficulty: str, current_user):
+    from models.question_model import Difficulty
+    import random
+    
+    classroom = await ClassroomModel.find_one(ClassroomModel.class_code == class_code)
+    if not classroom:
+        raise AppException(StatusCode.CLASSROOM_NOT_FOUND)
+    
+    if classroom.creator.ref.id != current_user.id:
+        raise AppException(StatusCode.FORBIDDEN, "Only the classroom creator can access this")
+    
+    diff_map = {
+        "Easy": Difficulty.EASY,
+        "Medium": Difficulty.MEDIUM,
+        "Hard": Difficulty.HARD
+    }
+    
+    difficulty_enum = diff_map.get(difficulty)
+    if not difficulty_enum:
+        raise AppException(StatusCode.BAD_REQUEST, "Invalid difficulty level")
+    
+    excluded_set = set(excluded_ids)
+    
+    available_questions = await QuestionModel.find({
+        "creator_id.$id": current_user.id,
+        "difficulty": difficulty_enum
+    }).to_list()
+    
+    available_questions = [q for q in available_questions if str(q.id) not in excluded_set]
+    
+    if not available_questions:
+        raise AppException(StatusCode.BAD_REQUEST, f"No more {difficulty} questions available")
+    
+    new_question = random.choice(available_questions)
+    
+    return {
+        "id": str(new_question.id),
+        "content": new_question.content,
+        "options": new_question.options,
+        "answer": new_question.answers,
+        "difficulty": new_question.difficulty.value
+    }
+
 

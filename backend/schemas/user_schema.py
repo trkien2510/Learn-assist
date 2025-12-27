@@ -17,9 +17,7 @@ class UserRegister(BaseModel):
     def validate_phone_number(cls, v):
         if v is None or v == "":
             return None
-        # Remove spaces and common separators
         cleaned = re.sub(r'[\s\-\(\)]', '', v)
-        # Vietnamese phone number: 10-11 digits, starts with 0
         if not re.match(r'^0\d{9,10}$', cleaned):
             raise ValueError('Phone number must be 10-11 digits and start with 0')
         return cleaned
@@ -41,9 +39,19 @@ class UserProfile(BaseModel):
     created_at: datetime
 
 class UserUpdate(BaseModel):
-    current_password: str = Field(..., min_length=8, max_length=64)
-    new_password: str = Field(..., min_length=8, max_length=64)
-    confirm_password: str = Field(..., min_length=8, max_length=64)
-    new_email: EmailStr | None
-    new_full_name: str | None
-    new_phone_number: str | None
+    full_name: str | None = Field(None, min_length=1)
+    phone_number: str | None = None
+    dob: date | None = None
+    current_password: str | None = Field(None, min_length=8, max_length=64)
+    new_password: str | None = Field(None, min_length=8, max_length=64)
+    confirm_password: str | None = Field(None, min_length=8, max_length=64)
+
+    @field_validator('phone_number')
+    @classmethod
+    def validate_phone_number(cls, v):
+        if v is None or v == "":
+            return None
+        cleaned = re.sub(r'[\s\-\(\)]', '', v)
+        if not re.match(r'^0\d{9,10}$', cleaned):
+            raise ValueError('Phone number must be 10-11 digits and start with 0')
+        return cleaned

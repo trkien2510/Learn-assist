@@ -31,3 +31,19 @@ class ExamResponseSchema(BaseModel):
 
 class SubmitExamSchema(BaseModel):
     answers: Dict[str, str] = Field(default_factory=dict)
+
+
+class PreviewExamSchema(BaseModel):
+    """Schema for previewing exam with difficulty distribution"""
+    class_code: str
+    total_questions: int
+    easy_count: int
+    medium_count: int
+    hard_count: int
+
+
+class ReplaceQuestionSchema(BaseModel):
+    """Schema for replacing a question in preview"""
+    question_id: str
+    excluded_ids: List[str] = []  # IDs to exclude from selection
+

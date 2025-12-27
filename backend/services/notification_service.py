@@ -9,9 +9,6 @@ from models.exam_model import ExamModel
 from core.exception_handler import AppException
 from core.status_code import StatusCode
 
-
-# ===== Core Functions =====
-
 async def create_notification(
     user: UserModel,
     notification_type: NotificationType,
@@ -100,7 +97,6 @@ async def get_user_notifications(
 
 async def mark_as_read(current_user: UserModel, notification_ids: List[str] = None):
     if notification_ids is None:
-        # Mark all as read
         result = await NotificationModel.find({
             "user_id.$id": current_user.id,
             "is_read": False
@@ -185,7 +181,6 @@ async def notify_student_exam_started(user: UserModel, exam: ExamModel, classroo
 
 
 async def notify_student_exam_submitted(user: UserModel, exam: ExamModel, score: float, correct_count: int, total_questions: int):
-    """Notify a student about their exam result after submission."""
     await create_notification(
         user=user,
         notification_type=NotificationType.EXAM_RESULT,

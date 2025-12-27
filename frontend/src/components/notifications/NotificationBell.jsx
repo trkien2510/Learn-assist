@@ -14,7 +14,6 @@ const NotificationBell = () => {
         deleteNotification
     } = useNotifications();
 
-    // Close dropdown when clicking outside
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -38,7 +37,6 @@ const NotificationBell = () => {
                 className="relative p-2 rounded-xl hover:bg-white/10 transition-colors group"
                 aria-label="Notifications"
             >
-                {/* Bell Icon */}
                 <svg
                     className="w-6 h-6 text-gray-600 group-hover:text-gray-900 transition-colors"
                     fill="none"
@@ -53,7 +51,6 @@ const NotificationBell = () => {
                     />
                 </svg>
 
-                {/* Unread Badge */}
                 {unreadCount > 0 && (
                     <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-red-500 to-rose-500 text-white text-xs font-bold rounded-full flex items-center justify-center animate-pulse">
                         {unreadCount > 99 ? '99+' : unreadCount}
@@ -61,7 +58,6 @@ const NotificationBell = () => {
                 )}
             </button>
 
-            {/* Dropdown */}
             {isOpen && (
                 <NotificationDropdown
                     notifications={notifications}

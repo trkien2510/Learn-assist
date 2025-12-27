@@ -10,15 +10,22 @@ async def create_log(
     user=None,
     resource_type: str = None,
     resource_id: str = None,
+    resource_name: str = None,
     details: Dict[str, Any] = None,
     status: str = "success"
 ):
+    if details is None:
+        details = {}
+    
+    if resource_name:
+        details["resource_name"] = resource_name
+    
     log = LogModel(
         action=action,
         user_id=str(user.id) if user else None,
         resource_type=resource_type,
         resource_id=resource_id,
-        details=details or {},
+        details=details,
         status=status
     )
     await log.insert()
@@ -134,56 +141,61 @@ async def log_auth(action: str, user=None, status: str = "success"):
     )
 
 
-async def log_classroom(action: str, classroom_id: str, user=None, details: dict = None, status: str = "success"):
+async def log_classroom(action: str, classroom_id: str, user=None, resource_name: str = None, details: dict = None, status: str = "success"):
     return await create_log(
         action=action,
         user=user,
         resource_type="classroom",
         resource_id=classroom_id,
+        resource_name=resource_name,
         details=details,
         status=status
     )
 
 
-async def log_exam(action: str, exam_id: str, user=None, details: dict = None, status: str = "success"):
+async def log_exam(action: str, exam_id: str, user=None, resource_name: str = None, details: dict = None, status: str = "success"):
     return await create_log(
         action=action,
         user=user,
         resource_type="exam",
         resource_id=exam_id,
+        resource_name=resource_name,
         details=details,
         status=status
     )
 
 
-async def log_question(action: str, question_id: str, user=None, details: dict = None, status: str = "success"):
+async def log_question(action: str, question_id: str, user=None, resource_name: str = None, details: dict = None, status: str = "success"):
     return await create_log(
         action=action,
         user=user,
         resource_type="question",
         resource_id=question_id,
+        resource_name=resource_name,
         details=details,
         status=status
     )
 
 
-async def log_document(action: str, document_id: str, user=None, details: dict = None, status: str = "success"):
+async def log_document(action: str, document_id: str, user=None, resource_name: str = None, details: dict = None, status: str = "success"):
     return await create_log(
         action=action,
         user=user,
         resource_type="document",
         resource_id=document_id,
+        resource_name=resource_name,
         details=details,
         status=status
     )
 
 
-async def log_user(action: str, target_user_id: str, user=None, details: dict = None, status: str = "success"):
+async def log_user(action: str, target_user_id: str, user=None, resource_name: str = None, details: dict = None, status: str = "success"):
     return await create_log(
         action=action,
         user=user,
         resource_type="user",
         resource_id=target_user_id,
+        resource_name=resource_name,
         details=details,
         status=status
     )

@@ -227,6 +227,44 @@ async def get_classroom_by_code(class_code: str):
     return classroom
 
 
+async def get_classroom_detail(class_code: str, current_user):
+    """Get full classroom details"""
+    classroom = await get_classroom_by_code(class_code)
+    
+    # Check if user is a member or creator
+    is_creator = classroom.creator.ref.id == current_user.id
+    is_member = any(m.ref.id == current_user.id for m in classroom.members)
+    
+    if not is_creator and not is_member:
+        raise AppException(StatusCode.FORBIDDEN, "You are not a member of this class")
+    
+    # Fetch creator info
+    creator = await UserModel.get(classroom.creator.ref.id)
+    
+    # Count pending requests if user is creator
+    pending_count = 0
+    if is_creator:
+        pending_count = await JoinRequestModel.find({"class_id.$id": classroom.id}).count()
+    
+    return {
+        "id": str(classroom.id),
+        "name": classroom.name,
+        "description": classroom.description,
+        "subject": classroom.subject,
+        "class_code": classroom.class_code,
+        "creator": {
+            "id": str(creator.id),
+            "full_name": creator.full_name,
+            "email": creator.email
+        },
+        "members_count": len(classroom.members),
+        "pending_requests_count": pending_count,
+        "is_creator": is_creator,
+        "created_at": classroom.created_at
+    }
+
+
+
 async def accept_all_join_requests(class_code: str, current_user):
     if current_user.role != UserRole.TEACHER:
         raise AppException(StatusCode.FORBIDDEN, "Only teachers can approve requests")

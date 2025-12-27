@@ -117,12 +117,12 @@ async def get_my_questions(page: int, page_size: int, current_user):
     total = 0
 
     if current_user.role == "admin":
-        query = QuestionModel.find_all()
-        total = await query.count()
+        query = QuestionModel.find_all().sort([("created_at", -1)])
+        total = await QuestionModel.find_all().count()
         items = await query.skip(skip).limit(page_size).to_list()
     else:
-        query = QuestionModel.find({"creator_id.$id": current_user.id})
-        total = await query.count()
+        query = QuestionModel.find({"creator_id.$id": current_user.id}).sort([("created_at", -1)])
+        total = await QuestionModel.find({"creator_id.$id": current_user.id}).count()
         items = await query.skip(skip).limit(page_size).to_list()
 
     total_pages = (total + page_size - 1) // page_size

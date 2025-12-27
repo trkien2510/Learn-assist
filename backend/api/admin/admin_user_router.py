@@ -16,11 +16,18 @@ class ToggleStatusRequest(BaseModel):
 
 
 @router.get("", response_model=BaseResponse)
-async def get_all_users_admin(page: int = 1, page_size: int = 20, current_user: UserModel = Depends(get_current_user)):
+async def get_all_users_admin(
+    page: int = 1,
+    page_size: int = 20,
+    role: str = None,
+    is_activate: str = None,
+    search: str = None,
+    current_user: UserModel = Depends(get_current_user)
+):
     if current_user.role != "admin":
         raise AppException(StatusCode.FORBIDDEN, "Access denied")
 
-    data = await user_service.get_all_users(page, page_size)
+    data = await user_service.get_all_users(page, page_size, role, is_activate, search)
     return BaseResponse(data=data)
 
 

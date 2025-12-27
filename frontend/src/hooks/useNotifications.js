@@ -7,7 +7,6 @@ const useNotifications = (pollingInterval = 30000) => { // Poll every 30 seconds
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    // Fetch notifications
     const fetchNotifications = useCallback(async (page = 1, pageSize = 20) => {
         try {
             setLoading(true);
@@ -24,7 +23,6 @@ const useNotifications = (pollingInterval = 30000) => { // Poll every 30 seconds
         }
     }, []);
 
-    // Fetch unread count only
     const fetchUnreadCount = useCallback(async () => {
         try {
             const response = await notificationService.getUnreadCount();
@@ -35,11 +33,9 @@ const useNotifications = (pollingInterval = 30000) => { // Poll every 30 seconds
         }
     }, []);
 
-    // Mark as read
     const markAsRead = useCallback(async (notificationIds = null) => {
         try {
             await notificationService.markAsRead(notificationIds);
-            // Refresh notifications
             await fetchNotifications();
         } catch (err) {
             console.error('Failed to mark as read:', err);
@@ -47,11 +43,9 @@ const useNotifications = (pollingInterval = 30000) => { // Poll every 30 seconds
         }
     }, [fetchNotifications]);
 
-    // Mark all as read
     const markAllAsRead = useCallback(async () => {
         try {
             await notificationService.markAllAsRead();
-            // Refresh notifications
             await fetchNotifications();
         } catch (err) {
             console.error('Failed to mark all as read:', err);
@@ -59,11 +53,9 @@ const useNotifications = (pollingInterval = 30000) => { // Poll every 30 seconds
         }
     }, [fetchNotifications]);
 
-    // Delete notification
     const deleteNotification = useCallback(async (notificationId) => {
         try {
             await notificationService.deleteNotification(notificationId);
-            // Refresh notifications
             await fetchNotifications();
         } catch (err) {
             console.error('Failed to delete notification:', err);
@@ -71,7 +63,6 @@ const useNotifications = (pollingInterval = 30000) => { // Poll every 30 seconds
         }
     }, [fetchNotifications]);
 
-    // Delete all notifications
     const deleteAllNotifications = useCallback(async () => {
         try {
             await notificationService.deleteAllNotifications();
@@ -83,12 +74,9 @@ const useNotifications = (pollingInterval = 30000) => { // Poll every 30 seconds
         }
     }, []);
 
-    // Set up polling
     useEffect(() => {
-        // Initial fetch
         fetchNotifications();
 
-        // Set up polling interval
         const intervalId = setInterval(() => {
             fetchUnreadCount();
         }, pollingInterval);

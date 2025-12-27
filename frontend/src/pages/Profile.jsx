@@ -1,15 +1,19 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { userService } from '../services/authService';
-import { UserIcon, EmailIcon, LockIcon, EditIcon } from '../components/icons/Icons';
+import { UserIcon, EmailIcon, LockIcon, EditIcon, PhoneIcon, CalendarIcon, TrashIcon } from '../components/icons/Icons';
 
 const Profile = () => {
     const { user, updateUser } = useAuth();
     const [editing, setEditing] = useState(false);
     const [changingPassword, setChangingPassword] = useState(false);
+    const [deactivating, setDeactivating] = useState(false);
+    const [deactivatePassword, setDeactivatePassword] = useState('');
     const [formData, setFormData] = useState({
         full_name: user?.full_name || user?.name || '',
-        email: user?.email || ''
+        email: user?.email || '',
+        phone_number: user?.phone_number || '',
+        dob: user?.dob ? new Date(user.dob).toISOString().split('T')[0] : ''
     });
     const [passwordData, setPasswordData] = useState({
         old_password: '',
@@ -32,6 +36,25 @@ const Profile = () => {
             setTimeout(() => setSuccess(''), 3000);
         } catch (err) {
             setError(err.message || 'Không thể cập nhật thông tin');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDeactivate = async (e) => {
+        e.preventDefault();
+        if (!window.confirm('Bạn có chắc chắn muốn vô hiệu hóa tài khoản? Hành động này không thể hoàn tác.')) return;
+
+        try {
+            setLoading(true);
+            setError('');
+            await userService.deactivate({ password: deactivatePassword });
+            setSuccess('Tài khoản đã được vô hiệu hóa. Bạn sẽ được đăng xuất.');
+            setTimeout(() => {
+                window.location.href = '/logout';
+            }, 3000);
+        } catch (err) {
+            setError(err.message || 'Không thể vô hiệu hóa tài khoản');
         } finally {
             setLoading(false);
         }
@@ -102,15 +125,14 @@ const Profile = () => {
                 </div>
             )}
 
-            {/* Profile Info */}
             <div className="card-glass p-8">
                 <div className="flex items-start justify-between mb-6">
                     <div className="flex items-center gap-4">
                         <div className="w-20 h-20 rounded-full bg-linear-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-gray-900 text-2xl font-bold">
-                            {user?.name?.charAt(0).toUpperCase() || user?.full_name?.charAt(0).toUpperCase() || 'U'}
+                            {user?.full_name?.charAt(0).toUpperCase() || user?.username?.charAt(0).toUpperCase() || 'U'}
                         </div>
                         <div>
-                            <h2 className="text-2xl font-bold text-gray-900">{user?.name || user?.full_name}</h2>
+                            <h2 className="text-2xl font-bold text-gray-900">{user?.full_name || user?.name}</h2>
                             <span className={`inline-block mt-2 px-3 py-1 text-xs font-medium rounded-full border ${roleBadge.color}`}>
                                 {roleBadge.text}
                             </span>
@@ -154,6 +176,33 @@ const Profile = () => {
                             <p className="text-xs text-gray-500 mt-1">Email không thể thay đổi</p>
                         </div>
 
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-600 mb-2">
+                                    Số điện thoại
+                                </label>
+                                <input
+                                    type="text"
+                                    value={formData.phone_number}
+                                    onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
+                                    className="input-glass"
+                                    placeholder="0xxxxxxxxx"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-600 mb-2">
+                                    Ngày sinh
+                                </label>
+                                <input
+                                    type="date"
+                                    value={formData.dob}
+                                    onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
+                                    className="input-glass"
+                                />
+                            </div>
+                        </div>
+
                         <div className="flex gap-3 pt-4">
                             <button
                                 type="button"
@@ -161,7 +210,9 @@ const Profile = () => {
                                     setEditing(false);
                                     setFormData({
                                         full_name: user?.full_name || user?.name || '',
-                                        email: user?.email || ''
+                                        email: user?.email || '',
+                                        phone_number: user?.phone_number || '',
+                                        dob: user?.dob ? new Date(user.dob).toISOString().split('T')[0] : ''
                                     });
                                 }}
                                 className="flex-1 btn-secondary"
@@ -175,25 +226,40 @@ const Profile = () => {
                     </form>
                 ) : (
                     <div className="space-y-4 text-gray-600">
-                        <div className="flex items-center gap-3">
-                            <EmailIcon className="w-5 h-5 text-gray-500" />
-                            <div>
-                                <p className="text-sm text-gray-500">Email</p>
-                                <p className="text-gray-900">{user?.email}</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="flex items-center gap-3">
+                                <EmailIcon className="w-5 h-5 text-gray-500" />
+                                <div>
+                                    <p className="text-sm text-gray-500">Email</p>
+                                    <p className="text-gray-900">{user?.email}</p>
+                                </div>
                             </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <UserIcon className="w-5 h-5 text-gray-500" />
-                            <div>
-                                <p className="text-sm text-gray-500">Họ và tên</p>
-                                <p className="text-gray-900">{user?.full_name || user?.name || 'Chưa cập nhật'}</p>
+                            <div className="flex items-center gap-3">
+                                <UserIcon className="w-5 h-5 text-gray-500" />
+                                <div>
+                                    <p className="text-sm text-gray-500">Họ và tên</p>
+                                    <p className="text-gray-900">{user?.full_name || user?.name || 'Chưa cập nhật'}</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <PhoneIcon className="w-5 h-5 text-gray-500" />
+                                <div>
+                                    <p className="text-sm text-gray-500">Số điện thoại</p>
+                                    <p className="text-gray-900">{user?.phone_number || 'Chưa cập nhật'}</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <CalendarIcon className="w-5 h-5 text-gray-500" />
+                                <div>
+                                    <p className="text-sm text-gray-500">Ngày sinh</p>
+                                    <p className="text-gray-900">{user?.dob ? new Date(user.dob).toLocaleDateString('vi-VN') : 'Chưa cập nhật'}</p>
+                                </div>
                             </div>
                         </div>
                     </div>
                 )}
             </div>
 
-            {/* Change Password */}
             <div className="card-glass p-8">
                 <div className="flex items-center justify-between mb-6">
                     <h3 className="text-xl font-bold text-gray-900">Đổi mật khẩu</h3>
@@ -267,6 +333,65 @@ const Profile = () => {
                     </form>
                 ) : (
                     <p className="text-gray-500">Click "Đổi mật khẩu" để thay đổi mật khẩu của bạn</p>
+                )}
+            </div>
+
+            <div className="card-glass p-8 border-red-500/20">
+                <div className="flex items-center justify-between mb-6">
+                    <div>
+                        <h3 className="text-xl font-bold text-red-600">Vô hiệu hóa tài khoản</h3>
+                        <p className="text-sm text-gray-500 mt-1">Tạm dừng truy cập vào tài khoản của bạn</p>
+                    </div>
+                    {!deactivating && (
+                        <button
+                            onClick={() => setDeactivating(true)}
+                            className="px-4 py-2 bg-red-500/10 text-red-600 rounded-xl hover:bg-red-500/20 transition-colors flex items-center gap-2 font-semibold"
+                        >
+                            <TrashIcon className="w-4 h-4" />
+                            Vô hiệu hóa
+                        </button>
+                    )}
+                </div>
+
+                {deactivating && (
+                    <form onSubmit={handleDeactivate} className="space-y-4">
+                        <div className="p-4 bg-orange-50 text-orange-700 rounded-xl text-sm mb-4">
+                            Lưu ý: Bạn cần nhập mật khẩu để xác nhận vô hiệu hóa tài khoản.
+                            Tài khoản sẽ không thể đăng nhập sau khi vô hiệu hóa.
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-600 mb-2">
+                                Xác nhận mật khẩu
+                            </label>
+                            <input
+                                type="password"
+                                required
+                                value={deactivatePassword}
+                                onChange={(e) => setDeactivatePassword(e.target.value)}
+                                className="input-glass border-red-200 focus:border-red-500"
+                                placeholder="Nhập mật khẩu của bạn"
+                            />
+                        </div>
+                        <div className="flex gap-3 pt-2">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setDeactivating(false);
+                                    setDeactivatePassword('');
+                                }}
+                                className="flex-1 btn-secondary"
+                            >
+                                Hủy
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="flex-1 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors font-bold"
+                            >
+                                {loading ? 'Đang xử lý...' : 'Xác nhận vô hiệu hóa'}
+                            </button>
+                        </div>
+                    </form>
                 )}
             </div>
         </div>

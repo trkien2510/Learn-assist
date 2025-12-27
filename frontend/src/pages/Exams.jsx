@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, ROLES } from '../contexts/AuthContext';
 import { examService, classroomService, questionService } from '../services/apiServices';
-import { PlusIcon, ClockIcon, CalendarIcon, UsersIcon, BookIcon, CloseIcon, SearchIcon, EditIcon } from '../components/icons/Icons';
+import { PlusIcon, ClockIcon, CalendarIcon, UsersIcon, BookIcon, CloseIcon, SearchIcon, EditIcon, RefreshIcon, CheckIcon } from '../components/icons/Icons';
+import Portal from '../components/common/Portal';
 
 const Exams = () => {
     const { user, hasRole } = useAuth();
@@ -14,9 +15,9 @@ const Exams = () => {
 
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [classrooms, setClassrooms] = useState([]);
-    const [questions, setQuestions] = useState([]);
-    const [selectedQuestions, setSelectedQuestions] = useState([]);
-    const [searchQuestion, setSearchQuestion] = useState('');
+    const [step, setStep] = useState(1); 
+    const [previewQuestions, setPreviewQuestions] = useState([]);
+    const [excludedIds, setExcludedIds] = useState([]);
 
     const [formData, setFormData] = useState({
         title: '',
@@ -24,7 +25,10 @@ const Exams = () => {
         duration: 60,
         start_at: '',
         end_at: '',
-        expiry_at: ''
+        total_questions: 10,
+        easy_count: 0,
+        medium_count: 0,
+        hard_count: 0
     });
 
     const isTeacher = hasRole([ROLES.ADMIN, ROLES.TEACHER]);
@@ -41,7 +45,18 @@ const Exams = () => {
             setLoading(true);
             const response = await examService.getAll(1, 50);
             const data = response.data || response;
-            setExams(data.items || data || []);
+            const examsData = data.items || data || [];
+
+            if (examsData.length > 0) {
+                console.log('🔍 DEBUG Exam datetime:', {
+                    start_at: examsData[0].start_at,
+                    end_at: examsData[0].end_at,
+                    start_parsed: new Date(examsData[0].start_at),
+                    current_time: new Date()
+                });
+            }
+
+            setExams(examsData);
         } catch (err) {
             setError(err.message || 'Không thể tải danh sách đề thi');
         } finally {
@@ -59,31 +74,127 @@ const Exams = () => {
         }
     };
 
-    const fetchQuestions = async () => {
+    const validateConfig = () => {
+        if (!formData.title.trim()) {
+            setError('Vui lòng nhập tên đề thi');
+            return false;
+        }
+        if (!formData.class_id) {
+            setError('Vui lòng chọn lớp học');
+            return false;
+        }
+        if (!formData.start_at || !formData.end_at) {
+            setError('Vui lòng chọn thời gian bắt đầu và kết thúc');
+            return false;
+        }
+        if (new Date(formData.start_at) >= new Date(formData.end_at)) {
+            setError('Thời gian kết thúc phải sau thời gian bắt đầu');
+            return false;
+        }
+        if (formData.total_questions < 1) {
+            setError('Số câu hỏi phải lớn hơn 0');
+            return false;
+        }
+        if (formData.easy_count + formData.medium_count + formData.hard_count !== formData.total_questions) {
+            setError('Tổng số câu hỏi theo độ khó phải bằng tổng số câu hỏi');
+            return false;
+        }
+        return true;
+    };
+
+    const handlePreview = async () => {
+        if (!validateConfig()) return;
+
         try {
-            const response = await questionService.getAll(1, 100);
+            setLoading(true);
+            setError('');
+
+            const selectedClassroom = classrooms.find(c => (c._id || c.id) === formData.class_id);
+            if (!selectedClassroom) {
+                setError('Không tìm thấy lớp học');
+                return;
+            }
+
+            const response = await examService.previewQuestions(
+                selectedClassroom.class_code,
+                formData.total_questions,
+                formData.easy_count,
+                formData.medium_count,
+                formData.hard_count
+            );
             const data = response.data || response;
-            setQuestions(data.items || data || []);
+            setPreviewQuestions(data.questions || []);
+            setExcludedIds(data.questions?.map(q => q.id) || []);
+            setStep(2);
         } catch (err) {
-            setError('Không thể tải câu hỏi');
+            setError(err.message || 'Không thể tải danh sách câu hỏi');
+        } finally {
+            setLoading(false);
         }
     };
 
-    const handleCreateExam = async (e) => {
-        e.preventDefault();
-
-        if (selectedQuestions.length === 0) {
-            setError('Vui lòng chọn ít nhất 1 câu hỏi');
-            return;
-        }
-
+    const handleReplaceQuestion = async (questionId, difficulty) => {
         try {
-            const examData = {
-                ...formData,
-                questions: selectedQuestions.map(q => q._id || q.id)
+            setError('');
+            const selectedClassroom = classrooms.find(c => (c._id || c.id) === formData.class_id);
+
+            const response = await examService.replaceQuestion(
+                selectedClassroom.class_code,
+                questionId,
+                excludedIds,
+                difficulty
+            );
+            const newQuestion = response.data || response;
+
+            setPreviewQuestions(prev =>
+                prev.map(q => q.id === questionId ? newQuestion : q)
+            );
+
+            setExcludedIds(prev => [...prev.filter(id => id !== questionId), newQuestion.id]);
+        } catch (err) {
+            setError(err.message || 'Không thể thay thế câu hỏi');
+        }
+    };
+
+    const handleCreateExam = async () => {
+        try {
+            setLoading(true);
+            setError('');
+
+            const questionIds = previewQuestions.map(q => q.id);
+
+            const selectedClassroom = classrooms.find(c => (c._id || c.id) === formData.class_id);
+            if (!selectedClassroom) {
+                setError('Không tìm thấy lớp học');
+                return;
+            }
+
+            const formatDateTimeWithOffset = (dateTimeStr) => {
+                const date = new Date(dateTimeStr);
+                const offset = -date.getTimezoneOffset();
+                const offsetHours = String(Math.floor(Math.abs(offset) / 60)).padStart(2, '0');
+                const offsetMins = String(Math.abs(offset) % 60).padStart(2, '0');
+                const offsetSign = offset >= 0 ? '+' : '-';
+
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                const seconds = '00';
+
+                return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${offsetSign}${offsetHours}:${offsetMins}`;
             };
 
-            await examService.create(examData);
+            await examService.create({
+                title: formData.title,
+                class_code: selectedClassroom.class_code,
+                duration: parseInt(formData.duration),
+                start_at: formatDateTimeWithOffset(formData.start_at),
+                end_at: formatDateTimeWithOffset(formData.end_at),
+                question_ids: questionIds
+            });
+
             setSuccess('Tạo đề thi thành công!');
             setShowCreateModal(false);
             resetForm();
@@ -91,6 +202,8 @@ const Exams = () => {
             setTimeout(() => setSuccess(''), 3000);
         } catch (err) {
             setError(err.message || 'Không thể tạo đề thi');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -102,11 +215,37 @@ const Exams = () => {
         navigate(`/app/results?exam_id=${exam._id || exam.id}`);
     };
 
-    const toggleQuestionSelection = (question) => {
-        if (selectedQuestions.find(q => (q._id || q.id) === (question._id || question.id))) {
-            setSelectedQuestions(selectedQuestions.filter(q => (q._id || q.id) !== (question._id || question.id)));
-        } else {
-            setSelectedQuestions([...selectedQuestions, question]);
+    const handleTotalQuestionsChange = (value) => {
+        const total = parseInt(value) || 0;
+        setFormData(prev => ({
+            ...prev,
+            total_questions: total,
+            easy_count: 0,
+            medium_count: 0,
+            hard_count: 0
+        }));
+    };
+
+    const handleDifficultyChange = (type, value) => {
+        const newValue = parseInt(value) || 0;
+        const newFormData = { ...formData, [type]: newValue };
+
+        const sum = newFormData.easy_count + newFormData.medium_count + newFormData.hard_count;
+        if (sum <= newFormData.total_questions) {
+            setFormData(newFormData);
+        }
+    };
+
+    const getDifficultyBadgeClass = (difficulty) => {
+        switch (difficulty) {
+            case 'Easy':
+                return 'bg-green-500/20 text-green-400 border-green-500/30';
+            case 'Medium':
+                return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
+            case 'Hard':
+                return 'bg-red-500/20 text-red-400 border-red-500/30';
+            default:
+                return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
         }
     };
 
@@ -117,20 +256,35 @@ const Exams = () => {
             duration: 60,
             start_at: '',
             end_at: '',
-            expiry_at: ''
+            total_questions: 10,
+            easy_count: 0,
+            medium_count: 0,
+            hard_count: 0
         });
-        setSelectedQuestions([]);
-        setSearchQuestion('');
+        setStep(1);
+        setPreviewQuestions([]);
+        setExcludedIds([]);
+        setError('');
     };
 
     const formatDate = (dateString) => {
-        return new Date(dateString).toLocaleString('vi-VN');
+        let dateStr = dateString;
+        if (!/Z|[+-]\d{2}:\d{2}$/.test(dateString)) {
+            dateStr = dateString + 'Z';
+        }
+        return new Date(dateStr).toLocaleString('vi-VN');
     };
 
     const getExamStatus = (exam) => {
         const now = new Date();
-        const start = new Date(exam.start_at);
-        const end = new Date(exam.end_at);
+
+        let startStr = exam.start_at;
+        let endStr = exam.end_at;
+        if (!/Z|[+-]\d{2}:\d{2}$/.test(startStr)) startStr += 'Z';
+        if (!/Z|[+-]\d{2}:\d{2}$/.test(endStr)) endStr += 'Z';
+
+        const start = new Date(startStr);
+        const end = new Date(endStr);
 
         if (now < start) return { text: 'Sắp diễn ra', color: 'bg-blue-500/20 text-blue-400' };
         if (now >= start && now <= end) return { text: 'Đang diễn ra', color: 'bg-green-500/20 text-green-400' };
@@ -139,14 +293,16 @@ const Exams = () => {
 
     const canTakeExam = (exam) => {
         const now = new Date();
-        const start = new Date(exam.start_at);
-        const end = new Date(exam.end_at);
+
+        let startStr = exam.start_at;
+        let endStr = exam.end_at;
+        if (!/Z|[+-]\d{2}:\d{2}$/.test(startStr)) startStr += 'Z';
+        if (!/Z|[+-]\d{2}:\d{2}$/.test(endStr)) endStr += 'Z';
+
+        const start = new Date(startStr);
+        const end = new Date(endStr);
         return now >= start && now <= end;
     };
-
-    const filteredQuestions = questions.filter(q =>
-        q.content.toLowerCase().includes(searchQuestion.toLowerCase())
-    );
 
     return (
         <div className="space-y-6">
@@ -161,10 +317,7 @@ const Exams = () => {
                 </div>
                 {isTeacher && (
                     <button
-                        onClick={() => {
-                            setShowCreateModal(true);
-                            fetchQuestions();
-                        }}
+                        onClick={() => setShowCreateModal(true)}
                         className="btn-primary flex items-center gap-2"
                     >
                         <PlusIcon className="w-5 h-5" />
@@ -185,7 +338,6 @@ const Exams = () => {
                 </div>
             )}
 
-            {/* Exams List */}
             {loading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {[1, 2, 3].map(i => (
@@ -267,181 +419,261 @@ const Exams = () => {
                 </div>
             )}
 
-            {/* Create Exam Modal */}
             {showCreateModal && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
-                    <div className="card-glass p-8 max-w-4xl w-full my-8 animate-fadeIn">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-2xl font-bold gradient-text">Tạo đề thi mới</h2>
-                            <button
-                                onClick={() => {
-                                    setShowCreateModal(false);
-                                    resetForm();
-                                }}
-                                className="p-2 hover:bg-white/5 rounded-lg transition-colors"
-                            >
-                                <CloseIcon className="w-5 h-5 text-gray-500" />
-                            </button>
-                        </div>
-
-                        <form onSubmit={handleCreateExam} className="space-y-6">
-                            {/* Basic Info */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-600 mb-2">
-                                        Tiêu đề đề thi *
-                                    </label>
-                                    <input
-                                        type="text"
-                                        required
-                                        value={formData.title}
-                                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                        className="input-glass"
-                                        placeholder="VD: Kiểm tra giữa kỳ"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-600 mb-2">
-                                        Lớp học *
-                                    </label>
-                                    <select
-                                        required
-                                        value={formData.class_id}
-                                        onChange={(e) => setFormData({ ...formData, class_id: e.target.value })}
-                                        className="input-glass"
-                                    >
-                                        <option value="">Chọn lớp học</option>
-                                        {classrooms.map(cls => (
-                                            <option key={cls._id || cls.id} value={cls._id || cls.id}>
-                                                {cls.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-600 mb-2">
-                                        Thời gian làm bài (phút) *
-                                    </label>
-                                    <input
-                                        type="number"
-                                        required
-                                        min="1"
-                                        value={formData.duration}
-                                        onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) })}
-                                        className="input-glass"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-600 mb-2">
-                                        Thời gian bắt đầu *
-                                    </label>
-                                    <input
-                                        type="datetime-local"
-                                        required
-                                        value={formData.start_at}
-                                        onChange={(e) => setFormData({ ...formData, start_at: e.target.value })}
-                                        className="input-glass"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-600 mb-2">
-                                        Thời gian kết thúc *
-                                    </label>
-                                    <input
-                                        type="datetime-local"
-                                        required
-                                        value={formData.end_at}
-                                        onChange={(e) => setFormData({ ...formData, end_at: e.target.value })}
-                                        className="input-glass"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Question Selection */}
-                            <div>
-                                <div className="flex items-center justify-between mb-4">
-                                    <h3 className="font-semibold text-gray-900">
-                                        Chọn câu hỏi ({selectedQuestions.length} đã chọn)
-                                    </h3>
-                                    <div className="relative w-64">
-                                        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                                        <input
-                                            type="text"
-                                            placeholder="Tìm câu hỏi..."
-                                            value={searchQuestion}
-                                            onChange={(e) => setSearchQuestion(e.target.value)}
-                                            className="input-glass pl-10 text-sm"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="max-h-96 overflow-y-auto space-y-2 p-4 bg-slate-800/30 rounded-xl">
-                                    {filteredQuestions.length === 0 ? (
-                                        <p className="text-gray-500 text-center py-8">Không có câu hỏi nào</p>
-                                    ) : (
-                                        filteredQuestions.map((question, idx) => (
-                                            <div
-                                                key={question._id || question.id}
-                                                className={`p-3 rounded-lg border-2 transition-all cursor-pointer ${selectedQuestions.find(q => (q._id || q.id) === (question._id || question.id))
-                                                    ? 'border-blue-500 bg-blue-500/10'
-                                                    : 'border-gray-200 hover:border-gray-300'
-                                                    }`}
-                                                onClick={() => toggleQuestionSelection(question)}
-                                            >
-                                                <div className="flex items-start gap-3">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={!!selectedQuestions.find(q => (q._id || q.id) === (question._id || question.id))}
-                                                        onChange={() => { }}
-                                                        className="mt-1 w-4 h-4"
-                                                    />
-                                                    <div className="flex-1">
-                                                        <p className="text-gray-900 text-sm font-medium mb-1">
-                                                            {idx + 1}. {question.content}
-                                                        </p>
-                                                        <span className={`text-xs px-2 py-0.5 rounded ${question.difficulty === 'Easy' ? 'bg-green-500/20 text-green-400' :
-                                                            question.difficulty === 'Medium' ? 'bg-yellow-500/20 text-yellow-400' :
-                                                                'bg-red-500/20 text-red-400'
-                                                            }`}>
-                                                            {question.difficulty}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Actions */}
-                            <div className="flex gap-3 pt-4 border-t border-gray-200">
+                <Portal>
+                    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+                        <div className="card-glass max-w-4xl w-full my-8 max-h-[90vh] overflow-hidden flex flex-col animate-fadeIn shadow-2xl">
+                            <div className="flex items-center justify-between p-6 border-b border-gray-200/10">
+                                <h2 className="text-2xl font-bold gradient-text">
+                                    {step === 1 ? 'Cấu hình đề thi' : 'Xem trước câu hỏi'}
+                                </h2>
                                 <button
-                                    type="button"
                                     onClick={() => {
                                         setShowCreateModal(false);
                                         resetForm();
                                     }}
-                                    className="flex-1 btn-secondary"
+                                    className="p-2 hover:bg-white/10 rounded-lg transition-colors"
                                 >
-                                    Hủy
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={selectedQuestions.length === 0}
-                                    className="flex-1 btn-primary disabled:opacity-50"
-                                >
-                                    Tạo đề thi
+                                    <CloseIcon className="w-5 h-5 text-gray-500" />
                                 </button>
                             </div>
-                        </form>
+
+                            {error && (
+                                <div className="mx-6 mt-4 p-4 bg-red-500/10 border border-red-500/50 rounded-xl text-red-400 text-sm">
+                                    {error}
+                                </div>
+                            )}
+
+                            <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+                                {step === 1 ? (
+                                    <div className="space-y-6">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                                                Tên đề thi *
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={formData.title}
+                                                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                                className="input-glass w-full"
+                                                placeholder="VD: Kiểm tra giữa kỳ"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                                                Lớp học *
+                                            </label>
+                                            <select
+                                                value={formData.class_id}
+                                                onChange={(e) => setFormData({ ...formData, class_id: e.target.value })}
+                                                className="input-glass w-full"
+                                            >
+                                                <option value="">Chọn lớp học</option>
+                                                {classrooms.map(cls => (
+                                                    <option key={cls._id || cls.id} value={cls._id || cls.id}>
+                                                        {cls.name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                                    Thời lượng (phút) *
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    value={formData.duration}
+                                                    onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+                                                    className="input-glass w-full"
+                                                    min="1"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                                    Tổng số câu hỏi *
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    value={formData.total_questions}
+                                                    onChange={(e) => handleTotalQuestionsChange(e.target.value)}
+                                                    className="input-glass w-full"
+                                                    min="1"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                                    Thời gian bắt đầu *
+                                                </label>
+                                                <input
+                                                    type="datetime-local"
+                                                    value={formData.start_at}
+                                                    onChange={(e) => setFormData({ ...formData, start_at: e.target.value })}
+                                                    className="input-glass w-full"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                                    Thời gian kết thúc *
+                                                </label>
+                                                <input
+                                                    type="datetime-local"
+                                                    value={formData.end_at}
+                                                    onChange={(e) => setFormData({ ...formData, end_at: e.target.value })}
+                                                    className="input-glass w-full"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="card-glass p-4 bg-blue-500/5">
+                                            <h3 className="font-semibold text-gray-900 mb-4">Phân bổ độ khó</h3>
+                                            <div className="grid grid-cols-3 gap-4">
+                                                <div>
+                                                    <label className="block text-sm font-medium text-green-400 mb-2">
+                                                        Câu dễ
+                                                    </label>
+                                                    <input
+                                                        type="number"
+                                                        value={formData.easy_count}
+                                                        onChange={(e) => handleDifficultyChange('easy_count', e.target.value)}
+                                                        className="input-glass w-full"
+                                                        min="0"
+                                                        max={formData.total_questions}
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-yellow-400 mb-2">
+                                                        Câu trung bình
+                                                    </label>
+                                                    <input
+                                                        type="number"
+                                                        value={formData.medium_count}
+                                                        onChange={(e) => handleDifficultyChange('medium_count', e.target.value)}
+                                                        className="input-glass w-full"
+                                                        min="0"
+                                                        max={formData.total_questions}
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-red-400 mb-2">
+                                                        Câu khó
+                                                    </label>
+                                                    <input
+                                                        type="number"
+                                                        value={formData.hard_count}
+                                                        onChange={(e) => handleDifficultyChange('hard_count', e.target.value)}
+                                                        className="input-glass w-full"
+                                                        min="0"
+                                                        max={formData.total_questions}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="mt-3 text-sm">
+                                                <span className="text-gray-500">Đã phân bổ: </span>
+                                                <span className={`font-semibold ${formData.easy_count + formData.medium_count + formData.hard_count === formData.total_questions
+                                                    ? 'text-green-400'
+                                                    : 'text-red-400'
+                                                    }`}>
+                                                    {formData.easy_count + formData.medium_count + formData.hard_count} / {formData.total_questions}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-4">
+                                        <p className="text-gray-400 text-sm mb-4">
+                                            {previewQuestions.length} câu hỏi đã được chọn. Click 🔄 để thay đổi câu hỏi.
+                                        </p>
+                                        {previewQuestions.map((question, index) => (
+                                            <div key={question.id} className="card-glass p-4 hover:shadow-lg transition-shadow">
+                                                <div className="flex items-start gap-4">
+                                                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 font-semibold">
+                                                        {index + 1}
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center gap-2 mb-2">
+                                                            <span className={`px-2 py-1 rounded-lg text-xs font-medium border ${getDifficultyBadgeClass(question.difficulty)}`}>
+                                                                {question.difficulty === 'Easy' ? 'Dễ' : question.difficulty === 'Medium' ? 'Trung bình' : 'Khó'}
+                                                            </span>
+                                                        </div>
+                                                        <p className="text-gray-900 font-medium mb-3">{question.content}</p>
+                                                        <div className="space-y-2">
+                                                            {question.options?.map((option, optIdx) => (
+                                                                <div
+                                                                    key={optIdx}
+                                                                    className={`p-2 rounded-lg text-sm ${option === question.answer
+                                                                        ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                                                                        : 'bg-white/5 text-gray-600'
+                                                                        }`}
+                                                                >
+                                                                    {String.fromCharCode(65 + optIdx)}. {option}
+                                                                    {option === question.answer && (
+                                                                        <CheckIcon className="w-4 h-4 inline ml-2" />
+                                                                    )}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => handleReplaceQuestion(question.id, question.difficulty)}
+                                                        className="flex-shrink-0 p-2 bg-blue-500/10 text-blue-400 rounded-lg hover:bg-blue-500/20 transition-colors"
+                                                        title="Lấy câu hỏi khác"
+                                                    >
+                                                        <RefreshIcon className="w-5 h-5" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="flex items-center justify-between gap-3 p-6 border-t border-gray-200/10">
+                                {step === 2 && (
+                                    <button
+                                        onClick={() => setStep(1)}
+                                        className="btn-secondary"
+                                    >
+                                        ← Quay lại
+                                    </button>
+                                )}
+                                <div className="flex gap-3 ml-auto">
+                                    <button
+                                        onClick={() => {
+                                            setShowCreateModal(false);
+                                            resetForm();
+                                        }}
+                                        className="btn-secondary"
+                                    >
+                                        Hủy
+                                    </button>
+                                    {step === 1 ? (
+                                        <button
+                                            onClick={handlePreview}
+                                            disabled={loading}
+                                            className="btn-primary"
+                                        >
+                                            {loading ? 'Đang tải...' : 'Xem trước câu hỏi →'}
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={handleCreateExam}
+                                            disabled={loading}
+                                            className="btn-primary"
+                                        >
+                                            {loading ? 'Đang tạo...' : 'Tạo đề thi'}
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
+                </Portal>
             )}
         </div>
     );

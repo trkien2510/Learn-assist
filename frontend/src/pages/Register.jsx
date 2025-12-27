@@ -20,7 +20,6 @@ const Register = () => {
     const { register, isAuthenticated, isLoading: authLoading } = useAuth();
     const navigate = useNavigate();
 
-    // Redirect to dashboard if already logged in
     useEffect(() => {
         if (!authLoading && isAuthenticated) {
             navigate('/app/dashboard', { replace: true });
@@ -52,30 +51,24 @@ const Register = () => {
         e.preventDefault();
         setError('');
 
-        // Check required fields (phone number is optional)
         if (!username || !email || !fullName || !dateOfBirth || !password || !confirmPassword) {
             setError('Vui lòng nhập đầy đủ các trường bắt buộc');
             return;
         }
 
-        // Validate username
         if (username.length < 3) {
             setError('Tên đăng nhập phải có ít nhất 3 ký tự');
             return;
         }
 
-        // Validate email
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
             setError('Email không hợp lệ');
             return;
         }
 
-        // Validate phone number (only if provided)
         if (phoneNumber && phoneNumber.trim() !== '') {
-            // Remove spaces and common separators
             const cleanedPhone = phoneNumber.replace(/[\s\-\(\)]/g, '');
-            // Vietnamese phone: 10-11 digits, starts with 0
             const phoneRegex = /^0\d{9,10}$/;
             if (!phoneRegex.test(cleanedPhone)) {
                 setError('Số điện thoại phải có 10-11 chữ số và bắt đầu bằng số 0');
@@ -112,7 +105,6 @@ const Register = () => {
 
             await register(userData);
 
-            // After successful registration, navigate to OTP verification
             navigate('/otp-verification', {
                 state: {
                     email: email,

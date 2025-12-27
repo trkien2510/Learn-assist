@@ -8,6 +8,7 @@ from services import log_service
 
 async def get_my_profile(current_user):
     return {
+        "id": str(current_user.id),  # <-- ADDED THIS!
         "full_name": current_user.full_name,
         "email": current_user.email,
         "dob": current_user.dob,
@@ -15,6 +16,7 @@ async def get_my_profile(current_user):
         "phone_number": current_user.phone_number,
         "created_at": current_user.created_at
     }
+
 
 
 async def update_profile(update_data, current_user):
@@ -58,7 +60,7 @@ async def deactivate_account(pass_data, current_user):
     return {}
 
 
-async def get_all_users(page: int = 1, page_size: int = 20):
+async def get_all_users(page: int = 1, page_size: int = 20, role: str = None, is_active: str = None, search: str = None):
     if page < 1:
         page = 1
     if page_size < 1 or page_size > 100:
@@ -66,8 +68,36 @@ async def get_all_users(page: int = 1, page_size: int = 20):
 
     skip = (page - 1) * page_size
 
-    total = await UserModel.find_all().count()
-    items = await UserModel.find_all().skip(skip).limit(page_size).to_list()
+    query_conditions = []
+    
+    if role:
+        query_conditions.append(UserModel.role == role)
+    
+    if is_active is not None and is_active != '':
+        is_active_bool = is_active.lower() == 'true' if isinstance(is_active, str) else is_active
+        query_conditions.append(UserModel.is_activate == is_active_bool)
+    
+    if search:
+        from beanie.operators import Or, RegEx
+        search_pattern = f".*{search}.*"
+        query_conditions.append(Or(
+            RegEx(UserModel.email, search_pattern, options="i"),
+            RegEx(UserModel.full_name, search_pattern, options="i")
+        ))
+    
+    if query_conditions:
+        if len(query_conditions) == 1:
+            query = UserModel.find(query_conditions[0])
+        else:
+            from beanie.operators import And
+            query = UserModel.find(And(*query_conditions))
+    else:
+        query = UserModel.find_all()
+    
+    query = query.sort([("created_at", -1)])
+    
+    total = await query.count()
+    items = await query.skip(skip).limit(page_size).to_list()
 
     total_pages = (total + page_size - 1) // page_size
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { resultService } from '../services/apiServices';
-import { CheckIcon, XIcon, SearchIcon } from '../components/icons/Icons';
+import { resultService, examService } from '../services/apiServices';
+import { CheckIcon, XIcon, SearchIcon, ArrowLeftIcon } from '../components/icons/Icons';
 
 const Results = () => {
     const [searchParams] = useSearchParams();
@@ -17,28 +17,63 @@ const Results = () => {
     const fetchResults = async () => {
         try {
             setLoading(true);
+            setError(''); 
             const examId = searchParams.get('exam_id');
             const classId = searchParams.get('class_id');
 
-            let data;
+            let response;
             if (examId) {
-                data = await resultService.getByExam(examId);
+                response = await resultService.getByExam(examId);
             } else if (classId) {
-                data = await resultService.getByClass(classId);
+                response = await resultService.getByClass(classId);
             } else {
-                data = await resultService.getAll();
+                response = await resultService.getAll();
             }
 
-            setResults(data.items || data || []);
+            const data = response?.data || response;
+            const items = data?.items || data || [];
+            setResults(Array.isArray(items) ? items : []);
         } catch (err) {
+            console.error('Error fetching results:', err);
             setError(err.message || 'Không thể tải kết quả');
+            setResults([]); 
         } finally {
             setLoading(false);
         }
     };
 
     const viewDetail = async (result) => {
-        setSelectedResult(result);
+        try {
+            setLoading(true);
+            setError('');
+
+            const examIdObj = result.exam?._id ||
+                result.exam?.id ||
+                result.exam_id?.ref?.id ||
+                result.exam_id?.id ||
+                result.exam_id?.$id ||
+                result.exam_id;
+
+            const examId = typeof examIdObj === 'object' ?
+                (examIdObj?.$oid || examIdObj?.toString()) :
+                examIdObj;
+
+            console.log('Viewing detail for result:', result);
+            console.log('Extracted examId:', examId);
+
+            if (examId && (!result.exam?.questions || result.exam.questions.length === 0)) {
+                const examResponse = await examService.getById(examId);
+                const examData = examResponse.data || examResponse;
+                result.exam = examData.exam || examData;
+            }
+
+            setSelectedResult(result);
+        } catch (err) {
+            console.error('Error fetching exam details:', err);
+            setError(err.message || 'Không thể tải chi tiết bài thi');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const formatDate = (dateString) => {
@@ -78,10 +113,13 @@ const Results = () => {
                     <p className="text-gray-500">Hoàn thành bài thi để xem kết quả</p>
                 </div>
             ) : selectedResult ? (
-                // Detail View
                 <div className="space-y-6">
-                    <button onClick={() => setSelectedResult(null)} className="btn-secondary">
-                        ← Quay lại
+                    <button
+                        onClick={() => setSelectedResult(null)}
+                        className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-blue-600 transition-colors"
+                    >
+                        <ArrowLeftIcon className="w-5 h-5" />
+                        Quay lại danh sách
                     </button>
 
                     <div className="card-glass p-8">
@@ -98,8 +136,8 @@ const Results = () => {
                             <div className="p-6 bg-white/5 rounded-xl text-center">
                                 <p className="text-gray-500 text-sm mb-2">Số câu đúng</p>
                                 <p className="text-3xl font-bold text-green-400">
-                                    {Object.values(selectedResult.answer_map || {}).filter((ans, idx) =>
-                                        ans === selectedResult.exam?.questions?.[idx]?.answers
+                                    {(selectedResult.exam?.questions || []).filter(q =>
+                                        selectedResult.answer_map?.[q._id || q.id] === q.answers
                                     ).length}
                                 </p>
                             </div>
@@ -117,7 +155,6 @@ const Results = () => {
                             </div>
                         </div>
 
-                        {/* Questions Review */}
                         <div className="space-y-4">
                             <h3 className="text-lg font-semibold text-gray-900 mb-4">Chi tiết câu trả lời</h3>
                             {selectedResult.exam?.questions?.map((question, idx) => {
@@ -138,23 +175,46 @@ const Results = () => {
                                                     Câu {idx + 1}: {question.content}
                                                 </p>
                                                 <div className="space-y-2">
-                                                    {question.options?.map((option, optIdx) => (
-                                                        <div
-                                                            key={optIdx}
-                                                            className={`p-3 rounded-lg ${option === correctAnswer
-                                                                    ? 'bg-green-500/20 border-2 border-green-500/50'
-                                                                    : option === userAnswer
-                                                                        ? 'bg-red-500/20 border-2 border-red-500/50'
-                                                                        : 'bg-slate-800/50'
-                                                                }`}
-                                                        >
-                                                            <span className="text-gray-900">
-                                                                {String.fromCharCode(65 + optIdx)}. {option}
-                                                                {option === correctAnswer && ' ✓ (Đáp án đúng)'}
-                                                                {option === userAnswer && option !== correctAnswer && ' ✗ (Bạn chọn)'}
-                                                            </span>
-                                                        </div>
-                                                    ))}
+                                                    {question.options?.map((option, optIdx) => {
+                                                        const optionLetter = String.fromCharCode(65 + optIdx);
+                                                        const isUserChoice = userAnswer === optionLetter;
+                                                        const isCorrectChoice = correctAnswer === optionLetter;
+
+                                                        return (
+                                                            <div
+                                                                key={optIdx}
+                                                                className={`p-3 rounded-lg border flex items-center justify-between ${isCorrectChoice
+                                                                    ? 'bg-green-500/10 border-green-500/50'
+                                                                    : isUserChoice
+                                                                        ? 'bg-red-500/10 border-red-500/50'
+                                                                        : 'bg-slate-800/10 border-slate-200'
+                                                                    }`}
+                                                            >
+                                                                <div className="flex items-center gap-3">
+                                                                    <span className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${isCorrectChoice
+                                                                        ? 'bg-green-500 text-white'
+                                                                        : isUserChoice
+                                                                            ? 'bg-red-500 text-white'
+                                                                            : 'bg-slate-200 text-gray-700'
+                                                                        }`}>
+                                                                        {optionLetter}
+                                                                    </span>
+                                                                    <span className="text-gray-900">{option}</span>
+                                                                </div>
+                                                                <div className="flex items-center gap-2">
+                                                                    {isCorrectChoice && (
+                                                                        <span className="text-green-600 text-xs font-bold bg-green-100 px-2 py-1 rounded">ĐÁP ÁN ĐÚNG</span>
+                                                                    )}
+                                                                    {isUserChoice && !isCorrectChoice && (
+                                                                        <span className="text-red-600 text-xs font-bold bg-red-100 px-2 py-1 rounded">BẠN CHỌN</span>
+                                                                    )}
+                                                                    {isUserChoice && isCorrectChoice && (
+                                                                        <span className="text-green-600 text-xs font-bold bg-green-100 px-2 py-1 rounded">CHÍNH XÁC</span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
                                                 </div>
                                             </div>
                                         </div>
@@ -165,7 +225,6 @@ const Results = () => {
                     </div>
                 </div>
             ) : (
-                // List View
                 <div className="space-y-4">
                     {results.map((result) => (
                         <div key={result._id || result.id} className="card-glass p-6 hover-scale cursor-pointer" onClick={() => viewDetail(result)}>

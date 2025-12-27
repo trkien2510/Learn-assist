@@ -1,15 +1,49 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, Navigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { SidebarProvider, useSidebar } from '../../contexts/SidebarContext';
 import Sidebar from './Sidebar';
-import Header from './Header';
+
+const MainLayoutContent = () => {
+    const { isCollapsed } = useSidebar();
+    const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
+
+    useEffect(() => {
+        const handleResize = () => {
+            setIsDesktop(window.innerWidth >= 1024);
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    const getMarginLeft = () => {
+        if (!isDesktop) return '0';
+        return isCollapsed ? '5rem' : '18rem';
+    };
+
+    return (
+        <div className="min-h-screen bg-[var(--bg-color)] text-[var(--text-color)]">
+            <Sidebar />
+
+            <div
+                className="flex flex-col min-h-screen transition-all duration-300"
+                style={{ marginLeft: getMarginLeft() }}
+            >
+                <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+                    <Outlet />
+                </main>
+            </div>
+        </div>
+    );
+};
 
 const MainLayout = () => {
     const { isAuthenticated, isLoading } = useAuth();
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div className="min-h-screen bg-[var(--bg-color)] flex items-center justify-center">
                 <div className="text-center">
                     <div className="w-16 h-16 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto mb-4"></div>
                     <p className="text-gray-500">Đang tải...</p>
@@ -23,16 +57,9 @@ const MainLayout = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 flex">
-            <Sidebar />
-
-            <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
-                <Header />
-                <main className="flex-1 overflow-y-auto p-6">
-                    <Outlet />
-                </main>
-            </div>
-        </div>
+        <SidebarProvider>
+            <MainLayoutContent />
+        </SidebarProvider>
     );
 };
 

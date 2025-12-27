@@ -4,7 +4,8 @@ import {
     ExamIcon,
     BookIcon,
     DocumentIcon,
-    ChartIcon
+    ChartIcon,
+    QuestionIcon
 } from '../icons/Icons';
 
 const RecentActivity = ({ activities }) => {
@@ -15,11 +16,12 @@ const RecentActivity = ({ activities }) => {
             case 'exam':
                 return ExamIcon;
             case 'class':
+            case 'classroom':
                 return BookIcon;
             case 'document':
                 return DocumentIcon;
             case 'question':
-                return DocumentIcon;
+                return QuestionIcon;
             case 'result':
                 return ChartIcon;
             default:
@@ -34,7 +36,8 @@ const RecentActivity = ({ activities }) => {
             case 'exam':
                 return 'bg-green-500/20 text-green-400';
             case 'class':
-                return 'bg-blue-500/20 text-blue-400';
+            case 'classroom':
+                return 'bg-cyan-500/20 text-cyan-400';
             case 'document':
                 return 'bg-orange-500/20 text-orange-400';
             case 'question':
@@ -46,41 +49,118 @@ const RecentActivity = ({ activities }) => {
         }
     };
 
+    const formatTime = (timestamp) => {
+        if (!timestamp) return '';
+
+        try {
+            const date = new Date(timestamp);
+
+            if (isNaN(date.getTime())) {
+                return timestamp;
+            }
+
+            const now = new Date();
+
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+
+            if (diffMins < 1) return 'Vừa xong';
+            if (diffMins < 60) return `${diffMins} phút trước`;
+            if (diffHours < 24) return `${diffHours} giờ trước`;
+            if (diffDays < 7) return `${diffDays} ngày trước`;
+
+            return date.toLocaleString('vi-VN', {
+                timeZone: 'Asia/Ho_Chi_Minh',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        } catch (e) {
+            console.error('Error formatting time:', e);
+            return timestamp;
+        }
+    };
+
     return (
-        <div className="space-y-4">
+        <div className="overflow-hidden">
             {activities.length === 0 ? (
-                <div className="text-center py-8">
+                <div className="text-center py-12">
                     <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
                         <span className="text-3xl">📋</span>
                     </div>
                     <p className="text-gray-500 text-sm">Chưa có hoạt động nào</p>
                 </div>
             ) : (
-                activities.map((activity, index) => {
-                    const IconComponent = getActivityIcon(activity.type);
-                    return (
-                        <div
-                            key={activity.id}
-                            className="flex items-center gap-4 p-3 rounded-xl hover:bg-white/5 transition-colors cursor-pointer"
-                            style={{ animationDelay: `${index * 50}ms` }}
-                        >
-                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${getActivityColor(activity.type)}`}>
-                                <IconComponent className="w-5 h-5" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-gray-900 truncate">
-                                    {activity.action}
-                                </p>
-                                <p className="text-xs text-gray-500 truncate">
-                                    bởi {activity.user}
-                                </p>
-                            </div>
-                            <span className="text-xs text-gray-400 flex-shrink-0">
-                                {activity.time}
-                            </span>
-                        </div>
-                    );
-                })
+                <div className="overflow-x-auto">
+                    <table className="w-full">
+                        <thead>
+                            <tr className="border-b border-gray-200/10">
+                                <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    Loại
+                                </th>
+                                <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    Hoạt động
+                                </th>
+                                <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    Người thực hiện
+                                </th>
+                                <th className="text-right py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    Thời gian
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {activities.map((activity, index) => {
+                                const IconComponent = getActivityIcon(activity.type);
+                                return (
+                                    <tr
+                                        key={activity.id || index}
+                                        className="border-b border-gray-200/5 hover:bg-white/5 transition-colors"
+                                        style={{ animationDelay: `${index * 50}ms` }}
+                                    >
+                                        <td className="py-3 px-4">
+                                            <div className="flex items-center gap-2">
+                                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${getActivityColor(activity.type)}`}>
+                                                    <IconComponent className="w-4 h-4" />
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        <td className="py-3 px-4">
+                                            <p className="text-sm font-medium text-gray-900">
+                                                {activity.action || activity.description}
+                                            </p>
+                                            {activity.resource_name && (
+                                                <p className="text-xs text-gray-500 mt-0.5">
+                                                    {typeof activity.resource_name === 'string'
+                                                        ? activity.resource_name
+                                                        : activity.resource_name?.filename || JSON.stringify(activity.resource_name)
+                                                    }
+                                                </p>
+                                            )}
+                                        </td>
+
+                                        <td className="py-3 px-4">
+                                            <p className="text-sm text-gray-600">
+                                                {activity.user || activity.user_email || 'Hệ thống'}
+                                            </p>
+                                        </td>
+
+                                        <td className="py-3 px-4 text-right">
+                                            <span className="text-xs text-gray-400">
+                                                {formatTime(activity.time || activity.timestamp || activity.created_at)}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                </div>
             )}
         </div>
     );

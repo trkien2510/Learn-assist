@@ -13,7 +13,6 @@ const Documents = () => {
     const [numQuestions, setNumQuestions] = useState(10);
     const [showUploadModal, setShowUploadModal] = useState(false);
 
-    // AI Generated Questions
     const [generatedQuestions, setGeneratedQuestions] = useState([]);
     const [showPreviewModal, setShowPreviewModal] = useState(false);
     const [selectedQuestions, setSelectedQuestions] = useState([]);
@@ -39,14 +38,12 @@ const Documents = () => {
     };
 
     const handleFileSelect = (e) => {
-        // Don't allow file selection if uploading
         if (uploading) {
             return;
         }
 
         const file = e.target.files[0];
         if (file) {
-            // Validate file type
             const validTypes = [
                 'application/pdf',
                 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -58,7 +55,6 @@ const Documents = () => {
                 return;
             }
 
-            // Validate file size (max 10MB)
             if (file.size > 10 * 1024 * 1024) {
                 setError('File không được vượt quá 10MB');
                 return;
@@ -84,37 +80,29 @@ const Documents = () => {
             setUploading(true);
             setError('');
 
-            // upload() returns: {code, success, data: {document_id, questions}}
             const uploadResponse = await documentService.upload(selectedFile, numQuestions);
-            console.log('Upload response (raw):', uploadResponse); // DEBUG
+            console.log('Upload response (raw):', uploadResponse);
 
-            // Extract the nested data
-            const responseData = uploadResponse.data; // This is {document_id, questions}
-            console.log('Response data:', responseData); // DEBUG
+            const responseData = uploadResponse.data;
+            console.log('Response data:', responseData);
 
             setCurrentDocumentId(responseData.document_id);
 
-            // IMPORTANT: questions is nested!
-            // Structure: {questions: {questions: [...]}}
             const questionsData = responseData.questions;
-            console.log('Questions data (raw):', questionsData); // DEBUG
+            console.log('Questions data (raw):', questionsData);
 
-            // Extract the actual array - handle both direct array and nested object
             let questions = [];
             if (Array.isArray(questionsData)) {
-                // Direct array: questions = [...]
                 questions = questionsData;
             } else if (questionsData && Array.isArray(questionsData.questions)) {
-                // Nested: questions = {questions: [...]}
                 questions = questionsData.questions;
             }
 
-            console.log('Extracted questions:', questions); // DEBUG
-            console.log('Questions count:', questions.length); // DEBUG
+            console.log('Extracted questions:', questions);
+            console.log('Questions count:', questions.length);
 
             setGeneratedQuestions(questions);
 
-            // Select all questions by default
             const allIndices = questions.length > 0
                 ? Array.from({ length: questions.length }, (_, i) => i)
                 : [];
@@ -123,9 +111,7 @@ const Documents = () => {
             setSuccess('Upload và sinh câu hỏi thành công!');
             setShowUploadModal(false);
             setShowPreviewModal(true);
-            setUploading(false); // Reset uploading state when showing preview
-
-            // Refresh documents list to show newly uploaded document
+            setUploading(false);
             fetchDocuments();
 
             setTimeout(() => setSuccess(''), 3000);
@@ -227,7 +213,6 @@ const Documents = () => {
 
     return (
         <div className="space-y-6">
-            {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold gradient-text">Quản lý tài liệu</h1>
@@ -242,7 +227,6 @@ const Documents = () => {
                 </button>
             </div>
 
-            {/* Alerts */}
             {error && (
                 <div className="p-4 bg-red-500/10 border border-red-500/50 rounded-xl text-red-400 animate-fadeIn">
                     {error}
@@ -255,7 +239,6 @@ const Documents = () => {
                 </div>
             )}
 
-            {/* Documents List */}
             {loading ? (
                 <div className="space-y-4">
                     {[1, 2, 3].map(i => (
@@ -304,9 +287,8 @@ const Documents = () => {
                 </div>
             )}
 
-            {/* Upload Modal */}
             {showUploadModal && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
                     <div className="card-glass p-8 max-w-lg w-full animate-fadeIn">
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-2xl font-bold gradient-text">Upload tài liệu</h2>
@@ -318,7 +300,7 @@ const Documents = () => {
                                     }
                                 }}
                                 disabled={uploading}
-                                className={`p-2 rounded-lg transition-colors ${uploading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/5'
+                                className={`p-2 rounded-lg transition-colors ${uploading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100 dark:hover:bg-white/5'
                                     }`}
                             >
                                 <CloseIcon className="w-5 h-5 text-gray-500" />
@@ -326,7 +308,6 @@ const Documents = () => {
                         </div>
 
                         <div className="space-y-6">
-                            {/* File Upload */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-600 mb-3">
                                     Chọn file tài liệu (PDF, DOCX)
@@ -358,7 +339,6 @@ const Documents = () => {
                                 </div>
                             </div>
 
-                            {/* Number of Questions */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-600 mb-2">
                                     Số lượng câu hỏi cần sinh
@@ -377,7 +357,6 @@ const Documents = () => {
                                 </p>
                             </div>
 
-                            {/* Actions */}
                             <div className="flex gap-3 pt-4">
                                 <button
                                     type="button"
@@ -412,9 +391,8 @@ const Documents = () => {
                 </div>
             )}
 
-            {/* Preview Questions Modal */}
             {showPreviewModal && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
                     <div className="card-glass p-8 max-w-5xl w-full my-8 animate-fadeIn max-h-[85vh] overflow-hidden flex flex-col">
                         <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
                             <div>
@@ -425,13 +403,12 @@ const Documents = () => {
                             </div>
                             <button
                                 onClick={() => setShowPreviewModal(false)}
-                                className="p-2 hover:bg-white/5 rounded-lg transition-colors"
+                                className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg transition-colors"
                             >
                                 <CloseIcon className="w-5 h-5 text-gray-500" />
                             </button>
                         </div>
 
-                        {/* Questions List */}
                         <div className="flex-1 overflow-y-auto space-y-4 mb-6 scrollbar-hide">
                             {generatedQuestions.length === 0 ? (
                                 <div className="text-center py-12">
@@ -493,7 +470,6 @@ const Documents = () => {
                             )}
                         </div>
 
-                        {/* Actions */}
                         <div className="flex gap-3 pt-4 border-t border-gray-200">
                             <button
                                 onClick={() => setSelectedQuestions(generatedQuestions.map((_, i) => i))}
@@ -526,26 +502,21 @@ const Documents = () => {
                 </div>
             )}
 
-            {/* Edit Question Modal - 2 Column Compact Layout */}
             {editingQuestion && (
-                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
                     <div className="card-glass p-6 max-w-4xl w-full animate-fadeIn max-h-[80vh] overflow-y-auto">
-                        {/* Header */}
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-xl font-bold text-gray-900">Chỉnh sửa câu hỏi</h3>
                             <button
                                 onClick={() => setEditingQuestion(null)}
-                                className="p-2 hover:bg-white/5 rounded-lg transition-colors"
+                                className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg transition-colors"
                             >
                                 <CloseIcon className="w-5 h-5 text-gray-500" />
                             </button>
                         </div>
 
-                        {/* 2-Column Grid */}
                         <div className="grid grid-cols-2 gap-6 mb-4">
-                            {/* LEFT COLUMN - Question, Answer, Difficulty */}
                             <div className="space-y-4">
-                                {/* Question Content */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1.5">
                                         Nội dung câu hỏi
@@ -559,7 +530,6 @@ const Documents = () => {
                                     />
                                 </div>
 
-                                {/* Correct Answer */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1.5">
                                         Đáp án đúng
@@ -577,7 +547,6 @@ const Documents = () => {
                                     </select>
                                 </div>
 
-                                {/* Difficulty */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1.5">
                                         Độ khó
@@ -594,13 +563,11 @@ const Documents = () => {
                                 </div>
                             </div>
 
-                            {/* RIGHT COLUMN - 4 Options */}
                             <div className="space-y-3">
                                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
                                     Các đáp án
                                 </label>
 
-                                {/* Option A */}
                                 <div>
                                     <label className="block text-xs text-gray-500 mb-1 font-medium">A.</label>
                                     <input
@@ -616,7 +583,6 @@ const Documents = () => {
                                     />
                                 </div>
 
-                                {/* Option B */}
                                 <div>
                                     <label className="block text-xs text-gray-500 mb-1 font-medium">B.</label>
                                     <input
@@ -632,7 +598,6 @@ const Documents = () => {
                                     />
                                 </div>
 
-                                {/* Option C */}
                                 <div>
                                     <label className="block text-xs text-gray-500 mb-1 font-medium">C.</label>
                                     <input
@@ -648,7 +613,6 @@ const Documents = () => {
                                     />
                                 </div>
 
-                                {/* Option D */}
                                 <div>
                                     <label className="block text-xs text-gray-500 mb-1 font-medium">D.</label>
                                     <input
@@ -666,7 +630,6 @@ const Documents = () => {
                             </div>
                         </div>
 
-                        {/* Actions */}
                         <div className="flex justify-end gap-3 pt-3 border-t border-gray-200">
                             <button
                                 onClick={() => setEditingQuestion(null)}

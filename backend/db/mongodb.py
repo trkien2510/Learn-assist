@@ -6,6 +6,7 @@ from models.document_model import DocumentModel
 from models.exam_model import ExamModel
 from models.join_request_model import JoinRequestModel
 from models.log_model import LogModel
+from models.message_model import MessageModel
 from models.notification_model import NotificationModel
 from models.otp_model import OTPModel
 from models.question_model import QuestionModel
@@ -28,6 +29,7 @@ async def init_db():
             ExamModel,
             ResultModel,
             LogModel,
+            MessageModel,
             NotificationModel,
             OTPModel,
         ]

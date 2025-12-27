@@ -14,7 +14,6 @@ const Login = () => {
   const { login, isAuthenticated, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect to dashboard if already logged in
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
       navigate('/app/dashboard', { replace: true });

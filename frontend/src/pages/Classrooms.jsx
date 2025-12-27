@@ -1,22 +1,23 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth, ROLES } from '../contexts/AuthContext';
 import { classroomService } from '../services/apiServices';
 import { BookIcon, UsersIcon, PlusIcon, CloseIcon, CheckIcon, XIcon, TrashIcon, LogoutIcon } from '../components/icons/Icons';
 
 const Classrooms = () => {
     const { user, hasRole } = useAuth();
+    const navigate = useNavigate();
     const [classrooms, setClassrooms] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
-    // Modals
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showJoinModal, setShowJoinModal] = useState(false);
     const [showMembersModal, setShowMembersModal] = useState(false);
     const [selectedClassroom, setSelectedClassroom] = useState(null);
+    const [copiedCode, setCopiedCode] = useState('');
 
-    // Forms
     const [createForm, setCreateForm] = useState({
         name: '',
         subject: '',
@@ -24,7 +25,6 @@ const Classrooms = () => {
     });
     const [joinCode, setJoinCode] = useState('');
 
-    // Members data
     const [members, setMembers] = useState([]);
     const [pendingRequests, setPendingRequests] = useState([]);
     const [loadingMembers, setLoadingMembers] = useState(false);
@@ -38,7 +38,7 @@ const Classrooms = () => {
             setLoading(true);
             setError('');
             const response = await classroomService.getAll(1, 50);
-            const data = response.data || response; // Extract data field
+            const data = response.data || response;
             setClassrooms(data.items || data || []);
         } catch (err) {
             setError(err.message || 'Không thể tải danh sách lớp học');
@@ -156,15 +156,14 @@ const Classrooms = () => {
 
     const copyClassCode = (code) => {
         navigator.clipboard.writeText(code);
-        setSuccess('Đã copy mã lớp học!');
-        setTimeout(() => setSuccess(''), 2000);
+        setCopiedCode(code);
+        setTimeout(() => setCopiedCode(''), 2000);
     };
 
     const isTeacher = hasRole([ROLES.ADMIN, ROLES.TEACHER]);
 
     return (
         <div className="space-y-6">
-            {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold gradient-text">
@@ -188,7 +187,6 @@ const Classrooms = () => {
                 )}
             </div>
 
-            {/* Alerts */}
             {error && (
                 <div className="p-4 bg-red-500/10 border border-red-500/50 rounded-xl text-red-400 animate-fadeIn">
                     {error}
@@ -201,7 +199,6 @@ const Classrooms = () => {
                 </div>
             )}
 
-            {/* Classrooms Grid */}
             {loading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {[1, 2, 3].map(i => (
@@ -231,7 +228,11 @@ const Classrooms = () => {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {classrooms.map((classroom) => (
-                        <div key={classroom._id || classroom.id} className="card-glass p-6 hover-scale">
+                        <div
+                            key={classroom._id || classroom.id}
+                            className="card-glass p-6 hover-scale cursor-pointer"
+                            onClick={() => navigate(`/app/classroom/${classroom.class_code}`)}
+                        >
                             <div className="flex items-start justify-between mb-4">
                                 <div className="flex items-center gap-3">
                                     <div className="w-12 h-12 rounded-xl bg-linear-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
@@ -258,34 +259,47 @@ const Classrooms = () => {
                                     <span className="text-sm">{classroom.members?.length || 0} thành viên</span>
                                 </div>
                                 <button
-                                    onClick={() => copyClassCode(classroom.class_code)}
-                                    className="text-xs px-3 py-1 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-colors"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        copyClassCode(classroom.class_code);
+                                    }}
+                                    className={`text-xs px-3 py-1.5 border rounded-lg transition-all font-mono font-bold flex items-center gap-1.5 ${copiedCode === classroom.class_code
+                                            ? 'bg-green-500/10 text-green-600 border-green-500/20'
+                                            : 'bg-blue-500/10 text-blue-600 border-blue-500/20 hover:bg-blue-500/20'
+                                        }`}
+                                    title={copiedCode === classroom.class_code ? "Đã sao chép!" : "Nhấn để sao chép mã"}
                                 >
                                     {classroom.class_code}
+                                    {copiedCode === classroom.class_code ? (
+                                        <CheckIcon className="w-3 h-3" />
+                                    ) : (
+                                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+                                        </svg>
+                                    )}
                                 </button>
                             </div>
 
                             <div className="flex gap-2">
-                                <button
-                                    onClick={() => handleViewMembers(classroom)}
-                                    className="flex-1 btn-secondary text-sm py-2"
-                                >
-                                    Xem thành viên
-                                </button>
-
                                 {isTeacher ? (
                                     <button
-                                        onClick={() => handleDeleteClassroom(classroom.class_code)}
-                                        className="p-2 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20 transition-colors"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDeleteClassroom(classroom.class_code);
+                                        }}
+                                        className="flex-1 p-2 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20 transition-colors"
                                     >
-                                        <TrashIcon className="w-4 h-4" />
+                                        <TrashIcon className="w-4 h-4 mx-auto" />
                                     </button>
                                 ) : (
                                     <button
-                                        onClick={() => handleLeaveClassroom(classroom.class_code)}
-                                        className="p-2 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20 transition-colors"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleLeaveClassroom(classroom.class_code);
+                                        }}
+                                        className="flex-1 p-2 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20 transition-colors"
                                     >
-                                        <LogoutIcon className="w-4 h-4" />
+                                        <LogoutIcon className="w-4 h-4 mx-auto" />
                                     </button>
                                 )}
                             </div>
@@ -294,9 +308,8 @@ const Classrooms = () => {
                 </div>
             )}
 
-            {/* Create Classroom Modal */}
             {showCreateModal && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
                     <div className="card-glass p-8 max-w-md w-full animate-fadeIn">
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-2xl font-bold gradient-text">Tạo lớp học mới</h2>
@@ -361,9 +374,8 @@ const Classrooms = () => {
                 </div>
             )}
 
-            {/* Join Classroom Modal */}
             {showJoinModal && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
                     <div className="card-glass p-8 max-w-md w-full animate-fadeIn">
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-2xl font-bold gradient-text">Tham gia lớp học</h2>
@@ -407,9 +419,8 @@ const Classrooms = () => {
                 </div>
             )}
 
-            {/* Members Modal */}
             {showMembersModal && selectedClassroom && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
                     <div className="card-glass p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto animate-fadeIn">
                         <div className="flex items-center justify-between mb-6">
                             <div>
@@ -430,7 +441,6 @@ const Classrooms = () => {
                             </div>
                         ) : (
                             <div className="space-y-6">
-                                {/* Pending Requests */}
                                 {isTeacher && pendingRequests.length > 0 && (
                                     <div>
                                         <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -464,7 +474,6 @@ const Classrooms = () => {
                                     </div>
                                 )}
 
-                                {/* Members List */}
                                 <div>
                                     <h3 className="text-lg font-semibold text-gray-900 mb-4">
                                         Thành viên ({members.length})

@@ -56,7 +56,6 @@ const Questions = () => {
         try {
             setError('');
 
-            // Chỉ gửi các field mà backend hỗ trợ
             const submitData = {
                 content: formData.content,
                 options: formData.options,
@@ -150,7 +149,6 @@ const Questions = () => {
                 </div>
             )}
 
-            {/* Filters */}
             <div className="card-glass p-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="relative">
@@ -176,7 +174,6 @@ const Questions = () => {
                 </div>
             </div>
 
-            {/* Questions List */}
             {loading ? (
                 <div className="space-y-4">
                     {[1, 2, 3].map(i => (
@@ -249,9 +246,8 @@ const Questions = () => {
                 </div>
             )}
 
-            {/* Create/Edit Modal */}
             {showModal && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
                     <div className="card-glass p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-fadeIn">
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-2xl font-bold gradient-text">

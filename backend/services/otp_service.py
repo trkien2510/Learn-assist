@@ -40,7 +40,6 @@ async def create_and_send_otp(email: str, purpose: OTPPurpose, full_name: str = 
     )
     await otp.insert()
 
-    # Send email in background if background_tasks is provided, otherwise send immediately
     if background_tasks:
         background_tasks.add_task(send_otp_email, email, otp_code, purpose, full_name)
     else:

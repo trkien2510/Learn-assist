@@ -28,7 +28,7 @@ const TakeExam = () => {
             const timer = setInterval(() => {
                 setTimeRemaining(prev => {
                     if (prev <= 1) {
-                        handleSubmit(true); // Auto-submit when time's up
+                        handleSubmit(true);
                         return 0;
                     }
                     return prev - 1;
@@ -44,15 +44,27 @@ const TakeExam = () => {
             setLoading(true);
             const response = await examService.start(id);
 
-            setExam(response.exam);
-            setQuestions(response.exam.questions || []);
-            setResultId(response.result_id);
-            setTimeRemaining(response.time_remaining || response.exam.duration * 60);
+            console.log('🔍 Start exam response:', response);
+            console.log('🔍 Response.data:', response.data);
+
+            const data = response.data || response;
+            const examData = data.exam;
+
+            if (!examData) {
+                throw new Error('Exam data not found in response');
+            }
+
+            console.log('🔍 Exam data:', examData);
+            console.log('🔍 Exam questions:', examData.questions);
+
+            setExam(examData);
+            setQuestions(examData.questions || []);
+            setResultId(data.result_id);
+            setTimeRemaining(data.time_remaining || examData.duration * 60);
             setExamStarted(true);
 
-            // Initialize answers object
             const initialAnswers = {};
-            (response.exam.questions || []).forEach(q => {
+            (examData.questions || []).forEach(q => {
                 initialAnswers[q._id || q.id] = '';
             });
             setAnswers(initialAnswers);
@@ -72,7 +84,8 @@ const TakeExam = () => {
         try {
             setSubmitting(true);
             const response = await examService.submit(id, answers);
-            setResult(response);
+            const data = response.data || response;
+            setResult(data);
             setExamStarted(false);
         } catch (err) {
             setError(err.message || 'Không thể nộp bài');
@@ -91,7 +104,7 @@ const TakeExam = () => {
     const formatTime = (seconds) => {
         const hours = Math.floor(seconds / 3600);
         const mins = Math.floor((seconds % 3600) / 60);
-        const secs = seconds % 60;
+        const secs = Math.floor(seconds % 60);
 
         if (hours > 0) {
             return `${hours}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
@@ -100,9 +113,9 @@ const TakeExam = () => {
     };
 
     const getTimeColor = () => {
-        if (timeRemaining > 300) return 'text-green-400'; // > 5 mins
-        if (timeRemaining > 60) return 'text-yellow-400'; // > 1 min
-        return 'text-red-400 animate-pulse'; // < 1 min
+        if (timeRemaining > 300) return 'text-green-400';
+        if (timeRemaining > 60) return 'text-yellow-400';
+        return 'text-red-400 animate-pulse'; 
     };
 
     const goToQuestion = (index) => {
@@ -149,7 +162,6 @@ const TakeExam = () => {
         );
     }
 
-    // Result View
     if (result) {
         return (
             <div className="max-w-4xl mx-auto space-y-6">
@@ -189,7 +201,6 @@ const TakeExam = () => {
 
     return (
         <div className="max-w-6xl mx-auto space-y-6">
-            {/* Header */}
             <div className="card-glass p-6">
                 <div className="flex items-center justify-between">
                     <div>
@@ -217,7 +228,6 @@ const TakeExam = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                {/* Question Navigation */}
                 <div className="lg:col-span-1">
                     <div className="card-glass p-4 sticky top-6">
                         <h3 className="font-semibold text-gray-900 mb-4">Danh sách câu hỏi</h3>
@@ -227,10 +237,10 @@ const TakeExam = () => {
                                     key={q._id || q.id}
                                     onClick={() => goToQuestion(idx)}
                                     className={`aspect-square rounded-lg text-sm font-semibold transition-all ${idx === currentQuestion
-                                            ? 'bg-linear-to-br from-blue-500 to-indigo-600 text-gray-900'
-                                            : answers[q._id || q.id]
-                                                ? 'bg-green-500/20 text-green-400 border-2 border-green-500/50'
-                                                : 'bg-white/5 text-gray-500 hover:bg-white/10'
+                                        ? 'bg-linear-to-br from-blue-500 to-indigo-600 text-gray-900'
+                                        : answers[q._id || q.id]
+                                            ? 'bg-green-500/20 text-green-400 border-2 border-green-500/50'
+                                            : 'bg-white/5 text-gray-500 hover:bg-white/10'
                                         }`}
                                 >
                                     {idx + 1}
@@ -247,7 +257,6 @@ const TakeExam = () => {
                     </div>
                 </div>
 
-                {/* Current Question */}
                 <div className="lg:col-span-3">
                     <div className="card-glass p-8">
                         {currentQ && (
@@ -266,8 +275,8 @@ const TakeExam = () => {
                                         <label
                                             key={idx}
                                             className={`block p-4 rounded-xl border-2 cursor-pointer transition-all ${answers[currentQ._id || currentQ.id] === option
-                                                    ? 'border-blue-500 bg-blue-500/10'
-                                                    : 'border-gray-200 hover:border-gray-300 bg-white/5'
+                                                ? 'border-blue-500 bg-blue-500/10'
+                                                : 'border-gray-200 hover:border-gray-300 bg-white/5'
                                                 }`}
                                         >
                                             <div className="flex items-center gap-3">
@@ -287,7 +296,6 @@ const TakeExam = () => {
                                     ))}
                                 </div>
 
-                                {/* Navigation Buttons */}
                                 <div className="flex gap-3 pt-6 border-t border-gray-200">
                                     <button
                                         onClick={prevQuestion}

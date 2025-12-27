@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth, ROLES } from '../../contexts/AuthContext';
+import { useSidebar } from '../../contexts/SidebarContext';
 import {
     DashboardIcon,
     UsersIcon,
@@ -9,21 +10,26 @@ import {
     QuestionIcon,
     ExamIcon,
     ChartIcon,
-    SettingsIcon,
     LogoutIcon,
     MenuIcon,
     CloseIcon,
     BellIcon,
     LogIcon,
-    FolderIcon
+    FolderIcon,
+    SunIcon,
+    MoonIcon
 } from '../../components/icons/Icons';
+import useNotifications from '../../hooks/useNotifications';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const Sidebar = () => {
-    const [isCollapsed, setIsCollapsed] = useState(false);
-    const [isMobileOpen, setIsMobileOpen] = useState(false);
+    const { isCollapsed, setIsCollapsed, isMobileOpen, setIsMobileOpen } = useSidebar();
     const { user, logout } = useAuth();
+    const { theme, toggleTheme } = useTheme();
+    const { unreadCount } = useNotifications();
     const navigate = useNavigate();
     const location = useLocation();
+    const currentPath = location.pathname;
 
     const getNavItems = () => {
         const commonItems = [
@@ -55,6 +61,8 @@ const Sidebar = () => {
         const studentItems = [
             { path: 'dashboard', name: 'Tổng quan', icon: DashboardIcon },
             { path: 'classrooms', name: 'Lớp học của tôi', icon: BookIcon },
+            { path: 'documents', name: 'Tài liệu', icon: DocumentIcon },
+            { path: 'questions', name: 'Ngân hàng câu hỏi', icon: QuestionIcon },
             { path: 'exams', name: 'Bài thi', icon: ExamIcon },
             { path: 'results', name: 'Kết quả', icon: ChartIcon },
             { path: 'practice', name: 'Tự luyện', icon: FolderIcon },
@@ -98,7 +106,7 @@ const Sidebar = () => {
         <>
             <button
                 onClick={() => setIsMobileOpen(true)}
-                className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-xl glass text-gray-900"
+                className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-xl glass text-gray-900 dark:text-gray-100"
             >
                 <MenuIcon className="w-6 h-6" />
             </button>
@@ -112,9 +120,9 @@ const Sidebar = () => {
 
             <aside
                 className={`
-          fixed lg:static inset-y-0 left-0 z-50
+          fixed inset-y-0 left-0 z-50
           flex flex-col
-          bg-gray-50/95 backdrop-blur-xl border-r border-white/5
+          bg-[var(--sidebar-bg)] backdrop-blur-xl border-r border-white/5
           transition-all duration-300 ease-in-out
           ${isCollapsed ? 'w-20' : 'w-72'}
           ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
@@ -138,7 +146,7 @@ const Sidebar = () => {
                                 setIsCollapsed(!isCollapsed);
                             }
                         }}
-                        className="p-2 rounded-lg hover:bg-white/5 text-gray-500 hover:text-gray-900 transition-colors"
+                        className="p-2 rounded-lg hover:bg-white/5 text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"
                     >
                         {window.innerWidth < 1024 ? (
                             <CloseIcon className="w-5 h-5" />
@@ -150,51 +158,92 @@ const Sidebar = () => {
                     </button>
                 </div>
 
+
                 <div className={`p-4 border-b border-white/5 ${isCollapsed ? 'items-center' : ''}`}>
-                    <div className={`flex ${isCollapsed ? 'justify-center' : 'items-center gap-3'}`}>
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-gray-900 font-semibold">
+                    <button
+                        onClick={() => {
+                            navigate('profile');
+                            setIsMobileOpen(false);
+                        }}
+                        className={`w-full flex ${isCollapsed ? 'justify-center' : 'items-center gap-3'} p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 transition-colors cursor-pointer group`}
+                    >
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-gray-900 font-semibold group-hover:scale-105 transition-transform">
                             {user?.full_name?.charAt(0).toUpperCase() || user?.username?.charAt(0).toUpperCase() || 'U'}
                         </div>
                         {!isCollapsed && (
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-gray-900 truncate">{user?.full_name || user?.username || 'User'}</p>
-                                <p className="text-xs text-gray-500 truncate">{user?.email || 'user@example.com'}</p>
+                            <div className="flex-1 min-w-0 text-left">
+                                <p className="text-sm font-semibold text-gray-950 dark:text-white truncate group-hover:text-blue-600 transition-colors uppercase">{user?.full_name || user?.username || 'User'}</p>
+                                <p className="text-xs text-blue-500 font-semibold truncate capitalize opacity-80">{roleBadge.text}</p>
                             </div>
                         )}
-                    </div>
-                    {!isCollapsed && (
-                        <span className={`inline-block mt-3 px-3 py-1 text-xs font-medium rounded-full border ${roleBadge.class}`}>
-                            {roleBadge.text}
-                        </span>
-                    )}
+                    </button>
+
+                    <button
+                        onClick={toggleTheme}
+                        className={`mt-2 w-full flex ${isCollapsed ? 'justify-center' : 'items-center gap-3'} p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 transition-colors cursor-pointer group text-gray-400 hover:text-blue-500`}
+                        title={theme === 'light' ? 'Chế độ tối' : 'Chế độ sáng'}
+                    >
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-white/5 group-hover:bg-blue-500/10 group-hover:rotate-12 transition-all duration-300">
+                            {theme === 'light' ? <MoonIcon className="w-5 h-5" /> : <SunIcon className="w-5 h-5" />}
+                        </div>
+                        {!isCollapsed && (
+                            <div className="flex-1 text-left">
+                                <p className="text-sm font-medium">{theme === 'light' ? 'Chế độ tối' : 'Chế độ sáng'}</p>
+                                <p className="text-[10px] opacity-50 uppercase tracking-wider">{theme === 'light' ? 'Dark Mode' : 'Light Mode'}</p>
+                            </div>
+                        )}
+                    </button>
                 </div>
 
                 <nav className="flex-1 overflow-y-auto p-4 space-y-1">
                     {navItems.map((item) => {
                         const IconComponent = item.icon;
-                        const isActive = location.pathname.endsWith(item.path) ||
-                            location.pathname === `/app/${item.path}`;
+
+                        const isItemActive = (navIsActive) => {
+                            if (item.path === 'classrooms' && currentPath.startsWith('/app/classroom/')) {
+                                return true;
+                            }
+                            return navIsActive;
+                        };
 
                         return (
                             <NavLink
                                 key={item.path}
                                 to={item.path}
                                 onClick={() => setIsMobileOpen(false)}
-                                className={`
+                                className={({ isActive }) => `
                   relative flex items-center gap-3 px-4 py-3 rounded-xl
                   transition-all duration-200
-                  ${isActive
-                                        ? 'bg-linear-to-r from-blue-500/20 to-indigo-600/20 text-gray-900 border border-blue-500/30'
-                                        : 'text-gray-500 hover:text-gray-900 hover:bg-white/5'
+                  ${isItemActive(isActive)
+                                        ? 'bg-linear-to-r from-blue-500/20 to-indigo-600/20 text-blue-500 border border-blue-500/30'
+                                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-white/10'
                                     }
                   ${isCollapsed ? 'justify-center px-3' : ''}
                 `}
                             >
-                                {isActive && (
-                                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full bg-linear-to-b from-blue-400 to-orange-500" />
+                                {({ isActive }) => (
+                                    <>
+                                        {isItemActive(isActive) && (
+                                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full bg-linear-to-b from-blue-400 to-orange-500" />
+                                        )}
+                                        <IconComponent className="w-5 h-5 flex-shrink-0" />
+                                        {!isCollapsed && (
+                                            <div className="flex-1 flex items-center justify-between">
+                                                <span className="font-medium">{item.name}</span>
+                                                {item.path === 'notifications' && unreadCount > 0 && (
+                                                    <span className="ml-2 px-2 py-0.5 text-[10px] font-bold bg-red-500 text-white rounded-full min-w-[20px] text-center">
+                                                        {unreadCount > 99 ? '99+' : unreadCount}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
+                                        {isCollapsed && item.path === 'notifications' && unreadCount > 0 && (
+                                            <div className="absolute top-2 right-2 w-4 h-4 bg-red-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center">
+                                                {unreadCount > 99 ? '99+' : unreadCount}
+                                            </div>
+                                        )}
+                                    </>
                                 )}
-                                <IconComponent className="w-5 h-5 flex-shrink-0" />
-                                {!isCollapsed && <span className="font-medium">{item.name}</span>}
                             </NavLink>
                         );
                     })}

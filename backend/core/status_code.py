@@ -21,6 +21,8 @@ class StatusCode(int, Enum):
     NOT_A_MEMBER = 4302
     JOIN_REQUEST_EXISTS = 4303
     INVALID_CLASS_CODE = 4304
+    CLASSROOM_NOT_FOUND = 4305
+    MESSAGE_NOT_FOUND = 4306
     DOCUMENT_ACCESS_DENIED = 4310
     
     # OTP errors (44xx)
@@ -51,6 +53,8 @@ STATUS_MESSAGES = {
     StatusCode.NOT_A_MEMBER: "User is not a member of this class",
     StatusCode.JOIN_REQUEST_EXISTS: "Join request already exists",
     StatusCode.INVALID_CLASS_CODE: "Invalid class code",
+    StatusCode.CLASSROOM_NOT_FOUND: "Classroom not found",
+    StatusCode.MESSAGE_NOT_FOUND: "Message not found",
     StatusCode.DOCUMENT_ACCESS_DENIED: "Document access denied",
 
     StatusCode.OTP_INVALID: "Invalid OTP code",

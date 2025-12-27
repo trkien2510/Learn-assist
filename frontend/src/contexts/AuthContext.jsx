@@ -14,21 +14,18 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Check if user is authenticated on mount
   useEffect(() => {
     const initAuth = async () => {
       const token = cookieUtils.get('access_token');
 
       if (token) {
         try {
-          // Verify token by fetching user data
           const response = await userService.getMe();
-          const userData = response.data || response; // Extract data field
+          const userData = response.data || response; 
           setUser(userData);
           localStorage.setItem('user', JSON.stringify(userData));
         } catch (error) {
           console.error('Auth init error:', error);
-          // Token invalid, clear storage silently (no redirect)
           cookieUtils.remove('access_token');
           cookieUtils.remove('refresh_token');
           localStorage.removeItem('user');
@@ -44,9 +41,8 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await authService.login(usernameOrEmail, password);
 
-      // Fetch user data after login
       const response2 = await userService.getMe();
-      const userData = response2.data || response2; // Extract data field
+      const userData = response2.data || response2; 
       setUser(userData);
       localStorage.setItem('user', JSON.stringify(userData));
 
@@ -60,8 +56,6 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       await authService.register(userData);
-      // After registration, user needs to verify OTP
-      // Don't auto-login, return success
       return { success: true, needsVerification: true };
     } catch (error) {
       console.error('Registration error:', error);
@@ -73,7 +67,6 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await authService.verifyOTP(email, otpCode, purpose);
 
-      // After OTP verification for registration, auto-login
       const tokenData = response.data || response;
 
       if (purpose === 'registration' && tokenData.access_token) {
@@ -81,7 +74,7 @@ export const AuthProvider = ({ children }) => {
         cookieUtils.set('refresh_token', tokenData.refresh_token, 7);
 
         const response2 = await userService.getMe();
-        const userData = response2.data || response2; // Extract data field
+        const userData = response2.data || response2; 
         setUser(userData);
         localStorage.setItem('user', JSON.stringify(userData));
         return userData;

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { SearchIcon, MenuIcon, UserIcon, SettingsIcon, LogoutIcon } from '../../components/icons/Icons';
+import { SearchIcon, MenuIcon, UserIcon, LogoutIcon } from '../../components/icons/Icons';
 import { useNavigate } from 'react-router-dom';
 import NotificationBell from '../notifications/NotificationBell';
 
@@ -15,11 +15,11 @@ const Header = ({ onMenuClick }) => {
     };
 
     return (
-        <header className="h-16 bg-white/80 backdrop-blur-xl border-b border-white/5 flex items-center justify-between px-6 sticky top-0 z-30">
+        <header className="h-16 bg-white/80 backdrop-blur-xl border-b border-white/5 flex items-center justify-between px-6 sticky top-0 z-40">
             <div className="flex items-center gap-4">
                 <button
                     onClick={onMenuClick}
-                    className="lg:hidden p-2 rounded-lg hover:bg-white/5 text-gray-500"
+                    className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 text-gray-500"
                 >
                     <MenuIcon className="w-5 h-5" />
                 </button>
@@ -35,20 +35,18 @@ const Header = ({ onMenuClick }) => {
             </div>
 
             <div className="flex items-center gap-4">
-                {/* Real Notification Bell */}
                 <NotificationBell />
 
-                {/* User Menu */}
                 <div className="relative">
                     <button
                         onClick={() => setShowProfileMenu(!showProfileMenu)}
-                        className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 transition-colors"
+                        className="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
                     >
                         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-orange-500 flex items-center justify-center text-gray-900 text-sm font-semibold">
                             {user?.full_name?.charAt(0).toUpperCase() || user?.username?.charAt(0).toUpperCase() || 'U'}
                         </div>
                         <div className="hidden md:block text-left">
-                            <p className="text-sm font-medium text-gray-900">{user?.full_name || user?.username || 'User'}</p>
+                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{user?.full_name || user?.username || 'User'}</p>
                             <p className="text-xs text-gray-500 capitalize">{user?.role || 'guest'}</p>
                         </div>
                     </button>
@@ -56,30 +54,20 @@ const Header = ({ onMenuClick }) => {
                     {showProfileMenu && (
                         <div className="absolute right-0 mt-2 w-56 glass rounded-2xl shadow-2xl py-2 animate-fadeIn border border-gray-200">
                             <div className="px-4 py-3 border-b border-gray-200">
-                                <p className="text-sm font-medium text-gray-900">{user?.full_name || user?.username}</p>
+                                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{user?.full_name || user?.username}</p>
                                 <p className="text-xs text-gray-500">{user?.email}</p>
                             </div>
 
                             <div className="py-2">
                                 <button
                                     onClick={() => {
-                                        navigate('/app/settings');
+                                        navigate('/app/profile');
                                         setShowProfileMenu(false);
                                     }}
-                                    className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-white/5 transition-colors"
+                                    className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-600 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
                                 >
                                     <UserIcon className="w-4 h-4" />
                                     Hồ sơ cá nhân
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        navigate('/app/settings');
-                                        setShowProfileMenu(false);
-                                    }}
-                                    className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-white/5 transition-colors"
-                                >
-                                    <SettingsIcon className="w-4 h-4" />
-                                    Cài đặt
                                 </button>
                             </div>
 

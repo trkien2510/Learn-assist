@@ -2,18 +2,17 @@ import './index.css';
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { ProtectedRoute, PublicRoute, RoleRoute } from './components/ProtectedRoute';
 import { ROLES } from './contexts/AuthContext';
 
 import MainLayout from './components/layout/MainLayout';
 
-// Public Pages
 import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import OTPVerification from './pages/OTPVerification';
 
-// Protected Pages
 import Dashboard from './pages/Dashboard';
 import Classrooms from './pages/Classrooms';
 import Documents from './pages/Documents';
@@ -25,9 +24,12 @@ import Practice from './pages/Practice';
 import Statistics from './pages/Statistics';
 import Notifications from './pages/Notifications';
 import Profile from './pages/Profile';
-import Settings from './pages/Settings';
+import ClassroomDetail from './pages/ClassroomDetail';
 
-// Placeholder component for pages under development
+import AdminUsers from './pages/AdminUsers';
+import AdminLogs from './pages/AdminLogs';
+
+
 const PlaceholderPage = ({ title }) => (
   <div className="flex items-center justify-center min-h-[60vh]">
     <div className="text-center card-glass p-12 max-w-md">
@@ -44,65 +46,57 @@ const PlaceholderPage = ({ title }) => (
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <Routes>
-          {/* Landing Page - accessible for everyone */}
-          <Route path="/" element={<LandingPage />} />
+    <ThemeProvider>
+      <AuthProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
 
-          {/* Public Routes */}
-          <Route element={<PublicRoute />}>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-          </Route>
+            <Route element={<PublicRoute />}>
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+            </Route>
 
-          {/* OTP Verification - accessible without auth */}
-          <Route path="/otp-verification" element={<OTPVerification />} />
+            <Route path="/otp-verification" element={<OTPVerification />} />
 
-          {/* Protected Routes */}
-          <Route element={<ProtectedRoute />}>
-            <Route path="/app" element={<MainLayout />}>
-              <Route index element={<Navigate to="/app/dashboard" replace />} />
-              <Route path="dashboard" element={<Dashboard />} />
+            <Route element={<ProtectedRoute />}>
+              <Route path="/app" element={<MainLayout />}>
+                <Route index element={<Navigate to="/app/dashboard" replace />} />
+                <Route path="dashboard" element={<Dashboard />} />
 
-              {/* Admin Routes */}
-              <Route element={<RoleRoute allowedRoles={[ROLES.ADMIN]} />}>
-                <Route path="users" element={<PlaceholderPage title="Quản lý người dùng" />} />
-                <Route path="logs" element={<PlaceholderPage title="Nhật ký hoạt động" />} />
-              </Route>
+                <Route element={<RoleRoute allowedRoles={[ROLES.ADMIN]} />}>
+                  <Route path="users" element={<AdminUsers />} />
+                  <Route path="logs" element={<AdminLogs />} />
+                </Route>
 
-              {/* Teacher Routes */}
-              <Route element={<RoleRoute allowedRoles={[ROLES.ADMIN, ROLES.TEACHER]} />}>
+                <Route element={<RoleRoute allowedRoles={[ROLES.ADMIN, ROLES.TEACHER]} />}>
+                  <Route path="exams/create" element={<PlaceholderPage title="Tạo đề thi" />} />
+                </Route>
+
                 <Route path="documents" element={<Documents />} />
                 <Route path="questions" element={<Questions />} />
-                <Route path="exams/create" element={<PlaceholderPage title="Tạo đề thi" />} />
+                <Route path="classrooms" element={<Classrooms />} />
+                <Route path="classroom/:classCode" element={<ClassroomDetail />} />
+                <Route path="exams" element={<Exams />} />
+                <Route path="exams/:id" element={<PlaceholderPage title="Chi tiết bài thi" />} />
+                <Route path="take-exam/:id" element={<TakeExam />} />
+                <Route path="statistics" element={<Statistics />} />
+
+                <Route path="results" element={<Results />} />
+                <Route path="results/:id" element={<Results />} />
+                <Route path="practice" element={<Practice />} />
+
+                <Route path="profile" element={<Profile />} />
+                <Route path="notifications" element={<Notifications />} />
               </Route>
-
-              {/* Shared Routes (Teacher + Student) */}
-              <Route path="classrooms" element={<Classrooms />} />
-              <Route path="exams" element={<Exams />} />
-              <Route path="exams/:id" element={<PlaceholderPage title="Chi tiết bài thi" />} />
-              <Route path="exams/:id/take" element={<TakeExam />} />
-              <Route path="statistics" element={<Statistics />} />
-
-              {/* Student specific routes */}
-              <Route path="results" element={<Results />} />
-              <Route path="practice" element={<Practice />} />
-              <Route path="practice/create" element={<PlaceholderPage title="Tạo bài tự luyện" />} />
-
-              {/* Common Routes */}
-              <Route path="profile" element={<Profile />} />
-              <Route path="settings" element={<Settings />} />
-              <Route path="notifications" element={<Notifications />} />
             </Route>
-          </Route>
 
-          {/* Fallback Routes */}
-          <Route path="/dashboard" element={<Navigate to="/app/dashboard" replace />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Router>
-    </AuthProvider>
+            <Route path="/dashboard" element={<Navigate to="/app/dashboard" replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Router>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

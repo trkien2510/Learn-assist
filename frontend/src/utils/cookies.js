@@ -1,4 +1,3 @@
-// Cookie utility functions
 const cookieUtils = {
     /**
      * Set a cookie

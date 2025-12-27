@@ -115,19 +115,19 @@ async def get_my_documents(page: int, page_size: int, current_user):
     total = 0
 
     if current_user.role.value == "admin":
-        query = DocumentModel.find_all()
-        total = await query.count()
+        query = DocumentModel.find_all().sort([("upload_date", -1)])
+        total = await DocumentModel.find_all().count()
         items = await query.skip(skip).limit(page_size).to_list()
 
     elif current_user.role.value == "teacher":
-        query = DocumentModel.find({"creator.$id": current_user.id})
-        total = await query.count()
+        query = DocumentModel.find({"creator.$id": current_user.id}).sort([("upload_date", -1)])
+        total = await DocumentModel.find({"creator.$id": current_user.id}).count()
         items = await query.skip(skip).limit(page_size).to_list()
 
     else:
         # Students can view their own documents
-        query = DocumentModel.find({"creator.$id": current_user.id})
-        total = await query.count()
+        query = DocumentModel.find({"creator.$id": current_user.id}).sort([("upload_date", -1)])
+        total = await DocumentModel.find({"creator.$id": current_user.id}).count()
         items = await query.skip(skip).limit(page_size).to_list()
 
     total_pages = (total + page_size - 1) // page_size

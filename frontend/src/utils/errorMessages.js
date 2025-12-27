@@ -1,4 +1,3 @@
-// Error message mapping - English to Vietnamese
 const errorMessages = {
     // Authentication errors
     'Unauthorized': 'Thông tin đăng nhập không chính xác',
@@ -39,7 +38,6 @@ export const translateError = (error) => {
 
     const errorMsg = typeof error === 'string' ? error : error.message;
 
-    // Check for status code patterns
     if (errorMsg.includes('401')) {
         return 'Tên đăng nhập hoặc mật khẩu không đúng';
     }
@@ -53,14 +51,12 @@ export const translateError = (error) => {
         return 'Lỗi máy chủ. Vui lòng thử lại sau';
     }
 
-    // Try exact match
     for (const [key, value] of Object.entries(errorMessages)) {
         if (errorMsg.includes(key)) {
             return value;
         }
     }
 
-    // Return original message as fallback
     return errorMsg;
 };
 

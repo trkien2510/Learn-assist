@@ -32,15 +32,11 @@ class HttpClient {
         try {
             const response = await fetch(fullUrl, config);
 
-            // Handle 401 Unauthorized - token expired
             if (response.status === 401 && !options.skipRefresh) {
                 const refreshed = await this.refreshToken();
                 if (refreshed) {
-                    // Retry the request with new token
                     return this.request(endpoint, { ...options, skipRefresh: true });
                 } else {
-                    // Refresh failed
-                    // Don't redirect if already on login/register page
                     const publicPaths = ['/login', '/register', '/otp-verification', '/'];
                     const currentPath = window.location.pathname;
 
@@ -48,7 +44,6 @@ class HttpClient {
                         this.handleLogout();
                         throw new Error('Session expired. Please login again.');
                     }
-                    // If on public page, silently fail without error
                     throw new Error('Unauthorized');
                 }
             }
@@ -99,14 +94,12 @@ class HttpClient {
         window.location.href = '/login';
     }
 
-    // GET request
     async get(endpoint, params = {}) {
         const queryString = new URLSearchParams(params).toString();
         const url = queryString ? `${endpoint}?${queryString}` : endpoint;
         return this.request(url, { method: 'GET' });
     }
 
-    // POST request
     async post(endpoint, data = {}, options = {}) {
         return this.request(endpoint, {
             method: 'POST',
@@ -115,7 +108,6 @@ class HttpClient {
         });
     }
 
-    // PUT request
     async put(endpoint, data = {}, options = {}) {
         return this.request(endpoint, {
             method: 'PUT',
@@ -124,7 +116,6 @@ class HttpClient {
         });
     }
 
-    // PATCH request
     async patch(endpoint, data = {}, options = {}) {
         return this.request(endpoint, {
             method: 'PATCH',
@@ -133,12 +124,10 @@ class HttpClient {
         });
     }
 
-    // DELETE request
     async delete(endpoint) {
         return this.request(endpoint, { method: 'DELETE' });
     }
 
-    // Upload file
     async upload(endpoint, formData) {
         const token = cookieUtils.get('access_token');
 

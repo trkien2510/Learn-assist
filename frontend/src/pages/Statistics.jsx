@@ -58,7 +58,6 @@ const Statistics = () => {
                 </div>
             )}
 
-            {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div className="card-glass p-6">
                     <div className="flex items-center gap-4">
@@ -119,7 +118,6 @@ const Statistics = () => {
                 </div>
             </div>
 
-            {/* Additional Stats */}
             <div className="card-glass p-8">
                 <h2 className="text-xl font-bold text-gray-900 mb-6">Chi tiết thống kê</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

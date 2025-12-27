@@ -62,7 +62,6 @@ async def register(user_in, background_tasks):
     )
     await otp.insert()
     
-    # Send email in background to improve response time
     background_tasks.add_task(send_otp_email, user_in.email, otp_code, OTPPurpose.REGISTRATION, user.full_name)
 
     return {"message": "Registration successful. OTP has been sent to your email for verification"}

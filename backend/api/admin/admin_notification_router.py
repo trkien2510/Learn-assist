@@ -16,7 +16,6 @@ async def get_system_notifications(
     page_size: int = 20,
     current_admin=Depends(get_current_admin)
 ):
-    """Get system notifications for admin."""
     result = await notification_service.get_user_notifications(
         current_user=current_admin,
         page=page,
@@ -37,7 +36,7 @@ async def get_system_notifications(
             "created_at": notification.created_at.isoformat()
         })
     
-    return ApiResponse(
+    return BaseResponse(
         code=StatusCode.SUCCESS,
         data={
             "items": items,
@@ -54,7 +53,6 @@ async def get_system_notifications(
 
 @router.get("/system-health", response_model=BaseResponse)
 async def get_system_health(current_admin=Depends(get_current_admin)):
-    """Check system health and detect anomalies."""
     one_hour_ago = datetime.now(timezone.utc) - timedelta(hours=1)
     
     recent_errors = await LogModel.find({
@@ -81,7 +79,7 @@ async def get_system_health(current_admin=Depends(get_current_admin)):
     
     admin_unread = await notification_service.get_unread_count(current_admin)
     
-    return ApiResponse(
+    return BaseResponse(
         code=StatusCode.SUCCESS,
         data={
             "health_status": health_status,
@@ -96,9 +94,7 @@ async def get_system_health(current_admin=Depends(get_current_admin)):
 @router.post("/cleanup-notifications", response_model=BaseResponse)
 async def cleanup_old_notifications(
     days: int = 30,
-    current_admin=Depends(get_current_admin)
 ):
-    """Cleanup old notifications older than specified days."""
     result = await notification_service.cleanup_old_notifications(days=days)
     return BaseResponse(code=StatusCode.SUCCESS, data=result)
 
@@ -107,7 +103,6 @@ async def cleanup_old_notifications(
 async def send_test_notification(
     current_admin=Depends(get_current_admin)
 ):
-    """Send a test notification to verify the system is working."""
     await notification_service.notify_admins_system_warning(
         warning_type="Test Notification",
         warning_message="This is a test notification from the admin panel",

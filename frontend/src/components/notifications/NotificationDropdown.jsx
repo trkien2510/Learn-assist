@@ -14,7 +14,6 @@ const NotificationDropdown = ({
     const navigate = useNavigate();
 
     const handleNotificationClick = (notification) => {
-        // Navigate based on related_type
         if (notification.related_type && notification.related_id) {
             switch (notification.related_type) {
                 case 'exam':
@@ -38,7 +37,6 @@ const NotificationDropdown = ({
 
     return (
         <div className="absolute right-0 top-full mt-2 w-96 max-h-[600px] glass rounded-2xl shadow-2xl border border-gray-200 overflow-hidden z-50 animate-fadeIn">
-            {/* Header */}
             <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-500/10 to-cyan-500/10">
                 <div className="flex items-center justify-between">
                     <div>
@@ -60,7 +58,6 @@ const NotificationDropdown = ({
                 </div>
             </div>
 
-            {/* Notifications List */}
             <div className="max-h-[450px] overflow-y-auto custom-scrollbar">
                 {notifications.length === 0 ? (
                     <div className="p-8 text-center">
@@ -84,7 +81,6 @@ const NotificationDropdown = ({
                 )}
             </div>
 
-            {/* Footer */}
             {notifications.length > 0 && (
                 <div className="p-3 border-t border-gray-200 bg-white/5">
                     <button

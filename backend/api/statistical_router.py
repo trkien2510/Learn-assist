@@ -32,7 +32,6 @@ async def get_comprehensive_statistics(current_user: UserModel = Depends(get_cur
     elif current_user.role.value == "teacher":
         data = await statistics_service.get_teacher_comprehensive_statistics(current_user)
     else:
-        # Admin gets platform-wide statistics
         data = await statistics_service.get_admin_platform_statistics()
     return BaseResponse(data=data)
 
