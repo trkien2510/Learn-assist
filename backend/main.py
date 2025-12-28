@@ -25,10 +25,11 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.BACKEND_CORS_ORIGINS,
+    allow_origins=["*"],  # Trong dev cho phép tất cả để loại trừ lỗi CORS
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
 
 app.add_exception_handler(AppException, app_exception_handler)

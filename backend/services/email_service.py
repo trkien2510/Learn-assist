@@ -139,22 +139,28 @@ async def send_otp_email(email: str, otp_code: str, purpose: OTPPurpose, full_na
 
 async def send_account_notification_email(email: str, full_name: str, notification_type: str, reason: str = None):
     templates = {
+        "self_deleted": {
+            "subject": "Tài khoản của bạn đã được xóa",
+            "title": "Xác nhận xóa tài khoản",
+            "message": "Tài khoản của bạn trên hệ thống Learn Assist đã được xóa thành công theo yêu cầu của bạn. Tất cả dữ liệu liên quan đã được xóa vĩnh viễn.",
+            "color": "#667eea"
+        },
         "account_deleted": {
-            "subject": "Tài khoản của bạn đã bị xóa",
+            "subject": "Tài khoản của bạn đã bị xóa bởi quản trị viên",
             "title": "Thông báo xóa tài khoản",
-            "message": "Tài khoản của bạn trên hệ thống Learn Assist đã bị xóa bởi quản trị viên.",
+            "message": "Tài khoản của bạn trên hệ thống Learn Assist đã bị xóa bởi quản trị viên. Tất cả dữ liệu liên quan đã được xóa vĩnh viễn.",
             "color": "#e53e3e"
         },
         "account_deactivated": {
-            "subject": "Tài khoản của bạn đã bị vô hiệu hóa",
+            "subject": "Tài khoản của bạn đã bị vô hiệu hóa bởi quản trị viên",
             "title": "Thông báo vô hiệu hóa tài khoản",
-            "message": "Tài khoản của bạn trên hệ thống Learn Assist đã bị vô hiệu hóa bởi quản trị viên. Bạn sẽ không thể đăng nhập cho đến khi tài khoản được kích hoạt lại.",
+            "message": "Tài khoản của bạn trên hệ thống Learn Assist đã bị vô hiệu hóa bởi quản trị viên. Bạn sẽ không thể đăng nhập cho đến khi tài khoản được kích hoạt lại. Nếu bạn cho rằng đây là nhầm lẫn, vui lòng liên hệ quản trị viên tại trkien2503@gmail.com để được hỗ trợ.",
             "color": "#dd6b20"
         },
         "account_activated": {
-            "subject": "Tài khoản của bạn đã được kích hoạt",
+            "subject": "Tài khoản của bạn đã được kích hoạt lại",
             "title": "Thông báo kích hoạt tài khoản",
-            "message": "Tài khoản của bạn trên hệ thống Learn Assist đã được kích hoạt bởi quản trị viên. Bạn có thể đăng nhập và sử dụng hệ thống bình thường.",
+            "message": "Tài khoản của bạn trên hệ thống Learn Assist đã được kích hoạt lại bởi quản trị viên. Bạn có thể đăng nhập và sử dụng hệ thống bình thường.",
             "color": "#38a169"
         }
     }

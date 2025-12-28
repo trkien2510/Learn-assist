@@ -68,6 +68,13 @@ const AdminUsers = () => {
     };
 
     const handleToggleStatus = async (userId, currentStatus) => {
+        const action = currentStatus ? 'vô hiệu hóa' : 'kích hoạt';
+        const confirmMessage = currentStatus
+            ? 'Bạn có chắc muốn vô hiệu hóa tài khoản này? Người dùng sẽ không thể đăng nhập.'
+            : 'Bạn có chắc muốn kích hoạt lại tài khoản này?';
+
+        if (!window.confirm(confirmMessage)) return;
+
         try {
             await adminService.users.updateStatus(userId, !currentStatus);
             setSuccess(`Đã ${!currentStatus ? 'kích hoạt' : 'vô hiệu hóa'} người dùng!`);

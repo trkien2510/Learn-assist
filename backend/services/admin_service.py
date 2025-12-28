@@ -1,6 +1,6 @@
 from datetime import datetime, timezone, timedelta
 from typing import Optional
-from models.user_model import UserModel
+from models.user_model import UserModel, UserRole
 from models.log_model import LogModel
 from models.classroom_model import ClassroomModel
 from models.exam_model import ExamModel
@@ -9,61 +9,72 @@ from beanie import PydanticObjectId
 
 
 async def get_admin_statistics():
-    total_users = await UserModel.find_all().count()
-    active_users = await UserModel.find(UserModel.is_activate == True).count()
-    total_students = await UserModel.find(UserModel.role == "student").count()
-    total_teachers = await UserModel.find(UserModel.role == "teacher").count()
-    total_admins = await UserModel.find(UserModel.role == "admin").count()
-    
-    thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
-    new_users_30d = await UserModel.find(UserModel.created_at >= thirty_days_ago).count()
-    
-    total_classrooms = await ClassroomModel.find_all().count()
-    active_classrooms = await ClassroomModel.find(ClassroomModel.is_active == True).count()
-    
-    total_exams = await ExamModel.find_all().count()
-    
-    total_questions = await QuestionModel.find_all().count()
-    
-    total_logs = await LogModel.find_all().count()
-    success_logs = await LogModel.find(LogModel.status == "success").count()
-    error_logs = await LogModel.find(LogModel.status == "error").count()
-    
-    yesterday = datetime.now(timezone.utc) - timedelta(hours=24)
-    logs_24h = await LogModel.find(LogModel.created_at >= yesterday).count()
-    
-    week_ago = datetime.now(timezone.utc) - timedelta(days=7)
-    logs_7d = await LogModel.find(LogModel.created_at >= week_ago).count()
-    
-    return {
-        "users": {
-            "total": total_users,
-            "active": active_users,
-            "inactive": total_users - active_users,
-            "students": total_students,
-            "teachers": total_teachers,
-            "admins": total_admins,
-            "new_30d": new_users_30d
-        },
-        "classrooms": {
-            "total": total_classrooms,
-            "active": active_classrooms,
-            "inactive": total_classrooms - active_classrooms
-        },
-        "exams": {
-            "total": total_exams
-        },
-        "questions": {
-            "total": total_questions
-        },
-        "logs": {
-            "total": total_logs,
-            "success": success_logs,
-            "errors": error_logs,
-            "last_24h": logs_24h,
-            "last_7d": logs_7d
+    try:
+        total_users = await UserModel.find_all().count()
+        active_users = await UserModel.find(UserModel.is_activate == True).count()
+        total_students = await UserModel.find(UserModel.role == UserRole.STUDENT).count()
+        total_teachers = await UserModel.find(UserModel.role == UserRole.TEACHER).count()
+        total_admins = await UserModel.find(UserModel.role == UserRole.ADMIN).count()
+        
+        thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
+        new_users_30d = await UserModel.find(UserModel.created_at >= thirty_days_ago).count()
+        
+        total_classrooms = await ClassroomModel.find_all().count()
+        active_classrooms = total_classrooms
+        
+        total_exams = await ExamModel.find_all().count()
+        
+        total_questions = await QuestionModel.find_all().count()
+        
+        total_logs = await LogModel.find_all().count()
+        success_logs = await LogModel.find(LogModel.status == "success").count()
+        error_logs = await LogModel.find(LogModel.status == "error").count()
+        
+        yesterday = datetime.now(timezone.utc) - timedelta(hours=24)
+        logs_24h = await LogModel.find(LogModel.created_at >= yesterday).count()
+        
+        week_ago = datetime.now(timezone.utc) - timedelta(days=7)
+        logs_7d = await LogModel.find(LogModel.created_at >= week_ago).count()
+        
+        return {
+            "users": {
+                "total": total_users,
+                "active": active_users,
+                "inactive": total_users - active_users,
+                "students": total_students,
+                "teachers": total_teachers,
+                "admins": total_admins,
+                "new_30d": new_users_30d
+            },
+            "classrooms": {
+                "total": total_classrooms,
+                "active": active_classrooms,
+                "inactive": total_classrooms - active_classrooms
+            },
+            "exams": {
+                "total": total_exams
+            },
+            "questions": {
+                "total": total_questions
+            },
+            "logs": {
+                "total": total_logs,
+                "success": success_logs,
+                "errors": error_logs,
+                "last_24h": logs_24h,
+                "last_7d": logs_7d
+            }
         }
-    }
+    except Exception as e:
+        print(f"Error in get_admin_statistics: {str(e)}")
+        return {
+            "users": {"total": 0, "active": 0, "inactive": 0, "students": 0, "teachers": 0, "admins": 0, "new_30d": 0},
+            "classrooms": {"total": 0, "active": 0, "inactive": 0},
+            "exams": {"total": 0},
+            "questions": {"total": 0},
+            "logs": {"total": 0, "success": 0, "errors": 0, "last_24h": 0, "last_7d": 0},
+            "error": str(e)
+        }
 
 
 async def get_user_activity_timeline(user_id: str, days: int = 30):
@@ -142,11 +153,11 @@ async def get_user_growth_data(days: int = 30):
             daily_data[date_key] = {"total": 0, "students": 0, "teachers": 0, "admins": 0}
         
         daily_data[date_key]["total"] += 1
-        if user.role == "student":
+        if user.role == UserRole.STUDENT:
             daily_data[date_key]["students"] += 1
-        elif user.role == "teacher":
+        elif user.role == UserRole.TEACHER:
             daily_data[date_key]["teachers"] += 1
-        elif user.role == "admin":
+        elif user.role == UserRole.ADMIN:
             daily_data[date_key]["admins"] += 1
     
     dates = []

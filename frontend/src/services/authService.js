@@ -74,7 +74,7 @@ export const userService = {
         return httpClient.put(API_ENDPOINTS.UPDATE_PROFILE, profileData);
     },
 
-    async deactivate() {
-        return httpClient.post(API_ENDPOINTS.DEACTIVATE);
+    async deleteAccount(data) {
+        return httpClient.delete(API_ENDPOINTS.DELETE_ACCOUNT, { data });
     }
 };

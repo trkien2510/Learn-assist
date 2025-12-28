@@ -20,6 +20,10 @@ async def get_current_user(cred: HTTPAuthorizationCredentials = Depends(bearer_s
     user = await UserModel.get(ObjectId(user_id))
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+    
+    if not user.is_activate:
+        raise HTTPException(status_code=403, detail="Account is deactivated. Please contact support at trkien2503@gmail.com for assistance.")
+        
     return user
 
 

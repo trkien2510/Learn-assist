@@ -20,7 +20,7 @@ async def update_profile(update_data: UserUpdate, current_user: UserModel = Depe
     return BaseResponse(data={})
 
 
-@router.post("/deactivate", response_model=BaseResponse)
-async def deactivate_account(pass_data: UserDeactivate, background_tasks: BackgroundTasks, current_user: UserModel = Depends(get_current_user)):
-    await user_service.deactivate_account(pass_data, current_user, background_tasks)
+@router.delete("/delete", response_model=BaseResponse)
+async def delete_account(pass_data: UserDeactivate, background_tasks: BackgroundTasks, current_user: UserModel = Depends(get_current_user)):
+    await user_service.delete_account(pass_data, current_user, background_tasks)
     return BaseResponse()

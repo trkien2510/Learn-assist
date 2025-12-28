@@ -14,7 +14,7 @@ export const API_ENDPOINTS = {
   // User
   GET_ME: '/user/me',
   UPDATE_PROFILE: '/user/profile',
-  DEACTIVATE: '/user/deactivate',
+  DELETE_ACCOUNT: '/user/delete',
 
   // Dashboard
   DASHBOARD: '/dashboard',

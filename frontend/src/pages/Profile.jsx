@@ -7,8 +7,8 @@ const Profile = () => {
     const { user, updateUser } = useAuth();
     const [editing, setEditing] = useState(false);
     const [changingPassword, setChangingPassword] = useState(false);
-    const [deactivating, setDeactivating] = useState(false);
-    const [deactivatePassword, setDeactivatePassword] = useState('');
+    const [deleting, setDeleting] = useState(false);
+    const [deletePassword, setDeletePassword] = useState('');
     const [formData, setFormData] = useState({
         full_name: user?.full_name || user?.name || '',
         email: user?.email || '',
@@ -41,20 +41,20 @@ const Profile = () => {
         }
     };
 
-    const handleDeactivate = async (e) => {
+    const handleDeleteAccount = async (e) => {
         e.preventDefault();
-        if (!window.confirm('Bạn có chắc chắn muốn vô hiệu hóa tài khoản? Hành động này không thể hoàn tác.')) return;
+        if (!window.confirm('Bạn có chắc chắn muốn XÓA VĨNH VIỄN tài khoản? Tất cả dữ liệu của bạn sẽ bị xóa và không thể khôi phục.')) return;
 
         try {
             setLoading(true);
             setError('');
-            await userService.deactivate({ password: deactivatePassword });
-            setSuccess('Tài khoản đã được vô hiệu hóa. Bạn sẽ được đăng xuất.');
+            await userService.deleteAccount({ password: deletePassword });
+            setSuccess('Tài khoản đã được xóa. Bạn sẽ được đăng xuất.');
             setTimeout(() => {
                 window.location.href = '/logout';
             }, 3000);
         } catch (err) {
-            setError(err.message || 'Không thể vô hiệu hóa tài khoản');
+            setError(err.message || 'Không thể xóa tài khoản');
         } finally {
             setLoading(false);
         }
@@ -340,25 +340,24 @@ const Profile = () => {
                 <div className="card-glass p-8 border-red-500/20">
                     <div className="flex items-center justify-between mb-6">
                         <div>
-                            <h3 className="text-xl font-bold text-red-600">Vô hiệu hóa tài khoản</h3>
-                            <p className="text-sm text-gray-500 mt-1">Tạm dừng truy cập vào tài khoản của bạn</p>
+                            <h3 className="text-xl font-bold text-red-600">Xóa tài khoản</h3>
+                            <p className="text-sm text-gray-500 mt-1">Xóa vĩnh viễn tài khoản và tất cả dữ liệu của bạn</p>
                         </div>
-                        {!deactivating && (
+                        {!deleting && (
                             <button
-                                onClick={() => setDeactivating(true)}
+                                onClick={() => setDeleting(true)}
                                 className="px-4 py-2 bg-red-500/10 text-red-600 rounded-xl hover:bg-red-500/20 transition-colors flex items-center gap-2 font-semibold"
                             >
                                 <TrashIcon className="w-4 h-4" />
-                                Vô hiệu hóa
+                                Xóa tài khoản
                             </button>
                         )}
                     </div>
 
-                    {deactivating && (
-                        <form onSubmit={handleDeactivate} className="space-y-4">
-                            <div className="p-4 bg-orange-50 text-orange-700 rounded-xl text-sm mb-4">
-                                Lưu ý: Bạn cần nhập mật khẩu để xác nhận vô hiệu hóa tài khoản.
-                                Tài khoản sẽ không thể đăng nhập sau khi vô hiệu hóa.
+                    {deleting && (
+                        <form onSubmit={handleDeleteAccount} className="space-y-4">
+                            <div className="p-4 bg-red-50 text-red-700 rounded-xl text-sm mb-4">
+                                <strong>Cảnh báo:</strong> Hành động này không thể hoàn tác! Tất cả dữ liệu của bạn bao gồm tài liệu, câu hỏi, bài kiểm tra và lớp học sẽ bị xóa vĩnh viễn.
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-600 mb-2">
@@ -367,8 +366,8 @@ const Profile = () => {
                                 <input
                                     type="password"
                                     required
-                                    value={deactivatePassword}
-                                    onChange={(e) => setDeactivatePassword(e.target.value)}
+                                    value={deletePassword}
+                                    onChange={(e) => setDeletePassword(e.target.value)}
                                     className="input-glass border-red-200 focus:border-red-500"
                                     placeholder="Nhập mật khẩu của bạn"
                                 />
@@ -377,8 +376,8 @@ const Profile = () => {
                                 <button
                                     type="button"
                                     onClick={() => {
-                                        setDeactivating(false);
-                                        setDeactivatePassword('');
+                                        setDeleting(false);
+                                        setDeletePassword('');
                                     }}
                                     className="flex-1 btn-secondary"
                                 >
@@ -389,7 +388,7 @@ const Profile = () => {
                                     disabled={loading}
                                     className="flex-1 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors font-bold"
                                 >
-                                    {loading ? 'Đang xử lý...' : 'Xác nhận vô hiệu hóa'}
+                                    {loading ? 'Đang xử lý...' : 'Xác nhận xóa tài khoản'}
                                 </button>
                             </div>
                         </form>

@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from core.security import verify_password
 from core.exception_handler import AppException
 from core.status_code import StatusCode
-from models.user_model import UserModel
+from models.user_model import UserModel, UserRole
 from services import log_service
 from services.email_service import send_account_notification_email
 
@@ -45,25 +45,74 @@ async def update_profile(update_data, current_user):
     return {}
 
 
-async def deactivate_account(pass_data, current_user, background_tasks=None):
-    if current_user.role.value == "admin":
-        raise AppException(StatusCode.FORBIDDEN, "Admin cannot deactivate their own account")
+async def delete_account(pass_data, current_user, background_tasks=None):
+    """Delete user account and all related data"""
+    if current_user.role == UserRole.ADMIN:
+        raise AppException(StatusCode.FORBIDDEN, "Admin cannot delete their own account")
 
     if not verify_password(pass_data.password, current_user.hashed_password):
         raise AppException(StatusCode.UNAUTHORIZED, "Incorrect password")
 
-    current_user.is_activate = False
-    current_user.updated_at = lambda: datetime.now(timezone.utc)
-    await current_user.save()
+    user_id = str(current_user.id)
+    user_email = current_user.email
+    user_name = current_user.full_name
 
-    await log_service.log_user("deactivate_account", str(current_user.id), current_user)
+    # Import models để xóa dữ liệu liên quan
+    from models.document_model import DocumentModel
+    from models.question_model import QuestionModel
+    from models.exam_model import ExamModel
+    from models.classroom_model import ClassroomModel
+    from models.notification_model import NotificationModel
+    from models.log_model import LogModel
+    from models.otp_model import OTPModel
+    from beanie import PydanticObjectId
 
+    try:
+        obj_id = PydanticObjectId(user_id)
+        
+        # Xóa tất cả documents của user
+        await DocumentModel.find(DocumentModel.uploader.id == obj_id).delete()
+        
+        # Xóa tất cả questions của user
+        await QuestionModel.find(QuestionModel.creator.id == obj_id).delete()
+        
+        # Xóa tất cả exams của user
+        await ExamModel.find(ExamModel.creator_id.id == obj_id).delete()
+        
+        # Xóa tất cả classrooms mà user tạo
+        await ClassroomModel.find(ClassroomModel.creator.id == obj_id).delete()
+        
+        # Xóa tất cả notifications của user
+        await NotificationModel.find(NotificationModel.user_id == user_id).delete()
+        
+        # Xóa tất cả logs của user
+        await LogModel.find(LogModel.user_id == user_id).delete()
+        
+        # Xóa tất cả OTP của user
+        await OTPModel.find(OTPModel.email == user_email).delete()
+        
+    except Exception as e:
+        print(f"Error deleting related data: {e}")
+
+    # Log trước khi xóa user
+    await log_service.create_log(
+        action="delete_own_account",
+        resource_type="user",
+        resource_id=user_id,
+        details={"email": user_email},
+        status="success"
+    )
+
+    # Xóa user
+    await current_user.delete()
+
+    # Gửi email thông báo
     if background_tasks:
         background_tasks.add_task(
             send_account_notification_email,
-            email=current_user.email,
-            full_name=current_user.full_name,
-            notification_type="account_deactivated"
+            email=user_email,
+            full_name=user_name,
+            notification_type="self_deleted"
         )
 
     return {}
@@ -80,7 +129,12 @@ async def get_all_users(page: int = 1, page_size: int = 20, role: str = None, is
     query_conditions = []
     
     if role:
-        query_conditions.append(UserModel.role == role)
+        try:
+            role_enum = UserRole(role)
+            query_conditions.append(UserModel.role == role_enum)
+        except ValueError:
+            # Nếu role truyền vào không hợp lệ trong Enum, có thể bỏ qua hoặc báo lỗi
+            pass
     
     if is_active is not None and is_active != '':
         is_active_bool = is_active.lower() == 'true' if isinstance(is_active, str) else is_active
@@ -201,7 +255,7 @@ async def toggle_user_status(user_id: str, is_active: bool, admin_user=None, bac
         raise AppException(StatusCode.FORBIDDEN, "Không thể thay đổi trạng thái tài khoản admin")
 
     user.is_activate = is_active
-    user.updated_at = lambda: datetime.now(timezone.utc)
+    user.updated_at = datetime.now(timezone.utc)
     await user.save()
 
     action = "activate_user" if is_active else "deactivate_user"
