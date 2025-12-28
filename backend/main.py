@@ -43,7 +43,6 @@ app.include_router(exam_router.router, prefix=f"{settings.API_PREFIX}/exam", tag
 app.include_router(practice_router.router, prefix=f"{settings.API_PREFIX}/practice", tags=["Practice"])
 app.include_router(result_router.router, prefix=f"{settings.API_PREFIX}/result", tags=["Result"])
 app.include_router(statistical_router.router, prefix=f"{settings.API_PREFIX}/statistics", tags=["Statistics"])
-app.include_router(admin_router.router, prefix=f"{settings.API_PREFIX}/admin", tags=["Admin"])
 app.include_router(notification_router.router, prefix=f"{settings.API_PREFIX}/notifications", tags=["Notifications"])
 app.include_router(message_router.router, prefix=f"{settings.API_PREFIX}/message", tags=["Messages"])
-
+app.include_router(admin_router.router, prefix=f"{settings.API_PREFIX}/admin", tags=["Admin"])

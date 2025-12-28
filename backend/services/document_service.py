@@ -40,7 +40,16 @@ async def process_upload(number_question: int, file: UploadFile, current_user):
         )
         await new_document.insert()
 
-        data = call_openai_for_questions(create_question_generation_prompt(document_content.strip(), number_question))
+        # Call OpenAI with Structured Outputs - returns {"questions": [...]} dict
+        ai_response = call_openai_for_questions(create_question_generation_prompt(document_content.strip(), number_question))
+        
+        # Handle AI response (Structured Outputs returns dict with 'questions' key)
+        questions = []
+        if ai_response and isinstance(ai_response, dict):
+            questions = ai_response.get("questions", [])
+        elif ai_response and isinstance(ai_response, list):
+            # Fallback for backward compatibility
+            questions = ai_response
 
         await log_service.log_document("upload_document", str(new_document.id), current_user, {
             "filename": file.filename,
@@ -48,7 +57,7 @@ async def process_upload(number_question: int, file: UploadFile, current_user):
         })
 
         # Notify user about successful upload
-        question_count = len(data) if isinstance(data, list) else 0
+        question_count = len(questions)
         await notification_service.notify_document_upload_success(
             user=current_user,
             document_name=new_document.name,
@@ -59,7 +68,7 @@ async def process_upload(number_question: int, file: UploadFile, current_user):
         return {
             "document_id": str(new_document.id),
             "document_name": new_document.name,
-            "questions": data
+            "questions": questions
         }
     except AppException:
         raise

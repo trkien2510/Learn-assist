@@ -45,7 +45,7 @@ async def update_profile(update_data, current_user):
     return {}
 
 
-async def deactivate_account(pass_data, current_user):
+async def deactivate_account(pass_data, current_user, background_tasks=None):
     if current_user.role.value == "admin":
         raise AppException(StatusCode.FORBIDDEN, "Admin cannot deactivate their own account")
 
@@ -57,6 +57,14 @@ async def deactivate_account(pass_data, current_user):
     await current_user.save()
 
     await log_service.log_user("deactivate_account", str(current_user.id), current_user)
+
+    if background_tasks:
+        background_tasks.add_task(
+            send_account_notification_email,
+            email=current_user.email,
+            full_name=current_user.full_name,
+            notification_type="account_deactivated"
+        )
 
     return {}
 
@@ -154,7 +162,7 @@ async def update_user_by_admin(user_id: str, update_data, admin_user=None):
     return user
 
 
-async def delete_user_by_admin(user_id: str, admin_user=None):
+async def delete_user_by_admin(user_id: str, admin_user=None, background_tasks=None):
     user = await get_user_by_id(user_id)
 
     if admin_user and str(user.id) == str(admin_user.id):
@@ -167,20 +175,23 @@ async def delete_user_by_admin(user_id: str, admin_user=None):
         "target_email": user.email
     })
 
-    try:
-        await send_account_notification_email(
-            email=user.email,
-            full_name=user.full_name,
-            notification_type="account_deleted"
-        )
-    except Exception as e:
-        print(f"Failed to send email notification: {e}")
+    user_email = user.email
+    user_name = user.full_name
 
     await user.delete()
+
+    if background_tasks:
+        background_tasks.add_task(
+            send_account_notification_email,
+            email=user_email,
+            full_name=user_name,
+            notification_type="account_deleted"
+        )
+
     return {}
 
 
-async def toggle_user_status(user_id: str, is_active: bool, admin_user=None):
+async def toggle_user_status(user_id: str, is_active: bool, admin_user=None, background_tasks=None):
     user = await get_user_by_id(user_id)
 
     if admin_user and str(user.id) == str(admin_user.id):
@@ -199,15 +210,14 @@ async def toggle_user_status(user_id: str, is_active: bool, admin_user=None):
         "new_status": "active" if is_active else "inactive"
     })
 
-    try:
+    if background_tasks:
         notification_type = "account_activated" if is_active else "account_deactivated"
-        await send_account_notification_email(
+        background_tasks.add_task(
+            send_account_notification_email,
             email=user.email,
             full_name=user.full_name,
             notification_type=notification_type
         )
-    except Exception as e:
-        print(f"Failed to send email notification: {e}")
 
     return {
         "user_id": user_id,

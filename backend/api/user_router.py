@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, BackgroundTasks
 from core.dependencies import get_current_user
 from schemas.user_schema import UserUpdate, UserDeactivate
 from schemas.base_schema import BaseResponse
@@ -21,6 +21,6 @@ async def update_profile(update_data: UserUpdate, current_user: UserModel = Depe
 
 
 @router.post("/deactivate", response_model=BaseResponse)
-async def deactivate_account(pass_data: UserDeactivate, current_user: UserModel = Depends(get_current_user)):
-    await user_service.deactivate_account(pass_data, current_user)
+async def deactivate_account(pass_data: UserDeactivate, background_tasks: BackgroundTasks, current_user: UserModel = Depends(get_current_user)):
+    await user_service.deactivate_account(pass_data, current_user, background_tasks)
     return BaseResponse()

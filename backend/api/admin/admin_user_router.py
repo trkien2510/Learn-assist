@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, BackgroundTasks
 from core.dependencies import get_current_user
 from models.user_model import UserModel
 from schemas.base_schema import BaseResponse
@@ -50,18 +50,18 @@ async def update_user_admin(user_id: str, update_data: UserUpdate, current_user:
 
 
 @router.delete("/{user_id}", response_model=BaseResponse)
-async def delete_user_admin(user_id: str, current_user: UserModel = Depends(get_current_user)):
+async def delete_user_admin(user_id: str, background_tasks: BackgroundTasks, current_user: UserModel = Depends(get_current_user)):
     if current_user.role != "admin":
         raise AppException(StatusCode.FORBIDDEN, "Access denied")
 
-    await user_service.delete_user_by_admin(user_id, current_user)
+    await user_service.delete_user_by_admin(user_id, current_user, background_tasks)
     return BaseResponse()
 
 
 @router.patch("/{user_id}/status", response_model=BaseResponse)
-async def toggle_user_status(user_id: str, request: ToggleStatusRequest, current_user: UserModel = Depends(get_current_user)):
+async def toggle_user_status(user_id: str, request: ToggleStatusRequest, background_tasks: BackgroundTasks, current_user: UserModel = Depends(get_current_user)):
     if current_user.role != "admin":
         raise AppException(StatusCode.FORBIDDEN, "Access denied")
 
-    data = await user_service.toggle_user_status(user_id, request.is_active, current_user)
+    data = await user_service.toggle_user_status(user_id, request.is_active, current_user, background_tasks)
     return BaseResponse(data=data)

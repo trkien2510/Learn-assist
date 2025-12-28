@@ -336,64 +336,66 @@ const Profile = () => {
                 )}
             </div>
 
-            <div className="card-glass p-8 border-red-500/20">
-                <div className="flex items-center justify-between mb-6">
-                    <div>
-                        <h3 className="text-xl font-bold text-red-600">Vô hiệu hóa tài khoản</h3>
-                        <p className="text-sm text-gray-500 mt-1">Tạm dừng truy cập vào tài khoản của bạn</p>
+            {user?.role !== 'admin' && (
+                <div className="card-glass p-8 border-red-500/20">
+                    <div className="flex items-center justify-between mb-6">
+                        <div>
+                            <h3 className="text-xl font-bold text-red-600">Vô hiệu hóa tài khoản</h3>
+                            <p className="text-sm text-gray-500 mt-1">Tạm dừng truy cập vào tài khoản của bạn</p>
+                        </div>
+                        {!deactivating && (
+                            <button
+                                onClick={() => setDeactivating(true)}
+                                className="px-4 py-2 bg-red-500/10 text-red-600 rounded-xl hover:bg-red-500/20 transition-colors flex items-center gap-2 font-semibold"
+                            >
+                                <TrashIcon className="w-4 h-4" />
+                                Vô hiệu hóa
+                            </button>
+                        )}
                     </div>
-                    {!deactivating && (
-                        <button
-                            onClick={() => setDeactivating(true)}
-                            className="px-4 py-2 bg-red-500/10 text-red-600 rounded-xl hover:bg-red-500/20 transition-colors flex items-center gap-2 font-semibold"
-                        >
-                            <TrashIcon className="w-4 h-4" />
-                            Vô hiệu hóa
-                        </button>
+
+                    {deactivating && (
+                        <form onSubmit={handleDeactivate} className="space-y-4">
+                            <div className="p-4 bg-orange-50 text-orange-700 rounded-xl text-sm mb-4">
+                                Lưu ý: Bạn cần nhập mật khẩu để xác nhận vô hiệu hóa tài khoản.
+                                Tài khoản sẽ không thể đăng nhập sau khi vô hiệu hóa.
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-600 mb-2">
+                                    Xác nhận mật khẩu
+                                </label>
+                                <input
+                                    type="password"
+                                    required
+                                    value={deactivatePassword}
+                                    onChange={(e) => setDeactivatePassword(e.target.value)}
+                                    className="input-glass border-red-200 focus:border-red-500"
+                                    placeholder="Nhập mật khẩu của bạn"
+                                />
+                            </div>
+                            <div className="flex gap-3 pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setDeactivating(false);
+                                        setDeactivatePassword('');
+                                    }}
+                                    className="flex-1 btn-secondary"
+                                >
+                                    Hủy
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    className="flex-1 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors font-bold"
+                                >
+                                    {loading ? 'Đang xử lý...' : 'Xác nhận vô hiệu hóa'}
+                                </button>
+                            </div>
+                        </form>
                     )}
                 </div>
-
-                {deactivating && (
-                    <form onSubmit={handleDeactivate} className="space-y-4">
-                        <div className="p-4 bg-orange-50 text-orange-700 rounded-xl text-sm mb-4">
-                            Lưu ý: Bạn cần nhập mật khẩu để xác nhận vô hiệu hóa tài khoản.
-                            Tài khoản sẽ không thể đăng nhập sau khi vô hiệu hóa.
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-600 mb-2">
-                                Xác nhận mật khẩu
-                            </label>
-                            <input
-                                type="password"
-                                required
-                                value={deactivatePassword}
-                                onChange={(e) => setDeactivatePassword(e.target.value)}
-                                className="input-glass border-red-200 focus:border-red-500"
-                                placeholder="Nhập mật khẩu của bạn"
-                            />
-                        </div>
-                        <div className="flex gap-3 pt-2">
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setDeactivating(false);
-                                    setDeactivatePassword('');
-                                }}
-                                className="flex-1 btn-secondary"
-                            >
-                                Hủy
-                            </button>
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                className="flex-1 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors font-bold"
-                            >
-                                {loading ? 'Đang xử lý...' : 'Xác nhận vô hiệu hóa'}
-                            </button>
-                        </div>
-                    </form>
-                )}
-            </div>
+            )}
         </div>
     );
 };
