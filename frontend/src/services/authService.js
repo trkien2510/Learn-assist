@@ -78,9 +78,3 @@ export const userService = {
         return httpClient.post(API_ENDPOINTS.DEACTIVATE);
     }
 };
-
-export const dashboardService = {
-    async getDashboard() {
-        return httpClient.get(API_ENDPOINTS.DASHBOARD);
-    }
-};
