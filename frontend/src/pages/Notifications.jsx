@@ -6,7 +6,6 @@ const Notifications = () => {
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [filter, setFilter] = useState('all');
 
     useEffect(() => {
         fetchNotifications();
@@ -34,6 +33,15 @@ const Notifications = () => {
         }
     };
 
+    const markAllAsRead = async () => {
+        try {
+            await notificationService.markAsRead(null);
+            fetchNotifications();
+        } catch (err) {
+            console.error('Error marking all as read:', err);
+        }
+    };
+
     const deleteNotification = async (notificationId) => {
         try {
             await notificationService.delete(notificationId);
@@ -43,13 +51,11 @@ const Notifications = () => {
         }
     };
 
-    const filteredNotifications = filter === 'unread'
-        ? notifications.filter(n => !n.is_read)
-        : notifications;
-
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleString('vi-VN');
     };
+
+    const unreadCount = notifications.filter(n => !n.is_read).length;
 
     return (
         <div className="max-w-4xl mx-auto space-y-6">
@@ -57,25 +63,18 @@ const Notifications = () => {
                 <div>
                     <h1 className="text-3xl font-bold gradient-text">Thông báo</h1>
                     <p className="text-gray-500 mt-2">
-                        {notifications.filter(n => !n.is_read).length} thông báo chưa đọc
+                        {unreadCount} thông báo chưa đọc
                     </p>
                 </div>
-                <div className="flex gap-2">
+                {unreadCount > 0 && (
                     <button
-                        onClick={() => setFilter('all')}
-                        className={`px-4 py-2 rounded-lg transition-colors ${filter === 'all' ? 'bg-blue-500/20 text-blue-400' : 'bg-white/5 text-gray-500'
-                            }`}
+                        onClick={markAllAsRead}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-colors"
                     >
-                        Tất cả
+                        <CheckIcon className="w-4 h-4" />
+                        Đánh dấu tất cả đã đọc
                     </button>
-                    <button
-                        onClick={() => setFilter('unread')}
-                        className={`px-4 py-2 rounded-lg transition-colors ${filter === 'unread' ? 'bg-blue-500/20 text-blue-400' : 'bg-white/5 text-gray-500'
-                            }`}
-                    >
-                        Chưa đọc
-                    </button>
-                </div>
+                )}
             </div>
 
             {error && (
@@ -93,17 +92,17 @@ const Notifications = () => {
                         </div>
                     ))}
                 </div>
-            ) : filteredNotifications.length === 0 ? (
+            ) : notifications.length === 0 ? (
                 <div className="card-glass p-12 text-center">
                     <BellIcon className="w-16 h-16 mx-auto mb-4 text-slate-600" />
                     <h3 className="text-xl font-semibold text-gray-900 mb-2">Không có thông báo</h3>
                     <p className="text-gray-500">
-                        {filter === 'unread' ? 'Bạn đã đọc hết thông báo' : 'Chưa có thông báo nào'}
+                        Chưa có thông báo nào
                     </p>
                 </div>
             ) : (
                 <div className="space-y-3">
-                    {filteredNotifications.map((notification) => (
+                    {notifications.map((notification) => (
                         <div
                             key={notification._id || notification.id}
                             className={`card-glass p-6 hover-scale cursor-pointer ${!notification.is_read ? 'border-l-4 border-blue-500' : ''

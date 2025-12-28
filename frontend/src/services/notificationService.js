@@ -15,7 +15,12 @@ export const notificationService = {
     },
 
     async markAsRead(notificationIds = null) {
-        const body = notificationIds ? { notification_ids: notificationIds } : {};
+        // Ensure notification_ids is an array if provided
+        let ids = notificationIds;
+        if (notificationIds && !Array.isArray(notificationIds)) {
+            ids = [notificationIds];
+        }
+        const body = ids ? { notification_ids: ids } : {};
         return httpClient.post(API_ENDPOINTS.NOTIFICATIONS_MARK_READ, body);
     },
 
