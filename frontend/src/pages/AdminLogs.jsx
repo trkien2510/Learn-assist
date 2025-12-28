@@ -14,6 +14,19 @@ import {
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
 
+const parseUTCDate = (dateString) => {
+    if (!dateString) return new Date();
+    let dateStr = dateString;
+    if (!/Z|[+-]\d{2}:\d{2}$/.test(dateString)) {
+        dateStr = dateString + 'Z';
+    }
+    return new Date(dateStr);
+};
+
+const formatDateVN = (dateString) => {
+    const date = parseUTCDate(dateString);
+    return date.toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
+};
 const AdminLogs = () => {
     const [logs, setLogs] = useState([]);
     const [stats, setStats] = useState(null);
@@ -69,7 +82,7 @@ const AdminLogs = () => {
     const handleExport = () => {
         const headers = ['Thời gian', 'Người dùng', 'Hành động', 'Tài nguyên', 'Trạng thái'];
         const rows = logs.map(log => [
-            new Date(log.created_at).toLocaleString('vi-VN'),
+            formatDateVN(log.created_at),
             log.user_id || 'N/A',
             log.action,
             log.resource_type || 'N/A',
@@ -324,11 +337,11 @@ const AdminLogs = () => {
                                             <div className="flex items-center gap-2">
                                                 <ClockIcon className="w-4 h-4 text-gray-400" />
                                                 <span className="text-sm text-gray-600">
-                                                    {formatDistanceToNow(new Date(log.created_at), { addSuffix: true, locale: vi })}
+                                                    {formatDistanceToNow(parseUTCDate(log.created_at), { addSuffix: true, locale: vi })}
                                                 </span>
                                             </div>
                                             <p className="text-xs text-gray-400 mt-1">
-                                                {new Date(log.created_at).toLocaleString('vi-VN')}
+                                                {formatDateVN(log.created_at)}
                                             </p>
                                         </td>
                                         <td className="p-4">
@@ -441,7 +454,7 @@ const AdminLogs = () => {
                             <div>
                                 <label className="text-sm font-medium text-gray-700">Thời gian</label>
                                 <p className="mt-1 text-gray-900">
-                                    {new Date(selectedLog.created_at).toLocaleString('vi-VN')}
+                                    {formatDateVN(selectedLog.created_at)}
                                 </p>
                             </div>
 

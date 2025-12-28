@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth, ROLES } from '../../contexts/AuthContext';
 import { classroomService } from '../../services/apiServices';
 import { SendIcon, TrashIcon } from '../icons/Icons';
 
 const ClassroomMessages = ({ classCode, classroom }) => {
-    const { user } = useAuth();
+    const { user, hasRole } = useAuth();
+    const isAdmin = hasRole([ROLES.ADMIN]);
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const [loading, setLoading] = useState(false);
@@ -92,6 +93,7 @@ const ClassroomMessages = ({ classCode, classroom }) => {
     };
 
     const canDeleteMessage = (message) => {
+        if (isAdmin) return false;
         return message.sender_id === user?.id || classroom?.is_creator;
     };
 
@@ -188,37 +190,45 @@ const ClassroomMessages = ({ classCode, classroom }) => {
                 </div>
             )}
 
-            <form onSubmit={handleSendMessage} className="border-t border-gray-200/10 p-4 bg-gray-900/10 rounded-b-xl">
-                <div className="flex gap-2">
-                    <textarea
-                        value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                                e.preventDefault();
-                                handleSendMessage(e);
-                            }
-                        }}
-                        placeholder="Nhập tin nhắn... (Enter để gửi, Shift+Enter để xuống dòng)"
-                        className="flex-1 input-glass resize-none min-h-[60px] max-h-[120px]"
-                        disabled={sending}
-                    />
-                    <button
-                        type="submit"
-                        disabled={!newMessage.trim() || sending}
-                        className="btn-primary px-6 self-end disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        {sending ? (
-                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                        ) : (
-                            <SendIcon className="w-5 h-5" />
-                        )}
-                    </button>
+            {isAdmin ? (
+                <div className="border-t border-gray-200/10 p-4 bg-gray-900/10 rounded-b-xl text-center">
+                    <p className="text-gray-500 text-sm">
+                        Admin chỉ có quyền xem tin nhắn
+                    </p>
                 </div>
-                <p className="text-xs text-gray-500 mt-2">
-                    Tin nhắn tự động làm mới mỗi 3 giây
-                </p>
-            </form>
+            ) : (
+                <form onSubmit={handleSendMessage} className="border-t border-gray-200/10 p-4 bg-gray-900/10 rounded-b-xl">
+                    <div className="flex gap-2">
+                        <textarea
+                            value={newMessage}
+                            onChange={(e) => setNewMessage(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault();
+                                    handleSendMessage(e);
+                                }
+                            }}
+                            placeholder="Nhập tin nhắn... (Enter để gửi, Shift+Enter để xuống dòng)"
+                            className="flex-1 input-glass resize-none min-h-[60px] max-h-[120px]"
+                            disabled={sending}
+                        />
+                        <button
+                            type="submit"
+                            disabled={!newMessage.trim() || sending}
+                            className="btn-primary px-6 self-end disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {sending ? (
+                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                            ) : (
+                                <SendIcon className="w-5 h-5" />
+                            )}
+                        </button>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">
+                        Tin nhắn tự động làm mới mỗi 3 giây
+                    </p>
+                </form>
+            )}
         </div>
     );
 };

@@ -15,7 +15,7 @@ const Exams = () => {
 
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [classrooms, setClassrooms] = useState([]);
-    const [step, setStep] = useState(1); 
+    const [step, setStep] = useState(1);
     const [previewQuestions, setPreviewQuestions] = useState([]);
     const [excludedIds, setExcludedIds] = useState([]);
 
@@ -31,7 +31,9 @@ const Exams = () => {
         hard_count: 0
     });
 
-    const isTeacher = hasRole([ROLES.ADMIN, ROLES.TEACHER]);
+    const isTeacher = hasRole([ROLES.TEACHER]);
+    const isAdmin = hasRole([ROLES.ADMIN]);
+    const isStudent = hasRole([ROLES.STUDENT]);
 
     useEffect(() => {
         fetchExams();
@@ -309,10 +311,10 @@ const Exams = () => {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold gradient-text">
-                        {isTeacher ? 'Quản lý đề thi' : 'Bài thi'}
+                        {isAdmin ? 'Quản lý đề thi' : isTeacher ? 'Quản lý đề thi' : 'Bài thi'}
                     </h1>
                     <p className="text-gray-500 mt-2">
-                        {isTeacher ? 'Tạo và quản lý đề thi cho lớp học' : 'Danh sách bài thi của bạn'}
+                        {isAdmin ? 'Xem tất cả đề thi trong hệ thống (chỉ xem)' : isTeacher ? 'Tạo và quản lý đề thi cho lớp học' : 'Danh sách bài thi của bạn'}
                     </p>
                 </div>
                 {isTeacher && (
@@ -391,14 +393,14 @@ const Exams = () => {
                                 </div>
 
                                 <div className="flex gap-2">
-                                    {!isTeacher && canTakeExam(exam) ? (
+                                    {isStudent && canTakeExam(exam) ? (
                                         <button
                                             onClick={() => handleStartExam(exam)}
                                             className="flex-1 btn-primary text-sm py-2"
                                         >
                                             Làm bài
                                         </button>
-                                    ) : isTeacher ? (
+                                    ) : (isTeacher || isAdmin) ? (
                                         <>
                                             <button
                                                 onClick={() => handleViewResults(exam)}
@@ -586,9 +588,23 @@ const Exams = () => {
                                     </div>
                                 ) : (
                                     <div className="space-y-4">
-                                        <p className="text-gray-400 text-sm mb-4">
-                                            {previewQuestions.length} câu hỏi đã được chọn. Click 🔄 để thay đổi câu hỏi.
-                                        </p>
+                                        {previewQuestions.length < formData.total_questions ? (
+                                            <div className="p-4 bg-yellow-500/10 border border-yellow-500/50 rounded-xl">
+                                                <p className="text-yellow-400 font-medium mb-2">
+                                                    ⚠️ Ngân hàng câu hỏi của bạn không đủ!
+                                                </p>
+                                                <p className="text-yellow-400/80 text-sm">
+                                                    Yêu cầu: {formData.total_questions} câu hỏi | Hiện có: {previewQuestions.length} câu hỏi
+                                                </p>
+                                                <p className="text-gray-400 text-sm mt-2">
+                                                    Vui lòng thêm câu hỏi vào ngân hàng hoặc điều chỉnh lại số lượng câu hỏi theo độ khó.
+                                                </p>
+                                            </div>
+                                        ) : (
+                                            <p className="text-gray-400 text-sm mb-4">
+                                                {previewQuestions.length} câu hỏi đã được chọn. Click 🔄 để thay đổi câu hỏi.
+                                            </p>
+                                        )}
                                         {previewQuestions.map((question, index) => (
                                             <div key={question.id} className="card-glass p-4 hover:shadow-lg transition-shadow">
                                                 <div className="flex items-start gap-4">
@@ -663,8 +679,8 @@ const Exams = () => {
                                     ) : (
                                         <button
                                             onClick={handleCreateExam}
-                                            disabled={loading}
-                                            className="btn-primary"
+                                            disabled={loading || previewQuestions.length < formData.total_questions}
+                                            className={`btn-primary ${previewQuestions.length < formData.total_questions ? 'opacity-50 cursor-not-allowed' : ''}`}
                                         >
                                             {loading ? 'Đang tạo...' : 'Tạo đề thi'}
                                         </button>

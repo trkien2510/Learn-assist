@@ -305,15 +305,21 @@ const AdminUsers = () => {
                                             <span className="text-sm text-gray-600">{formatDate(user.created_at)}</span>
                                         </td>
                                         <td className="p-4">
-                                            <button
-                                                onClick={() => handleToggleStatus(user._id || user.id, user.is_activate)}
-                                                className={`text-xs px-3 py-1 rounded-full ${user.is_activate
-                                                    ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
-                                                    : 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
-                                                    } transition-colors`}
-                                            >
-                                                {user.is_activate ? '● Hoạt động' : '○ Vô hiệu'}
-                                            </button>
+                                            {user.role === 'admin' ? (
+                                                <span className="text-xs px-3 py-1 rounded-full bg-purple-500/20 text-purple-400">
+                                                    ● Quản trị viên
+                                                </span>
+                                            ) : (
+                                                <button
+                                                    onClick={() => handleToggleStatus(user._id || user.id, user.is_activate)}
+                                                    className={`text-xs px-3 py-1 rounded-full ${user.is_activate
+                                                        ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
+                                                        : 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
+                                                        } transition-colors`}
+                                                >
+                                                    {user.is_activate ? '● Hoạt động' : '○ Vô hiệu'}
+                                                </button>
+                                            )}
                                         </td>
                                         <td className="p-4">
                                             <div className="flex gap-2">
@@ -324,13 +330,15 @@ const AdminUsers = () => {
                                                 >
                                                     <ClockIcon className="w-4 h-4" />
                                                 </button>
-                                                <button
-                                                    onClick={() => handleDeleteUser(user._id || user.id)}
-                                                    className="p-2 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20 transition-colors"
-                                                    title="Xóa người dùng"
-                                                >
-                                                    <TrashIcon className="w-4 h-4" />
-                                                </button>
+                                                {user.role !== 'admin' && (
+                                                    <button
+                                                        onClick={() => handleDeleteUser(user._id || user.id)}
+                                                        className="p-2 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20 transition-colors"
+                                                        title="Xóa người dùng"
+                                                    >
+                                                        <TrashIcon className="w-4 h-4" />
+                                                    </button>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>

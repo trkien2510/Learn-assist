@@ -40,12 +40,7 @@ const Sidebar = () => {
             { path: 'dashboard', name: 'Tổng quan', icon: DashboardIcon },
             { path: 'users', name: 'Quản lý người dùng', icon: UsersIcon },
             { path: 'classrooms', name: 'Quản lý lớp học', icon: BookIcon },
-            { path: 'documents', name: 'Quản lý tài liệu', icon: DocumentIcon },
-            { path: 'questions', name: 'Ngân hàng câu hỏi', icon: QuestionIcon },
-            { path: 'exams', name: 'Quản lý đề thi', icon: ExamIcon },
-            { path: 'statistics', name: 'Thống kê hệ thống', icon: ChartIcon },
-            { path: 'logs', name: 'Nhật ký hoạt động', icon: LogIcon },
-            { path: 'notifications', name: 'Thông báo', icon: BellIcon }
+            { path: 'logs', name: 'Nhật ký hoạt động', icon: LogIcon }
         ];
 
         const teacherItems = [
@@ -60,7 +55,7 @@ const Sidebar = () => {
 
         const studentItems = [
             { path: 'dashboard', name: 'Tổng quan', icon: DashboardIcon },
-            { path: 'classrooms', name: 'Lớp học của tôi', icon: BookIcon },
+            { path: 'classrooms', name: 'Lớp học', icon: BookIcon },
             { path: 'documents', name: 'Tài liệu', icon: DocumentIcon },
             { path: 'questions', name: 'Ngân hàng câu hỏi', icon: QuestionIcon },
             { path: 'exams', name: 'Bài thi', icon: ExamIcon },

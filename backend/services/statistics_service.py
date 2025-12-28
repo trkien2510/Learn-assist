@@ -296,7 +296,19 @@ async def get_teacher_comprehensive_statistics(current_user) -> Dict[str, Any]:
         "creator_id.$id": current_user.id
     }).to_list()
     
-    total_students = sum(len(c.members) for c in classrooms)
+    # Lấy danh sách tất cả member IDs từ các lớp (không trùng lặp)
+    unique_member_ids = set()
+    for c in classrooms:
+        for member in c.members:
+            unique_member_ids.add(member.ref.id)
+    
+    # Chỉ đếm những user có role là student
+    total_students = 0
+    if unique_member_ids:
+        total_students = await UserModel.find({
+            "_id": {"$in": list(unique_member_ids)},
+            "role": "student"
+        }).count()
     
     classroom_stats = []
     for classroom in classrooms:

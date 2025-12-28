@@ -4,6 +4,7 @@ from core.exception_handler import AppException
 from core.status_code import StatusCode
 from models.user_model import UserModel
 from services import log_service
+from services.email_service import send_account_notification_email
 
 
 async def get_my_profile(current_user):
@@ -128,6 +129,12 @@ async def get_user_by_id(user_id: str):
 async def update_user_by_admin(user_id: str, update_data, admin_user=None):
     user = await get_user_by_id(user_id)
 
+    if admin_user and str(user.id) == str(admin_user.id):
+        raise AppException(StatusCode.FORBIDDEN, "Không thể chỉnh sửa tài khoản của chính mình")
+
+    if user.role == "admin" or (hasattr(user.role, 'value') and user.role.value == "admin"):
+        raise AppException(StatusCode.FORBIDDEN, "Không thể chỉnh sửa tài khoản admin khác")
+
     update_dict = update_data.model_dump(exclude_unset=True)
     for key, value in update_dict.items():
         if key == "password":
@@ -150,9 +157,24 @@ async def update_user_by_admin(user_id: str, update_data, admin_user=None):
 async def delete_user_by_admin(user_id: str, admin_user=None):
     user = await get_user_by_id(user_id)
 
+    if admin_user and str(user.id) == str(admin_user.id):
+        raise AppException(StatusCode.FORBIDDEN, "Không thể xóa tài khoản của chính mình")
+
+    if user.role == "admin" or (hasattr(user.role, 'value') and user.role.value == "admin"):
+        raise AppException(StatusCode.FORBIDDEN, "Không thể xóa tài khoản admin khác")
+
     await log_service.log_user("admin_delete_user", user_id, admin_user, {
         "target_email": user.email
     })
+
+    try:
+        await send_account_notification_email(
+            email=user.email,
+            full_name=user.full_name,
+            notification_type="account_deleted"
+        )
+    except Exception as e:
+        print(f"Failed to send email notification: {e}")
 
     await user.delete()
     return {}
@@ -161,8 +183,11 @@ async def delete_user_by_admin(user_id: str, admin_user=None):
 async def toggle_user_status(user_id: str, is_active: bool, admin_user=None):
     user = await get_user_by_id(user_id)
 
-    if user.role.value == "admin":
-        raise AppException(StatusCode.FORBIDDEN, "Cannot change status of admin accounts")
+    if admin_user and str(user.id) == str(admin_user.id):
+        raise AppException(StatusCode.FORBIDDEN, "Không thể thay đổi trạng thái tài khoản của chính mình")
+
+    if user.role == "admin" or (hasattr(user.role, 'value') and user.role.value == "admin"):
+        raise AppException(StatusCode.FORBIDDEN, "Không thể thay đổi trạng thái tài khoản admin")
 
     user.is_activate = is_active
     user.updated_at = lambda: datetime.now(timezone.utc)
@@ -173,6 +198,16 @@ async def toggle_user_status(user_id: str, is_active: bool, admin_user=None):
         "target_email": user.email,
         "new_status": "active" if is_active else "inactive"
     })
+
+    try:
+        notification_type = "account_activated" if is_active else "account_deactivated"
+        await send_account_notification_email(
+            email=user.email,
+            full_name=user.full_name,
+            notification_type=notification_type
+        )
+    except Exception as e:
+        print(f"Failed to send email notification: {e}")
 
     return {
         "user_id": user_id,

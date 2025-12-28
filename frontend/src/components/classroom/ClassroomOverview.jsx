@@ -39,7 +39,7 @@ const ClassroomOverview = ({ classroom }) => {
             {classroom.description && (
                 <div className="card-glass p-6">
                     <h3 className="font-semibold text-gray-900 mb-3">Mô tả</h3>
-                    <p className="text-gray-600 whitespace-pre-wrap">{classroom.description}</p>
+                    <p className="text-gray-600 whitespace-pre-wrap break-words overflow-hidden">{classroom.description}</p>
                 </div>
             )}
 

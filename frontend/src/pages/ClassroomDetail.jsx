@@ -25,7 +25,9 @@ const ClassroomDetail = () => {
     const [activeTab, setActiveTab] = useState('overview');
     const [copied, setCopied] = useState(false);
 
-    const isTeacher = hasRole([ROLES.ADMIN, ROLES.TEACHER]);
+    const isTeacher = hasRole([ROLES.TEACHER]);
+    const isAdmin = hasRole([ROLES.ADMIN]);
+    const isCreator = classroom?.is_creator;
 
     useEffect(() => {
         fetchClassroomDetail();
@@ -50,7 +52,7 @@ const ClassroomDetail = () => {
         { id: 'exams', label: 'Bài kiểm tra', icon: ClockIcon },
         { id: 'members', label: 'Thành viên', icon: UsersIcon },
         { id: 'statistics', label: 'Thống kê', icon: ChartIcon },
-        ...(isTeacher && classroom?.is_creator ? [{ id: 'requests', label: 'Yêu cầu', icon: RefreshIcon, badge: classroom?.pending_requests_count }] : [])
+        ...(isTeacher && isCreator ? [{ id: 'requests', label: 'Yêu cầu', icon: RefreshIcon, badge: classroom?.pending_requests_count }] : [])
     ];
 
     if (loading) {
@@ -90,16 +92,10 @@ const ClassroomDetail = () => {
                             <ArrowLeftIcon className="w-5 h-5 text-gray-400" />
                         </button>
 
-                        <div className="flex-1">
-                            <h1 className="text-3xl font-bold gradient-text">
+                        <div className="flex-1 min-w-0">
+                            <h1 className="text-3xl font-bold gradient-text break-words">
                                 {classroom.name}
                             </h1>
-                            {classroom.subject && (
-                                <p className="text-gray-500 mt-1">{classroom.subject}</p>
-                            )}
-                            {classroom.description && (
-                                <p className="text-gray-600 mt-2">{classroom.description}</p>
-                            )}
                         </div>
                     </div>
 
@@ -122,18 +118,6 @@ const ClassroomDetail = () => {
                         </button>
                         <div className="text-sm text-gray-500">
                             {classroom.members_count} thành viên
-                        </div>
-                    </div>
-                </div>
-
-                <div className="mt-4 pt-4 border-t border-gray-200/10">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-linear-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-gray-900 font-semibold">
-                            {classroom.creator?.full_name?.charAt(0).toUpperCase() || 'T'}
-                        </div>
-                        <div>
-                            <p className="text-sm text-gray-500">Giáo viên</p>
-                            <p className="font-medium text-gray-900">{classroom.creator?.full_name || classroom.creator?.email}</p>
                         </div>
                     </div>
                 </div>

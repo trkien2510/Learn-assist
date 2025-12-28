@@ -124,9 +124,16 @@ async def get_teacher_dashboard(current_user: UserModel) -> dict:
     for classroom in classrooms:
         for ref in classroom.members:
             member_id = ref.ref.id
-            unique_student_ids.add(str(member_id))
+            unique_student_ids.add(member_id)
 
-    total_students = len(unique_student_ids)
+    # Lọc chỉ lấy những user có role là student
+    total_students = 0
+    if unique_student_ids:
+        students = await UserModel.find({
+            "_id": {"$in": list(unique_student_ids)},
+            "role": "student"
+        }).count()
+        total_students = students
 
     return {
         "total_classrooms": total_classrooms,

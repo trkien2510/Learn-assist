@@ -13,7 +13,8 @@ const ClassroomExams = ({ classCode, classroom, onRefresh }) => {
     const [error, setError] = useState('');
     const [showCreateModal, setShowCreateModal] = useState(false);
 
-    const isTeacher = hasRole([ROLES.ADMIN, ROLES.TEACHER]);
+    const isTeacher = hasRole([ROLES.TEACHER]);
+    const isAdmin = hasRole([ROLES.ADMIN]);
     const isCreator = classroom?.is_creator;
 
     useEffect(() => {
@@ -196,7 +197,7 @@ const ClassroomExams = ({ classCode, classroom, onRefresh }) => {
                                         </p>
                                     </div>
 
-                                    {!isCreator && status.color === 'green' && (
+                                    {!isTeacher && status.color === 'green' && (
                                         <div className="pt-3 border-t border-gray-200/10">
                                             <button
                                                 onClick={() => navigate(`/app/exams/${exam._id || exam.id}/take`)}

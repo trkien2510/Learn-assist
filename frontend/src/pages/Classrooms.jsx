@@ -160,7 +160,9 @@ const Classrooms = () => {
         setTimeout(() => setCopiedCode(''), 2000);
     };
 
-    const isTeacher = hasRole([ROLES.ADMIN, ROLES.TEACHER]);
+    const isTeacher = hasRole([ROLES.TEACHER]);
+    const isAdmin = hasRole([ROLES.ADMIN]);
+    const isStudent = hasRole([ROLES.STUDENT]);
 
     return (
         <div className="space-y-6">
@@ -174,12 +176,13 @@ const Classrooms = () => {
                     </p>
                 </div>
 
-                {isTeacher ? (
+                {isTeacher && (
                     <button onClick={() => setShowCreateModal(true)} className="btn-primary flex items-center gap-2">
                         <PlusIcon className="w-5 h-5" />
                         Tạo lớp học
                     </button>
-                ) : (
+                )}
+                {isStudent && (
                     <button onClick={() => setShowJoinModal(true)} className="btn-primary flex items-center gap-2">
                         <PlusIcon className="w-5 h-5" />
                         Tham gia lớp
@@ -216,14 +219,24 @@ const Classrooms = () => {
                         {isTeacher ? 'Chưa có lớp học nào' : 'Bạn chưa tham gia lớp học nào'}
                     </h3>
                     <p className="text-gray-500 mb-6">
-                        {isTeacher ? 'Tạo lớp học đầu tiên của bạn' : 'Nhập mã lớp học để tham gia'}
+                        {isTeacher ? 'Tạo lớp học đầu tiên của bạn' : isStudent ? 'Nhập mã lớp học để tham gia' : 'Không có lớp học nào trong hệ thống'}
                     </p>
-                    <button
-                        onClick={() => isTeacher ? setShowCreateModal(true) : setShowJoinModal(true)}
-                        className="btn-primary"
-                    >
-                        {isTeacher ? 'Tạo lớp học' : 'Tham gia lớp'}
-                    </button>
+                    {isTeacher && (
+                        <button
+                            onClick={() => setShowCreateModal(true)}
+                            className="btn-primary"
+                        >
+                            Tạo lớp học
+                        </button>
+                    )}
+                    {isStudent && (
+                        <button
+                            onClick={() => setShowJoinModal(true)}
+                            className="btn-primary"
+                        >
+                            Tham gia lớp
+                        </button>
+                    )}
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -264,8 +277,8 @@ const Classrooms = () => {
                                         copyClassCode(classroom.class_code);
                                     }}
                                     className={`text-xs px-3 py-1.5 border rounded-lg transition-all font-mono font-bold flex items-center gap-1.5 ${copiedCode === classroom.class_code
-                                            ? 'bg-green-500/10 text-green-600 border-green-500/20'
-                                            : 'bg-blue-500/10 text-blue-600 border-blue-500/20 hover:bg-blue-500/20'
+                                        ? 'bg-green-500/10 text-green-600 border-green-500/20'
+                                        : 'bg-blue-500/10 text-blue-600 border-blue-500/20 hover:bg-blue-500/20'
                                         }`}
                                     title={copiedCode === classroom.class_code ? "Đã sao chép!" : "Nhấn để sao chép mã"}
                                 >
@@ -281,7 +294,7 @@ const Classrooms = () => {
                             </div>
 
                             <div className="flex gap-2">
-                                {isTeacher ? (
+                                {isTeacher && (
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
@@ -291,7 +304,8 @@ const Classrooms = () => {
                                     >
                                         <TrashIcon className="w-4 h-4 mx-auto" />
                                     </button>
-                                ) : (
+                                )}
+                                {isStudent && (
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();

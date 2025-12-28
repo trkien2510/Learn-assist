@@ -314,9 +314,23 @@ const ExamCreationModal = ({ isOpen, onClose, classCode, onSuccess }) => {
                             </div>
                         ) : (
                             <div className="space-y-4">
-                                <p className="text-gray-400 text-sm mb-4">
-                                    {previewQuestions.length} câu hỏi đã được chọn. Click 🔄 để thay đổi câu hỏi.
-                                </p>
+                                {previewQuestions.length < config.total_questions ? (
+                                    <div className="p-4 bg-yellow-500/10 border border-yellow-500/50 rounded-xl">
+                                        <p className="text-yellow-400 font-medium mb-2">
+                                            ⚠️ Ngân hàng câu hỏi của bạn không đủ!
+                                        </p>
+                                        <p className="text-yellow-400/80 text-sm">
+                                            Yêu cầu: {config.total_questions} câu hỏi | Hiện có: {previewQuestions.length} câu hỏi
+                                        </p>
+                                        <p className="text-gray-400 text-sm mt-2">
+                                            Vui lòng thêm câu hỏi vào ngân hàng hoặc điều chỉnh lại số lượng câu hỏi theo độ khó.
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <p className="text-gray-400 text-sm mb-4">
+                                        {previewQuestions.length} câu hỏi đã được chọn. Click 🔄 để thay đổi câu hỏi.
+                                    </p>
+                                )}
                                 {previewQuestions.map((question, index) => (
                                     <div key={question.id} className="card-glass p-4 hover:shadow-lg transition-shadow">
                                         <div className="flex items-start gap-4">
@@ -386,8 +400,8 @@ const ExamCreationModal = ({ isOpen, onClose, classCode, onSuccess }) => {
                             ) : (
                                 <button
                                     onClick={handleCreateExam}
-                                    disabled={loading}
-                                    className="btn-primary"
+                                    disabled={loading || previewQuestions.length < config.total_questions}
+                                    className={`btn-primary ${previewQuestions.length < config.total_questions ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 >
                                     {loading ? 'Đang tạo...' : 'Tạo bài kiểm tra'}
                                 </button>

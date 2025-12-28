@@ -42,10 +42,11 @@ async def get_classroom_messages(class_code: str, page: int, page_size: int, cur
     if not classroom:
         raise AppException(StatusCode.CLASSROOM_NOT_FOUND)
     
+    is_admin = current_user.role == "admin"
     is_creator = str(classroom.creator.ref.id) == str(current_user.id)
     is_member = any(str(member.ref.id) == str(current_user.id) for member in classroom.members)
     
-    if not is_creator and not is_member:
+    if not is_admin and not is_creator and not is_member:
         raise AppException(StatusCode.FORBIDDEN)
     
     all_messages = await MessageModel.find_all().sort(-MessageModel.created_at).to_list()

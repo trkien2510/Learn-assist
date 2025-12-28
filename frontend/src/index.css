@@ -707,3 +707,37 @@ aside button p.uppercase {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(156, 163, 175, 0.5);
 }
+
+.break-words {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+}
+
+.break-all {
+  word-break: break-all;
+}
+
+.overflow-hidden {
+  overflow: hidden;
+}
+
+.min-w-0 {
+  min-width: 0;
+}
+
+.pl-10 {
+  padding-left: 2.5rem !important;
+}
+
+.pl-12 {
+  padding-left: 3rem !important;
+}
+
+.pr-10 {
+  padding-right: 2.5rem !important;
+}
+
+.pr-12 {
+  padding-right: 3rem !important;
+}
