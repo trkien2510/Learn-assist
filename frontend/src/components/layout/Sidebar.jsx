@@ -101,7 +101,7 @@ const Sidebar = () => {
         <>
             <button
                 onClick={() => setIsMobileOpen(true)}
-                className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-xl glass text-gray-900 dark:text-gray-100"
+                className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-xl glass text-gray-900 dark:text-gray-900"
             >
                 <MenuIcon className="w-6 h-6" />
             </button>
@@ -141,7 +141,7 @@ const Sidebar = () => {
                                 setIsCollapsed(!isCollapsed);
                             }
                         }}
-                        className="p-2 rounded-lg hover:bg-white/5 text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"
+                        className="p-2 rounded-lg hover:bg-white/5 text-gray-600 hover:text-gray-900 dark:hover:text-gray-900 transition-colors"
                     >
                         {window.innerWidth < 1024 ? (
                             <CloseIcon className="w-5 h-5" />
