@@ -46,11 +46,12 @@ export const authService = {
         return httpClient.post(API_ENDPOINTS.FORGOT_PASSWORD, { email }, { skipAuth: true });
     },
 
-    async resetPassword(email, otpCode, newPassword) {
+    async resetPassword(email, otpCode, newPassword, confirmPassword) {
         return httpClient.post(API_ENDPOINTS.RESET_PASSWORD, {
             email,
             otp_code: otpCode,
-            new_password: newPassword
+            new_password: newPassword,
+            confirm_password: confirmPassword
         }, { skipAuth: true });
     },
 
@@ -75,6 +76,8 @@ export const userService = {
     },
 
     async deleteAccount(data) {
-        return httpClient.delete(API_ENDPOINTS.DELETE_ACCOUNT, { data });
+        return httpClient.delete(API_ENDPOINTS.DELETE_ACCOUNT, {
+            body: JSON.stringify(data)
+        });
     }
 };

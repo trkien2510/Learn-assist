@@ -48,7 +48,7 @@ const Sidebar = () => {
             { path: 'classrooms', name: 'Lớp học', icon: BookIcon },
             { path: 'documents', name: 'Tài liệu', icon: DocumentIcon },
             { path: 'questions', name: 'Ngân hàng câu hỏi', icon: QuestionIcon },
-            { path: 'exams', name: 'Đề thi', icon: ExamIcon },
+            { path: 'exams', name: 'Đề kiểm tra', icon: ExamIcon },
             { path: 'statistics', name: 'Thống kê', icon: ChartIcon },
             { path: 'notifications', name: 'Thông báo', icon: BellIcon }
         ];
@@ -58,7 +58,7 @@ const Sidebar = () => {
             { path: 'classrooms', name: 'Lớp học', icon: BookIcon },
             { path: 'documents', name: 'Tài liệu', icon: DocumentIcon },
             { path: 'questions', name: 'Ngân hàng câu hỏi', icon: QuestionIcon },
-            { path: 'exams', name: 'Bài thi', icon: ExamIcon },
+            { path: 'exams', name: 'Bài kiểm tra', icon: ExamIcon },
             { path: 'results', name: 'Kết quả', icon: ChartIcon },
             { path: 'practice', name: 'Tự luyện', icon: FolderIcon },
             { path: 'notifications', name: 'Thông báo', icon: BellIcon }

@@ -7,7 +7,6 @@ import { translateError } from '../utils/errorMessages';
 const Login = () => {
   const [usernameOrEmail, setUsernameOrEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -100,19 +99,12 @@ const Login = () => {
                   <LockIcon className="w-5 h-5 text-slate-500" />
                 </div>
                 <input
-                  type={showPassword ? 'text' : 'password'}
+                  type={'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="input-glass pl-12 pr-12"
+                  className="input-glass pl-12"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-500 hover:text-gray-900 transition-colors"
-                >
-                  {showPassword ? <EyeOffIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
-                </button>
               </div>
             </div>
 

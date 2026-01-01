@@ -7,7 +7,6 @@ from pydantic import EmailStr, Field
 class OTPPurpose(str, Enum):
     REGISTRATION = "registration"
     FORGOT_PASSWORD = "forgot_password"
-    REACTIVATE_ACCOUNT = "reactivate_account"
 
 
 class OTPModel(Document):

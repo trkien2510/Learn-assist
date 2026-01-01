@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth, ROLES } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { EmailIcon, LockIcon, EyeIcon, EyeOffIcon, UserIcon, AdminIcon, TeacherIcon, StudentIcon } from '../components/icons/Icons';
 
 const Register = () => {
@@ -18,6 +19,7 @@ const Register = () => {
     const [error, setError] = useState('');
 
     const { register, isAuthenticated, isLoading: authLoading } = useAuth();
+    const { theme } = useTheme();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -33,8 +35,9 @@ const Register = () => {
             description: 'Tạo đề, Thống kê',
             icon: TeacherIcon,
             color: 'from-orange-500 to-amber-500',
-            hoverBg: 'hover:bg-orange-500/10',
-            borderColor: 'border-orange-500/50'
+            hoverBg: 'hover:bg-orange-50 dark:hover:bg-orange-500/10',
+            hoverBorder: 'hover:border-orange-300 dark:hover:border-orange-500/50',
+            borderColor: 'border-gray-200 dark:border-slate-700'
         },
         {
             id: ROLES.STUDENT,
@@ -42,8 +45,9 @@ const Register = () => {
             description: 'Làm bài, Xem điểm',
             icon: StudentIcon,
             color: 'from-green-500 to-emerald-500',
-            hoverBg: 'hover:bg-green-500/10',
-            borderColor: 'border-green-500/50'
+            hoverBg: 'hover:bg-green-50 dark:hover:bg-green-500/10',
+            hoverBorder: 'hover:border-green-300 dark:hover:border-green-500/50',
+            borderColor: 'border-gray-200 dark:border-slate-700'
         }
     ];
 
@@ -241,19 +245,12 @@ const Register = () => {
                                     <LockIcon className="w-5 h-5 text-slate-500" />
                                 </div>
                                 <input
-                                    type={showPassword ? 'text' : 'password'}
+                                    type={'password'}
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="••••••••"
-                                    className="input-glass pl-12 pr-12"
+                                    className="input-glass pl-12"
                                 />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-500 hover:text-gray-900 transition-colors"
-                                >
-                                    {showPassword ? <EyeOffIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
-                                </button>
                             </div>
                         </div>
 
@@ -264,19 +261,12 @@ const Register = () => {
                                     <LockIcon className="w-5 h-5 text-slate-500" />
                                 </div>
                                 <input
-                                    type={showConfirmPassword ? 'text' : 'password'}
+                                    type={'password'}
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
                                     placeholder="••••••••"
-                                    className="input-glass pl-12 pr-12"
+                                    className="input-glass pl-12"
                                 />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-500 hover:text-gray-900 transition-colors"
-                                >
-                                    {showConfirmPassword ? <EyeOffIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
-                                </button>
                             </div>
                         </div>
 
@@ -291,19 +281,20 @@ const Register = () => {
                                             key={role.id}
                                             type="button"
                                             onClick={() => setSelectedRole(role.id)}
+                                            style={!isSelected ? { backgroundColor: theme === 'dark' ? 'rgb(30 41 59)' : 'rgb(249 250 251)' } : {}}
                                             className={`
-                        relative p-4 rounded-xl border transition-all duration-300 text-center
+                        relative p-4 rounded-xl border-2 transition-all duration-300 text-center
                         ${isSelected
-                                                    ? `bg-linear-to-br ${role.color} border-transparent shadow-lg`
-                                                    : `border-gray-200 ${role.hoverBg} hover:border-gray-300`
+                                                    ? `bg-linear-to-br/srgb ${role.color} border-transparent shadow-lg`
+                                                    : `${role.borderColor} ${role.hoverBg} ${role.hoverBorder} hover:shadow-md`
                                                 }
                       `}
                                         >
-                                            <IconComponent className={`w-6 h-6 mx-auto mb-2 ${isSelected ? 'text-gray-900' : 'text-gray-500'}`} />
-                                            <span className={`text-sm font-medium block ${isSelected ? 'text-gray-900' : 'text-gray-500'}`}>
+                                            <IconComponent className={`w-6 h-6 mx-auto mb-2 ${isSelected ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-400'}`} />
+                                            <span className={`text-sm font-medium block ${isSelected ? 'text-gray-900 dark:text-white' : 'text-gray-800 dark:text-gray-300'}`}>
                                                 {role.name}
                                             </span>
-                                            <span className={`text-xs ${isSelected ? 'text-white/70' : 'text-slate-500'}`}>
+                                            <span className={`text-xs ${isSelected ? 'text-gray-800 dark:text-white/90' : 'text-gray-600 dark:text-gray-400'}`}>
                                                 {role.description}
                                             </span>
                                         </button>
@@ -315,7 +306,7 @@ const Register = () => {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full py-4 text-lg font-semibold rounded-xl bg-linear-to-r from-blue-500 to-cyan-500 text-gray-900 hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full btn-primary py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {isLoading ? (
                                 <span className="flex items-center justify-center gap-2">

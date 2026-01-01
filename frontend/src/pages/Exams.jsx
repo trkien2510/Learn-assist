@@ -60,7 +60,7 @@ const Exams = () => {
 
             setExams(examsData);
         } catch (err) {
-            setError(err.message || 'Không thể tải danh sách đề thi');
+            setError(err.message || 'Không thể tải danh sách bài kiểm tra');
         } finally {
             setLoading(false);
         }
@@ -78,7 +78,7 @@ const Exams = () => {
 
     const validateConfig = () => {
         if (!formData.title.trim()) {
-            setError('Vui lòng nhập tên đề thi');
+            setError('Vui lòng nhập tên bài kiểm tra');
             return false;
         }
         if (!formData.class_id) {
@@ -197,20 +197,20 @@ const Exams = () => {
                 question_ids: questionIds
             });
 
-            setSuccess('Tạo đề thi thành công!');
+            setSuccess('Tạo bài kiểm tra thành công!');
             setShowCreateModal(false);
             resetForm();
             fetchExams();
             setTimeout(() => setSuccess(''), 3000);
         } catch (err) {
-            setError(err.message || 'Không thể tạo đề thi');
+            setError(err.message || 'Không thể tạo bài kiểm tra');
         } finally {
             setLoading(false);
         }
     };
 
     const handleStartExam = (exam) => {
-        navigate(`/app/exams/${exam._id || exam.id}/take`);
+        navigate(`/app/take-exam/${exam._id || exam.id}`);
     };
 
     const handleViewResults = (exam) => {
@@ -311,10 +311,10 @@ const Exams = () => {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold gradient-text">
-                        {isAdmin ? 'Quản lý đề thi' : isTeacher ? 'Quản lý đề thi' : 'Bài thi'}
+                        {isAdmin ? 'Quản lý bài kiểm tra' : isTeacher ? 'Quản lý bài kiểm tra' : 'Bài kiểm tra'}
                     </h1>
                     <p className="text-gray-500 mt-2">
-                        {isAdmin ? 'Xem tất cả đề thi trong hệ thống (chỉ xem)' : isTeacher ? 'Tạo và quản lý đề thi cho lớp học' : 'Danh sách bài thi của bạn'}
+                        {isAdmin ? 'Xem tất cả bài kiểm tra trong hệ thống (chỉ xem)' : isTeacher ? 'Tạo và quản lý bài kiểm tra cho lớp học' : 'Danh sách bài kiểm tra của bạn'}
                     </p>
                 </div>
                 {isTeacher && (
@@ -323,7 +323,7 @@ const Exams = () => {
                         className="btn-primary flex items-center gap-2"
                     >
                         <PlusIcon className="w-5 h-5" />
-                        Tạo đề thi
+                        Tạo bài kiểm tra
                     </button>
                 )}
             </div>
@@ -353,14 +353,14 @@ const Exams = () => {
                 <div className="card-glass p-12 text-center">
                     <BookIcon className="w-16 h-16 mx-auto mb-4 text-slate-600" />
                     <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                        {isTeacher ? 'Chưa có đề thi nào' : 'Chưa có bài thi nào'}
+                        {isTeacher ? 'Chưa có bài kiểm tra nào' : 'Chưa có bài kiểm tra nào'}
                     </h3>
                     <p className="text-gray-500 mb-6">
-                        {isTeacher ? 'Tạo đề thi đầu tiên cho lớp học của bạn' : 'Đợi giáo viên tạo đề thi'}
+                        {isTeacher ? 'Tạo bài kiểm tra đầu tiên cho lớp học của bạn' : 'Đợi giáo viên tạo bài kiểm tra'}
                     </p>
                     {isTeacher && (
                         <button onClick={() => setShowCreateModal(true)} className="btn-primary">
-                            Tạo đề thi
+                            Tạo bài kiểm tra
                         </button>
                     )}
                 </div>
@@ -427,7 +427,7 @@ const Exams = () => {
                         <div className="card-glass max-w-4xl w-full my-8 max-h-[90vh] overflow-hidden flex flex-col animate-fadeIn shadow-2xl">
                             <div className="flex items-center justify-between p-6 border-b border-gray-200/10">
                                 <h2 className="text-2xl font-bold gradient-text">
-                                    {step === 1 ? 'Cấu hình đề thi' : 'Xem trước câu hỏi'}
+                                    {step === 1 ? 'Cấu hình bài kiểm tra' : 'Xem trước câu hỏi'}
                                 </h2>
                                 <button
                                     onClick={() => {
@@ -451,7 +451,7 @@ const Exams = () => {
                                     <div className="space-y-6">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-300 mb-2">
-                                                Tên đề thi *
+                                                Tên bài kiểm tra *
                                             </label>
                                             <input
                                                 type="text"
@@ -682,7 +682,7 @@ const Exams = () => {
                                             disabled={loading || previewQuestions.length < formData.total_questions}
                                             className={`btn-primary ${previewQuestions.length < formData.total_questions ? 'opacity-50 cursor-not-allowed' : ''}`}
                                         >
-                                            {loading ? 'Đang tạo...' : 'Tạo đề thi'}
+                                            {loading ? 'Đang tạo...' : 'Tạo bài kiểm tra'}
                                         </button>
                                     )}
                                 </div>

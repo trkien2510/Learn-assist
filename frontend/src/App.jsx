@@ -12,6 +12,7 @@ import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import OTPVerification from './pages/OTPVerification';
+import ForgotPassword from './pages/ForgotPassword';
 
 import Dashboard from './pages/Dashboard';
 import Classrooms from './pages/Classrooms';
@@ -55,6 +56,7 @@ function App() {
             <Route element={<PublicRoute />}>
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
             </Route>
 
             <Route path="/otp-verification" element={<OTPVerification />} />

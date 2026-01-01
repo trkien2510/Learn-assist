@@ -89,7 +89,7 @@ async def login(login_data):
         raise AppException(StatusCode.FORBIDDEN, "Email not verified. Please verify your email first")
 
     if not user.is_activate:
-        raise AppException(StatusCode.FORBIDDEN, "Your account has been deactivated. Please contact support at trkien2503@gmail.com for assistance.")
+        raise AppException(StatusCode.FORBIDDEN, "Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ hỗ trợ tại trkien2503@gmail.com để được hỗ trợ.")
 
     access = create_access_token({"sub": str(user.id), "role": user.role})
     refresh = create_refresh_token({"sub": str(user.id)})
@@ -121,7 +121,7 @@ async def refresh_token(token: str):
         raise AppException(StatusCode.UNAUTHORIZED, "User not found")
 
     if not user.is_activate:
-        raise AppException(StatusCode.FORBIDDEN, "Your account has been deactivated. Please contact support.")
+        raise AppException(StatusCode.FORBIDDEN, "Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ hỗ trợ tại trkien2503@gmail.com để được hỗ trợ.")
 
     access = create_access_token({"sub": str(user.id), "role": user.role})
     return TokenResponse(access_token=access, refresh_token=token, role=user.role)

@@ -52,7 +52,7 @@ async def create_and_send_otp(email: str, purpose: OTPPurpose, full_name: str = 
         status="success"
     )
 
-    return {"message": "OTP has been sent to your email"}
+    return {"message": "Mã OTP đã được gửi đến email của bạn"}
 
 
 async def verify_otp(email: str, otp_code: str, purpose: OTPPurpose) -> bool:
@@ -63,7 +63,7 @@ async def verify_otp(email: str, otp_code: str, purpose: OTPPurpose) -> bool:
     )
 
     if not otp:
-        raise AppException(StatusCode.BAD_REQUEST, "OTP not found or already used")
+        raise AppException(StatusCode.BAD_REQUEST, "Mã OTP không tồn tại hoặc đã được sử dụng")
 
     expires_at = otp.expires_at
     if expires_at.tzinfo is None:
@@ -72,18 +72,18 @@ async def verify_otp(email: str, otp_code: str, purpose: OTPPurpose) -> bool:
     if datetime.now(timezone.utc) > expires_at:
         otp.is_used = True
         await otp.save()
-        raise AppException(StatusCode.BAD_REQUEST, "OTP has expired")
+        raise AppException(StatusCode.BAD_REQUEST, "Mã OTP đã hết hạn")
 
     if otp.attempts >= otp.max_attempts:
         otp.is_used = True
         await otp.save()
-        raise AppException(StatusCode.TOO_MANY_REQUESTS, "Too many incorrect attempts. Please request a new OTP")
+        raise AppException(StatusCode.TOO_MANY_REQUESTS, "Quá nhiều lần nhập sai. Vui lòng yêu cầu mã OTP mới")
 
     if otp.otp_code != otp_code:
         otp.attempts += 1
         await otp.save()
         remaining = otp.max_attempts - otp.attempts
-        raise AppException(StatusCode.BAD_REQUEST, f"Invalid OTP. {remaining} attempts remaining")
+        raise AppException(StatusCode.BAD_REQUEST, f"Mã OTP không đúng. Còn {remaining} lần thử")
 
     otp.is_used = True
     await otp.save()
@@ -101,7 +101,11 @@ async def verify_otp(email: str, otp_code: str, purpose: OTPPurpose) -> bool:
 async def request_registration_otp(email: str, background_tasks = None) -> dict:
     existing_user = await UserModel.find_one({"email": email})
     if existing_user:
-        raise AppException(StatusCode.BAD_REQUEST, "Email is already registered")
+        # Cho phép gửi lại OTP nếu email chưa được xác thực
+        if existing_user.email_verified:
+            raise AppException(StatusCode.BAD_REQUEST, "Email đã được đăng ký và xác thực")
+        # Nếu email chưa verify, cho phép gửi lại OTP
+        return await create_and_send_otp(email, OTPPurpose.REGISTRATION, existing_user.full_name, background_tasks)
 
     return await create_and_send_otp(email, OTPPurpose.REGISTRATION, background_tasks=background_tasks)
 
@@ -125,29 +129,29 @@ async def verify_registration_otp(email: str, otp_code: str) -> dict:
             status="success"
         )
     
-    return {"verified": True, "message": "Email verified successfully. You can now login"}
+    return {"verified": True, "message": "Xác thực email thành công. Bạn có thể đăng nhập ngay"}
 
 
 async def request_forgot_password_otp(email: str, background_tasks = None) -> dict:
     user = await UserModel.find_one({"email": email})
     if not user:
-        raise AppException(StatusCode.NOT_FOUND, "No account found with this email")
+        raise AppException(StatusCode.NOT_FOUND, "Không tìm thấy tài khoản với email này")
 
     if not user.is_activate:
-        raise AppException(StatusCode.FORBIDDEN, "Account is deactivated")
+        raise AppException(StatusCode.FORBIDDEN, "Tài khoản đã bị vô hiệu hóa")
 
     return await create_and_send_otp(email, OTPPurpose.FORGOT_PASSWORD, user.full_name, background_tasks)
 
 
 async def reset_password(email: str, otp_code: str, new_password: str, confirm_password: str) -> dict:
     if new_password != confirm_password:
-        raise AppException(StatusCode.BAD_REQUEST, "Passwords do not match")
+        raise AppException(StatusCode.BAD_REQUEST, "Mật khẩu không khớp")
 
     await verify_otp(email, otp_code, OTPPurpose.FORGOT_PASSWORD)
 
     user = await UserModel.find_one({"email": email})
     if not user:
-        raise AppException(StatusCode.NOT_FOUND, "User not found")
+        raise AppException(StatusCode.NOT_FOUND, "Không tìm thấy người dùng")
 
     user.hashed_password = get_password_hash(new_password)
     user.updated_at = datetime.now(timezone.utc)
@@ -162,7 +166,7 @@ async def reset_password(email: str, otp_code: str, new_password: str, confirm_p
         status="success"
     )
 
-    return {"message": "Password has been reset successfully"}
+    return {"message": "Đặt lại mật khẩu thành công"}
 
 
 async def request_reactivate_otp(email: str, background_tasks = None) -> dict:
@@ -171,7 +175,7 @@ async def request_reactivate_otp(email: str, background_tasks = None) -> dict:
         raise AppException(StatusCode.NOT_FOUND, "No account found with this email")
 
     if user.is_activate:
-        raise AppException(StatusCode.BAD_REQUEST, "Account is already active")
+        raise AppException(StatusCode.BAD_REQUEST, "Tài khoản đã được kích hoạt")
 
     return await create_and_send_otp(email, OTPPurpose.REACTIVATE_ACCOUNT, user.full_name, background_tasks)
 
@@ -196,7 +200,7 @@ async def reactivate_account(email: str, otp_code: str) -> dict:
         status="success"
     )
 
-    return {"message": "Account has been reactivated successfully"}
+    return {"message": "Kích hoạt lại tài khoản thành công"}
 
 
 async def cleanup_expired_otps():

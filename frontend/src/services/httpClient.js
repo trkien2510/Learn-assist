@@ -124,8 +124,11 @@ class HttpClient {
         });
     }
 
-    async delete(endpoint) {
-        return this.request(endpoint, { method: 'DELETE' });
+    async delete(endpoint, options = {}) {
+        return this.request(endpoint, {
+            method: 'DELETE',
+            ...options
+        });
     }
 
     async upload(endpoint, formData) {

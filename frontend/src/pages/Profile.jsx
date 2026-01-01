@@ -4,7 +4,7 @@ import { userService } from '../services/authService';
 import { UserIcon, EmailIcon, LockIcon, EditIcon, PhoneIcon, CalendarIcon, TrashIcon } from '../components/icons/Icons';
 
 const Profile = () => {
-    const { user, updateUser } = useAuth();
+    const { user, updateUser, logout } = useAuth();
     const [editing, setEditing] = useState(false);
     const [changingPassword, setChangingPassword] = useState(false);
     const [deleting, setDeleting] = useState(false);
@@ -49,13 +49,12 @@ const Profile = () => {
             setLoading(true);
             setError('');
             await userService.deleteAccount({ password: deletePassword });
-            setSuccess('Tài khoản đã được xóa. Bạn sẽ được đăng xuất.');
-            setTimeout(() => {
-                window.location.href = '/logout';
-            }, 3000);
+
+            logout();
+
+            window.location.href = '/login';
         } catch (err) {
             setError(err.message || 'Không thể xóa tài khoản');
-        } finally {
             setLoading(false);
         }
     };
