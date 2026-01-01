@@ -117,7 +117,7 @@ const Sidebar = () => {
                 className={`
           fixed inset-y-0 left-0 z-50
           flex flex-col
-          bg-[var(--sidebar-bg)] backdrop-blur-xl border-r border-white/5
+          bg-(--sidebar-bg) backdrop-blur-xl border-r border-white/5
           transition-all duration-300 ease-in-out
           ${isCollapsed ? 'w-20' : 'w-72'}
           ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
@@ -162,7 +162,7 @@ const Sidebar = () => {
                         }}
                         className={`w-full flex ${isCollapsed ? 'justify-center' : 'items-center gap-3'} p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 transition-colors cursor-pointer group`}
                     >
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-gray-900 font-semibold group-hover:scale-105 transition-transform">
+                        <div className="w-10 h-10 rounded-full bg-linear-to-br/srgb from-cyan-400 to-blue-500 flex items-center justify-center text-gray-900 font-semibold group-hover:scale-105 transition-transform">
                             {user?.full_name?.charAt(0).toUpperCase() || user?.username?.charAt(0).toUpperCase() || 'U'}
                         </div>
                         {!isCollapsed && (
@@ -221,12 +221,12 @@ const Sidebar = () => {
                                         {isItemActive(isActive) && (
                                             <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full bg-linear-to-b from-blue-400 to-orange-500" />
                                         )}
-                                        <IconComponent className="w-5 h-5 flex-shrink-0" />
+                                        <IconComponent className="w-5 h-5 shrink-0" />
                                         {!isCollapsed && (
                                             <div className="flex-1 flex items-center justify-between">
                                                 <span className="font-medium">{item.name}</span>
                                                 {item.path === 'notifications' && unreadCount > 0 && (
-                                                    <span className="ml-2 px-2 py-0.5 text-[10px] font-bold bg-red-500 text-white rounded-full min-w-[20px] text-center">
+                                                    <span className="ml-2 px-2 py-0.5 text-[10px] font-bold bg-red-500 text-white rounded-full min-w-5 text-center">
                                                         {unreadCount > 99 ? '99+' : unreadCount}
                                                     </span>
                                                 )}
@@ -254,7 +254,7 @@ const Sidebar = () => {
               ${isCollapsed ? 'justify-center px-3' : ''}
             `}
                     >
-                        <LogoutIcon className="w-5 h-5 flex-shrink-0" />
+                        <LogoutIcon className="w-5 h-5 shrink-0" />
                         {!isCollapsed && <span className="font-medium">Đăng xuất</span>}
                     </button>
                 </div>

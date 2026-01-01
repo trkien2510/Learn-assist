@@ -247,7 +247,7 @@ const Questions = () => {
             )}
 
             {showModal && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-100 p-4">
                     <div className="card-glass p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-fadeIn">
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-2xl font-bold gradient-text">

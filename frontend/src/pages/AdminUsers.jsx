@@ -159,7 +159,7 @@ const AdminUsers = () => {
                                     <span className="text-green-500">+{stats.users.new_30d}</span> trong 30 ngày
                                 </p>
                             </div>
-                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+                            <div className="w-12 h-12 rounded-xl bg-linear-to-br/srgb from-blue-500 to-indigo-600 flex items-center justify-center">
                                 <UsersIcon className="w-6 h-6 text-white" />
                             </div>
                         </div>
@@ -174,7 +174,7 @@ const AdminUsers = () => {
                                     {((stats.users.students / stats.users.total) * 100).toFixed(1)}% tổng số
                                 </p>
                             </div>
-                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+                            <div className="w-12 h-12 rounded-xl bg-linear-to-br/srgb from-green-500 to-emerald-600 flex items-center justify-center">
                                 <UserGroupIcon className="w-6 h-6 text-white" />
                             </div>
                         </div>
@@ -189,7 +189,7 @@ const AdminUsers = () => {
                                     {((stats.users.teachers / stats.users.total) * 100).toFixed(1)}% tổng số
                                 </p>
                             </div>
-                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
+                            <div className="w-12 h-12 rounded-xl bg-linear-to-br/srgb from-blue-500 to-cyan-600 flex items-center justify-center">
                                 <ShieldCheckIcon className="w-6 h-6 text-white" />
                             </div>
                         </div>
@@ -204,7 +204,7 @@ const AdminUsers = () => {
                                     <span className="text-red-500">{stats.users.inactive}</span> vô hiệu hóa
                                 </p>
                             </div>
-                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center">
+                            <div className="w-12 h-12 rounded-xl bg-linear-to-br/srgb from-green-500 to-teal-600 flex items-center justify-center">
                                 <TrendingUpIcon className="w-6 h-6 text-white" />
                             </div>
                         </div>
@@ -293,7 +293,7 @@ const AdminUsers = () => {
                                     <tr key={user._id || user.id} className="hover:bg-white/5 transition-colors">
                                         <td className="p-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold">
+                                                <div className="w-10 h-10 rounded-full bg-linear-to-br/srgb from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold">
                                                     {user.full_name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
                                                 </div>
                                                 <div>
@@ -379,7 +379,7 @@ const AdminUsers = () => {
             )}
 
             {showUserModal && selectedUser && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100]" onClick={() => setShowUserModal(false)}>
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-100" onClick={() => setShowUserModal(false)}>
                     <div className="card-glass max-w-2xl w-full max-h-[80vh] overflow-y-auto m-4" onClick={(e) => e.stopPropagation()}>
                         <div className="p-6 border-b border-gray-200">
                             <div className="flex items-center justify-between">

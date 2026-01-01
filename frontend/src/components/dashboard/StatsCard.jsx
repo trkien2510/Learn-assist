@@ -16,17 +16,17 @@ const StatsCard = ({ stat, index }) => {
                     </p>
                     {stat.change && (
                         <p className={`text-xs mt-3 flex items-center gap-1 ${stat.change.startsWith('+') || stat.change.startsWith('↑')
-                                ? 'text-green-400'
-                                : stat.change.startsWith('-') || stat.change.startsWith('↓')
-                                    ? 'text-red-400'
-                                    : 'text-gray-400'
+                            ? 'text-green-400'
+                            : stat.change.startsWith('-') || stat.change.startsWith('↓')
+                                ? 'text-red-400'
+                                : 'text-gray-400'
                             }`}>
                             <span className="font-semibold">{stat.change}</span>
                             {stat.changeText || 'so với tháng trước'}
                         </p>
                     )}
                 </div>
-                <div className={`p-3 rounded-xl bg-gradient-to-br ${stat.color} group-hover:scale-110 transition-transform duration-300`}>
+                <div className={`p-3 rounded-xl bg-linear-to-br/srgb ${stat.color} group-hover:scale-110 transition-transform duration-300`}>
                     {IconComponent && <IconComponent className="w-6 h-6 text-gray-900" />}
                 </div>
             </div>

@@ -23,7 +23,7 @@ const MainLayoutContent = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[var(--bg-color)] text-[var(--text-color)]">
+        <div className="min-h-screen bg-(--bg-color) text-(--text-color)">
             <Sidebar />
 
             <div
@@ -43,7 +43,7 @@ const MainLayout = () => {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-[var(--bg-color)] flex items-center justify-center">
+            <div className="min-h-screen bg-(--bg-color) flex items-center justify-center">
                 <div className="text-center">
                     <div className="w-16 h-16 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto mb-4"></div>
                     <p className="text-gray-500">Đang tải...</p>

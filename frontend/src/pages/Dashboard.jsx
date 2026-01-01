@@ -192,7 +192,7 @@ const Dashboard = () => {
                     <p className="text-gray-500 mb-4">{error}</p>
                     <button
                         onClick={() => window.location.reload()}
-                        className="px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl hover:shadow-lg transition-all"
+                        className="px-4 py-2 bg-linear-to-r from-blue-500 to-cyan-500 text-white rounded-xl hover:shadow-lg transition-all"
                     >
                         Thử lại
                     </button>

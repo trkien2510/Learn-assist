@@ -42,7 +42,7 @@ const Header = ({ onMenuClick }) => {
                         onClick={() => setShowProfileMenu(!showProfileMenu)}
                         className="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
                     >
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-orange-500 flex items-center justify-center text-gray-900 text-sm font-semibold">
+                        <div className="w-8 h-8 rounded-full bg-linear-to-br/srgb from-blue-400 to-orange-500 flex items-center justify-center text-gray-900 text-sm font-semibold">
                             {user?.full_name?.charAt(0).toUpperCase() || user?.username?.charAt(0).toUpperCase() || 'U'}
                         </div>
                         <div className="hidden md:block text-left">

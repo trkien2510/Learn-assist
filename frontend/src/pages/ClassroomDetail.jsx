@@ -93,7 +93,7 @@ const ClassroomDetail = () => {
                         </button>
 
                         <div className="flex-1 min-w-0">
-                            <h1 className="text-3xl font-bold gradient-text break-words">
+                            <h1 className="text-3xl font-bold gradient-text wrap-break-word">
                                 {classroom.name}
                             </h1>
                         </div>

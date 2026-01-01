@@ -116,7 +116,7 @@ const ClassroomMessages = ({ classCode, classroom }) => {
         <div className="flex flex-col h-[600px]">
             <div
                 ref={messagesContainerRef}
-                className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-gray-50 to-white rounded-t-xl border border-gray-200"
+                className="flex-1 overflow-y-auto p-4 space-y-4 bg-linear-to-b from-gray-50 to-white rounded-t-xl border border-gray-200"
             >
                 {loading && messages.length === 0 ? (
                     <div className="flex items-center justify-center h-full">
@@ -140,9 +140,9 @@ const ClassroomMessages = ({ classCode, classroom }) => {
                                     key={message.id}
                                     className={`flex gap-3 ${isMine ? 'flex-row-reverse' : ''}`}
                                 >
-                                    <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${isMine
-                                        ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white'
-                                        : 'bg-gradient-to-br from-gray-400 to-gray-500 text-white'
+                                    <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${isMine
+                                        ? 'bg-linear-to-br/srgb from-blue-500 to-blue-600 text-white'
+                                        : 'bg-linear-to-br/srgb from-gray-400 to-gray-500 text-white'
                                         }`}>
                                         {message.sender_name?.charAt(0).toUpperCase() || 'U'}
                                     </div>
@@ -159,10 +159,10 @@ const ClassroomMessages = ({ classCode, classroom }) => {
 
                                         <div className="relative group">
                                             <div className={`p-3 rounded-2xl shadow-md ${isMine
-                                                ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-br-none'
+                                                ? 'bg-linear-to-br/srgb from-blue-500 to-blue-600 text-white rounded-br-none'
                                                 : 'bg-gray-100 text-gray-900 rounded-bl-none border border-gray-200'
                                                 }`}>
-                                                <p className="whitespace-pre-wrap break-words">{message.content}</p>
+                                                <p className="whitespace-pre-wrap wrap-break-word">{message.content}</p>
                                             </div>
 
                                             {canDeleteMessage(message) && (

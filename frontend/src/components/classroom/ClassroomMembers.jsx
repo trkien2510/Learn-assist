@@ -106,7 +106,7 @@ const ClassroomMembers = ({ classCode, classroom, isCreator }) => {
                                                 {isSelf && <span className="text-blue-500 ml-1">(Bạn)</span>}
                                             </p>
                                             {member.is_creator && (
-                                                <span className="px-2 py-0.5 bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-500 text-xs font-medium rounded-full border border-amber-500/30">
+                                                <span className="px-2 py-0.5 bg-linear-to-r from-amber-500/20 to-orange-500/20 text-amber-500 text-xs font-medium rounded-full border border-amber-500/30">
                                                     Chủ sở hữu
                                                 </span>
                                             )}

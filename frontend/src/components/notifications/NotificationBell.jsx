@@ -52,7 +52,7 @@ const NotificationBell = () => {
                 </svg>
 
                 {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-red-500 to-rose-500 text-white text-xs font-bold rounded-full flex items-center justify-center animate-pulse">
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-linear-to-br/srgb from-red-500 to-rose-500 text-white text-xs font-bold rounded-full flex items-center justify-center animate-pulse">
                         {unreadCount > 99 ? '99+' : unreadCount}
                     </span>
                 )}

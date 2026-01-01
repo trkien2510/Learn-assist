@@ -423,7 +423,7 @@ const Exams = () => {
 
             {showCreateModal && (
                 <Portal>
-                    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+                    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-100 p-4">
                         <div className="card-glass max-w-4xl w-full my-8 max-h-[90vh] overflow-hidden flex flex-col animate-fadeIn shadow-2xl">
                             <div className="flex items-center justify-between p-6 border-b border-gray-200/10">
                                 <h2 className="text-2xl font-bold gradient-text">
@@ -608,7 +608,7 @@ const Exams = () => {
                                         {previewQuestions.map((question, index) => (
                                             <div key={question.id} className="card-glass p-4 hover:shadow-lg transition-shadow">
                                                 <div className="flex items-start gap-4">
-                                                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 font-semibold">
+                                                    <div className="shrink-0 w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 font-semibold">
                                                         {index + 1}
                                                     </div>
                                                     <div className="flex-1 min-w-0">
@@ -637,7 +637,7 @@ const Exams = () => {
                                                     </div>
                                                     <button
                                                         onClick={() => handleReplaceQuestion(question.id, question.difficulty)}
-                                                        className="flex-shrink-0 p-2 bg-blue-500/10 text-blue-400 rounded-lg hover:bg-blue-500/20 transition-colors"
+                                                        className="shrink-0 p-2 bg-blue-500/10 text-blue-400 rounded-lg hover:bg-blue-500/20 transition-colors"
                                                         title="Lấy câu hỏi khác"
                                                     >
                                                         <RefreshIcon className="w-5 h-5" />

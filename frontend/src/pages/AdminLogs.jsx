@@ -174,7 +174,7 @@ const AdminLogs = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                     <div className="card-glass p-5 hover-lift">
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+                            <div className="w-12 h-12 rounded-xl bg-linear-to-br/srgb from-blue-500 to-indigo-600 flex items-center justify-center">
                                 <ChartBarIcon className="w-6 h-6 text-white" />
                             </div>
                             <div>
@@ -186,7 +186,7 @@ const AdminLogs = () => {
 
                     <div className="card-glass p-5 hover-lift">
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+                            <div className="w-12 h-12 rounded-xl bg-linear-to-br/srgb from-green-500 to-emerald-600 flex items-center justify-center">
                                 <CheckCircleIcon className="w-6 h-6 text-white" />
                             </div>
                             <div>
@@ -198,7 +198,7 @@ const AdminLogs = () => {
 
                     <div className="card-glass p-5 hover-lift">
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center">
+                            <div className="w-12 h-12 rounded-xl bg-linear-to-br/srgb from-red-500 to-rose-600 flex items-center justify-center">
                                 <XCircleIcon className="w-6 h-6 text-white" />
                             </div>
                             <div>
@@ -210,7 +210,7 @@ const AdminLogs = () => {
 
                     <div className="card-glass p-5 hover-lift">
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center">
+                            <div className="w-12 h-12 rounded-xl bg-linear-to-br/srgb from-purple-500 to-violet-600 flex items-center justify-center">
                                 <ClockIcon className="w-6 h-6 text-white" />
                             </div>
                             <div>
@@ -222,7 +222,7 @@ const AdminLogs = () => {
 
                     <div className="card-glass p-5 hover-lift">
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center">
+                            <div className="w-12 h-12 rounded-xl bg-linear-to-br/srgb from-orange-500 to-amber-600 flex items-center justify-center">
                                 <ClockIcon className="w-6 h-6 text-white" />
                             </div>
                             <div>
@@ -244,7 +244,7 @@ const AdminLogs = () => {
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                         <div
-                            className="bg-gradient-to-r from-green-500 to-emerald-600 h-full rounded-full transition-all duration-500"
+                            className="bg-linear-to-r/srgb from-green-500 to-emerald-600 h-full rounded-full transition-all duration-500"
                             style={{ width: `${(stats.success_logs / stats.total_logs) * 100}%` }}
                         ></div>
                     </div>
@@ -404,7 +404,7 @@ const AdminLogs = () => {
             )}
 
             {showLogModal && selectedLog && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100]" onClick={() => setShowLogModal(false)}>
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-100" onClick={() => setShowLogModal(false)}>
                     <div className="card-glass max-w-2xl w-full max-h-[80vh] overflow-y-auto m-4" onClick={(e) => e.stopPropagation()}>
                         <div className="p-6 border-b border-gray-200">
                             <div className="flex items-center justify-between">

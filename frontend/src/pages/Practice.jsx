@@ -168,7 +168,7 @@ const Practice = () => {
                             <p className="text-sm text-gray-500">Tổng câu hỏi</p>
                             <p className="text-2xl font-bold text-gray-900 dark:text-white">{questions.length}</p>
                         </div>
-                        <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500">
+                        <div className="p-3 rounded-xl bg-linear-to-br/srgb from-blue-500 to-cyan-500">
                             <DocumentIcon className="w-6 h-6 text-white" />
                         </div>
                     </div>
@@ -180,7 +180,7 @@ const Practice = () => {
                             <p className="text-sm text-gray-500">Bài đã luyện</p>
                             <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats?.total_exams || 0}</p>
                         </div>
-                        <div className="p-3 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500">
+                        <div className="p-3 rounded-xl bg-linear-to-br/srgb from-green-500 to-emerald-500">
                             <ExamIcon className="w-6 h-6 text-white" />
                         </div>
                     </div>
@@ -194,7 +194,7 @@ const Practice = () => {
                                 {stats?.average_score?.toFixed(1) || '0.0'}
                             </p>
                         </div>
-                        <div className="p-3 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500">
+                        <div className="p-3 rounded-xl bg-linear-to-br/srgb from-orange-500 to-amber-500">
                             <ChartIcon className="w-6 h-6 text-white" />
                         </div>
                     </div>
@@ -239,8 +239,8 @@ const Practice = () => {
                                         key={tab.id}
                                         onClick={() => setActiveTab(tab.id)}
                                         className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${activeTab === tab.id
-                                                ? 'bg-blue-500/20 text-blue-500'
-                                                : 'text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-white/10'
+                                            ? 'bg-blue-500/20 text-blue-500'
+                                            : 'text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-white/10'
                                             }`}
                                     >
                                         <Icon className="w-4 h-4" />
@@ -286,10 +286,10 @@ const Practice = () => {
                                                         </p>
                                                     </div>
                                                     <span className={`px-2 py-1 text-xs rounded-full ${exam.status === 'completed'
-                                                            ? 'bg-green-500/20 text-green-400'
-                                                            : exam.status === 'in_progress'
-                                                                ? 'bg-orange-500/20 text-orange-400'
-                                                                : 'bg-blue-500/20 text-blue-400'
+                                                        ? 'bg-green-500/20 text-green-400'
+                                                        : exam.status === 'in_progress'
+                                                            ? 'bg-orange-500/20 text-orange-400'
+                                                            : 'bg-blue-500/20 text-blue-400'
                                                         }`}>
                                                         {exam.status === 'completed' ? 'Đã hoàn thành' :
                                                             exam.status === 'in_progress' ? 'Đang làm' : 'Chưa làm'}

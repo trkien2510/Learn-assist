@@ -26,7 +26,7 @@ const QuickActions = ({ actions }) => {
                                     {action.description}
                                 </p>
                             </div>
-                            <ArrowRightIcon className="w-5 h-5 text-gray-400 group-hover:text-blue-400 group-hover:translate-x-1 transition-all flex-shrink-0 ml-4" />
+                            <ArrowRightIcon className="w-5 h-5 text-gray-400 group-hover:text-blue-400 group-hover:translate-x-1 transition-all shrink-0 ml-4" />
                         </div>
                     </button>
                 ))}

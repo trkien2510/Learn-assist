@@ -69,7 +69,7 @@ const NotificationItem = ({ notification, onMarkAsRead, onDelete, onClick }) => 
                 }`}
         >
             <div className="flex items-start gap-3">
-                <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${getTypeColor(notification.notification_type)} flex items-center justify-center flex-shrink-0`}>
+                <div className={`w-10 h-10 rounded-xl bg-linear-to-br/srgb ${getTypeColor(notification.notification_type)} flex items-center justify-center shrink-0`}>
                     <span className="text-lg">{getIcon(notification.notification_type)}</span>
                 </div>
 
@@ -79,7 +79,7 @@ const NotificationItem = ({ notification, onMarkAsRead, onDelete, onClick }) => 
                             {notification.title}
                         </h4>
                         {!notification.is_read && (
-                            <span className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0 mt-1"></span>
+                            <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0 mt-1"></span>
                         )}
                     </div>
 

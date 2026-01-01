@@ -166,7 +166,7 @@ const Results = () => {
                                     <div key={idx} className={`p-6 rounded-xl border-2 ${isCorrect ? 'border-green-500/30 bg-green-500/5' : 'border-red-500/30 bg-red-500/5'
                                         }`}>
                                         <div className="flex items-start gap-4">
-                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${isCorrect ? 'bg-green-500' : 'bg-red-500'
+                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${isCorrect ? 'bg-green-500' : 'bg-red-500'
                                                 }`}>
                                                 {isCorrect ? <CheckIcon className="w-5 h-5 text-gray-900" /> : <XIcon className="w-5 h-5 text-gray-900" />}
                                             </div>

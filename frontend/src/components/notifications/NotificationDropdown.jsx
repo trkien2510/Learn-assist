@@ -37,7 +37,7 @@ const NotificationDropdown = ({
 
     return (
         <div className="absolute right-0 top-full mt-2 w-96 max-h-[600px] glass rounded-2xl shadow-2xl border border-gray-200 overflow-hidden z-50 animate-fadeIn">
-            <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-500/10 to-cyan-500/10">
+            <div className="p-4 border-b border-gray-200 bg-linear-to-r from-blue-500/10 to-cyan-500/10">
                 <div className="flex items-center justify-between">
                     <div>
                         <h3 className="text-lg font-semibold text-gray-900">Thông báo</h3>
