@@ -248,7 +248,7 @@ const Questions = () => {
 
             {showModal && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-100 p-4">
-                    <div className="card-glass p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-fadeIn">
+                    <div className="card-glass p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto scrollbar-hide animate-fadeIn">
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-2xl font-bold gradient-text">
                                 {editingQuestion ? 'Chỉnh sửa câu hỏi' : 'Tạo câu hỏi mới'}
@@ -313,7 +313,6 @@ const Questions = () => {
                                         onChange={(e) => setFormData({ ...formData, answers: e.target.value })}
                                         className="input-glass"
                                     >
-                                        <option value="">Chọn đáp án đúng</option>
                                         {formData.options.map((option, idx) => (
                                             <option key={idx} value={option}>
                                                 {String.fromCharCode(65 + idx)}. {option || `Đáp án ${String.fromCharCode(65 + idx)}`}

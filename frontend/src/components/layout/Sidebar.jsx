@@ -249,7 +249,7 @@ const Sidebar = () => {
                         onClick={handleLogout}
                         className={`
               w-full flex items-center gap-3 px-4 py-3 rounded-xl
-              text-red-400 hover:text-red-300 hover:bg-red-500/10
+              text-red-400 hover:text-red-600 hover:bg-red-500/10
               transition-all duration-200
               ${isCollapsed ? 'justify-center px-3' : ''}
             `}

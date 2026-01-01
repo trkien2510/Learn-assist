@@ -504,7 +504,7 @@ const Documents = () => {
 
             {editingQuestion && (
                 <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
-                    <div className="card-glass p-6 max-w-4xl w-full animate-fadeIn max-h-[80vh] overflow-y-auto">
+                    <div className="card-glass p-6 max-w-4xl w-full animate-fadeIn max-h-[80vh] overflow-y-auto scrollbar-hide">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-xl font-bold text-gray-900">Chỉnh sửa câu hỏi</h3>
                             <button
