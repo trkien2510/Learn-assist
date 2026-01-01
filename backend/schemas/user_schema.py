@@ -42,9 +42,6 @@ class UserUpdate(BaseModel):
     full_name: str | None = Field(None, min_length=1)
     phone_number: str | None = None
     dob: date | None = None
-    current_password: str | None = Field(None, min_length=8, max_length=64)
-    new_password: str | None = Field(None, min_length=8, max_length=64)
-    confirm_password: str | None = Field(None, min_length=8, max_length=64)
 
     @field_validator('phone_number')
     @classmethod
@@ -55,3 +52,7 @@ class UserUpdate(BaseModel):
         if not re.match(r'^0\d{9,10}$', cleaned):
             raise ValueError('Phone number must be 10-11 digits and start with 0')
         return cleaned
+
+class ChangePassword(BaseModel):
+    old_password: str = Field(..., min_length=6, max_length=64, description="Current password")
+    new_password: str = Field(..., min_length=6, max_length=64, description="New password")

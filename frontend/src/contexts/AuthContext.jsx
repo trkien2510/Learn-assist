@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }) => {
       if (token) {
         try {
           const response = await userService.getMe();
-          const userData = response.data || response; 
+          const userData = response.data || response;
           setUser(userData);
           localStorage.setItem('user', JSON.stringify(userData));
         } catch (error) {
@@ -42,7 +42,7 @@ export const AuthProvider = ({ children }) => {
       const response = await authService.login(usernameOrEmail, password);
 
       const response2 = await userService.getMe();
-      const userData = response2.data || response2; 
+      const userData = response2.data || response2;
       setUser(userData);
       localStorage.setItem('user', JSON.stringify(userData));
 
@@ -74,7 +74,7 @@ export const AuthProvider = ({ children }) => {
         cookieUtils.set('refresh_token', tokenData.refresh_token, 7);
 
         const response2 = await userService.getMe();
-        const userData = response2.data || response2; 
+        const userData = response2.data || response2;
         setUser(userData);
         localStorage.setItem('user', JSON.stringify(userData));
         return userData;
@@ -111,7 +111,8 @@ export const AuthProvider = ({ children }) => {
 
   const updateUser = async () => {
     try {
-      const userData = await userService.getMe();
+      const response = await userService.getMe();
+      const userData = response.data || response;
       setUser(userData);
       localStorage.setItem('user', JSON.stringify(userData));
       return userData;

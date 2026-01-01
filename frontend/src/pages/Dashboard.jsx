@@ -60,7 +60,7 @@ const Dashboard = () => {
                         color: 'from-blue-500 to-cyan-500'
                     },
                     {
-                        name: 'Đề thi',
+                        name: 'Bài kiểm tra',
                         value: dashboardData.total_exams || 0,
                         icon: ExamIcon,
                         color: 'from-green-500 to-emerald-500'
@@ -88,7 +88,7 @@ const Dashboard = () => {
                         color: 'from-blue-500 to-indigo-600'
                     },
                     {
-                        name: 'Đề thi đã tạo',
+                        name: 'Bài kiểm tra đã tạo',
                         value: dashboardData.total_exams || 0,
                         icon: ExamIcon,
                         color: 'from-green-500 to-emerald-500'
@@ -110,7 +110,7 @@ const Dashboard = () => {
                         color: 'from-blue-500 to-cyan-500'
                     },
                     {
-                        name: 'Bài thi đã làm',
+                        name: 'Bài kiểm tra đã làm',
                         value: dashboardData.total_exams_taken || 0,
                         icon: ExamIcon,
                         color: 'from-green-500 to-emerald-500'
@@ -145,15 +145,15 @@ const Dashboard = () => {
                 ];
             case ROLES.TEACHER:
                 return [
-                    { name: 'Tạo đề thi', description: 'Tạo đề thi mới từ ngân hàng câu hỏi', href: '/app/exams' },
+                    { name: 'Tạo bài kiểm tra', description: 'Tạo bài kiểm tra mới từ ngân hàng câu hỏi', href: '/app/exams' },
                     { name: 'Upload tài liệu', description: 'Thêm tài liệu học tập', href: '/app/documents' },
                     { name: 'Ngân hàng câu hỏi', description: 'Quản lý câu hỏi', href: '/app/questions' }
                 ];
             case ROLES.STUDENT:
                 return [
-                    { name: 'Làm bài thi', description: 'Xem các bài thi đang mở', href: '/app/exams' },
+                    { name: 'Làm bài kiểm tra', description: 'Xem các bài kiểm tra đang mở', href: '/app/exams' },
                     { name: 'Xem điểm', description: 'Kiểm tra kết quả học tập', href: '/app/results' },
-                    { name: 'Luyện tập', description: 'Tạo bài thi thử', href: '/app/practice' }
+                    { name: 'Luyện tập', description: 'Tạo bài kiểm tra thử', href: '/app/practice' }
                 ];
             default:
                 return [];
@@ -246,26 +246,6 @@ const Dashboard = () => {
 
                 <QuickActions actions={quickActions} />
             </div>
-
-            {user?.role === ROLES.STUDENT && (
-                <div className="card-glass">
-                    <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-lg font-semibold text-gray-900">Bài thi sắp tới</h2>
-                        <button className="text-sm text-blue-400 hover:text-blue-300 flex items-center gap-1 transition-colors">
-                            Xem tất cả <ArrowRightIcon className="w-4 h-4" />
-                        </button>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="text-center py-8">
-                            <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
-                                <span className="text-3xl">📅</span>
-                            </div>
-                            <p className="text-gray-500 text-sm">Chưa có bài thi sắp tới</p>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { userService } from '../services/authService';
 import { UserIcon, EmailIcon, LockIcon, EditIcon, PhoneIcon, CalendarIcon, TrashIcon } from '../components/icons/Icons';
@@ -24,12 +24,26 @@ const Profile = () => {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
+    useEffect(() => {
+        if (user) {
+            setFormData({
+                full_name: user.full_name || user.name || '',
+                email: user.email || '',
+                phone_number: user.phone_number || '',
+                dob: user.dob ? new Date(user.dob).toISOString().split('T')[0] : ''
+            });
+        }
+    }, [user]);
+
     const handleUpdateProfile = async (e) => {
         e.preventDefault();
         try {
             setLoading(true);
             setError('');
-            await userService.updateProfile(formData);
+
+            const { email, ...updateData } = formData;
+
+            await userService.updateProfile(updateData);
             await updateUser();
             setSuccess('Cập nhật thông tin thành công!');
             setEditing(false);
