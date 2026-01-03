@@ -197,10 +197,27 @@ const ClassroomExams = ({ classCode, classroom, onRefresh }) => {
                                         </p>
                                     </div>
 
+                                    {(isTeacher || isAdmin) && (
+                                        <div className="flex gap-2 pt-3 border-t border-gray-200/10">
+                                            <button
+                                                onClick={() => navigate(`/app/results?exam_id=${exam._id || exam.id}`)}
+                                                className="flex-1 btn-secondary text-sm py-2"
+                                            >
+                                                Kết quả
+                                            </button>
+                                            <button
+                                                onClick={() => navigate(`/app/exams/${exam._id || exam.id}/statistics`)}
+                                                className="flex-1 btn-primary text-sm py-2"
+                                            >
+                                                Thống kê
+                                            </button>
+                                        </div>
+                                    )}
+
                                     {!isTeacher && status.color === 'green' && (
                                         <div className="pt-3 border-t border-gray-200/10">
                                             <button
-                                                onClick={() => navigate(`/app/exams/${exam._id || exam.id}/take`)}
+                                                onClick={() => navigate(`/app/take-exam/${exam._id || exam.id}`)}
                                                 className="w-full btn-primary text-sm py-2.5"
                                             >
                                                 Làm bài ngay

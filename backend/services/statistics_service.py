@@ -288,6 +288,15 @@ async def get_teacher_comprehensive_statistics(current_user) -> Dict[str, Any]:
         "exam_id.$id": {"$in": exam_ids}
     }).to_list() if exam_ids else []
     
+    if all_results:
+        unique_user_ids = list(set(r.user_id.ref.id for r in all_results))
+        students = await UserModel.find({
+            "_id": {"$in": unique_user_ids},
+            "role": UserRole.STUDENT
+        }).to_list()
+        student_ids = {s.id for s in students}
+        all_results = [r for r in all_results if r.user_id.ref.id in student_ids]
+
     documents = await DocumentModel.find({
         "creator.$id": current_user.id
     }).to_list()
@@ -296,22 +305,28 @@ async def get_teacher_comprehensive_statistics(current_user) -> Dict[str, Any]:
         "creator_id.$id": current_user.id
     }).to_list()
     
-    # Lấy danh sách tất cả member IDs từ các lớp (không trùng lặp)
     unique_member_ids = set()
     for c in classrooms:
         for member in c.members:
             unique_member_ids.add(member.ref.id)
     
-    # Chỉ đếm những user có role là student
     total_students = 0
     if unique_member_ids:
         total_students = await UserModel.find({
             "_id": {"$in": list(unique_member_ids)},
-            "role": "student"
+            "role": UserRole.STUDENT
         }).count()
     
     classroom_stats = []
     for classroom in classrooms:
+        class_member_ids = [m.ref.id for m in classroom.members]
+        class_students = await UserModel.find({
+            "_id": {"$in": class_member_ids},
+            "role": UserRole.STUDENT
+        }).to_list()
+        class_student_count = len(class_students)
+        class_student_ids = {s.id for s in class_students}
+
         class_exams = [e for e in exams if e.class_id and e.class_id.ref.id == classroom.id]
         class_exam_ids = [e.id for e in class_exams]
         class_results = [r for r in all_results if r.exam_id.ref.id in class_exam_ids]
@@ -322,7 +337,7 @@ async def get_teacher_comprehensive_statistics(current_user) -> Dict[str, Any]:
             "classroom_id": str(classroom.id),
             "name": classroom.name,
             "class_code": classroom.class_code,
-            "student_count": len(classroom.members),
+            "student_count": class_student_count,
             "exam_count": len(class_exams),
             "total_submissions": len(class_results),
             "average_score": round(sum(class_scores) / len(class_scores), 2) if class_scores else 0,
@@ -440,6 +455,15 @@ async def get_exam_detailed_statistics(exam_id: str, current_user) -> Dict[str, 
         "submitted": True
     }).to_list()
     
+    if results:
+        unique_user_ids = list(set(r.user_id.ref.id for r in results))
+        students = await UserModel.find({
+            "_id": {"$in": unique_user_ids},
+            "role": UserRole.STUDENT
+        }).to_list()
+        student_ids = {s.id for s in students}
+        results = [r for r in results if r.user_id.ref.id in student_ids]
+
     if not results:
         return {
             "exam_info": {
@@ -507,7 +531,6 @@ async def get_exam_detailed_statistics(exam_id: str, current_user) -> Dict[str, 
             if r.ended_at and r.started_at:
                 time_taken = round((r.ended_at - r.started_at).total_seconds() / 60, 2)
             
-            # Calculate correct answers count
             correct_answers = 0
             for q_link in exam.questions:
                 q_id_str = str(q_link.ref.id)
@@ -597,30 +620,45 @@ async def get_classroom_detailed_statistics(class_id: str, current_user) -> Dict
         "exam_id.$id": {"$in": exam_ids}
     }).to_list() if exam_ids else []
     
-    submitted_results = [r for r in results if r.submitted]
+    submitted_results = []
+    if results:
+        unique_user_ids = list(set(r.user_id.ref.id for r in results))
+        students = await UserModel.find({
+            "_id": {"$in": unique_user_ids},
+            "role": UserRole.STUDENT
+        }).to_list()
+        student_ids = {s.id for s in students}
+        submitted_results = [r for r in results if r.submitted and r.user_id.ref.id in student_ids]
+
     scores = [r.score for r in submitted_results]
-    
+
+    member_ids = [m.ref.id for m in classroom.members]
+    student_members = await UserModel.find({
+        "_id": {"$in": member_ids},
+        "role": UserRole.STUDENT
+    }).to_list()
+    student_member_ids = {s.id for s in student_members}
+    student_count = len(student_members)
+
     student_stats = []
-    for member_link in classroom.members:
-        member = await UserModel.get(member_link.ref.id)
-        if member and member.role == UserRole.STUDENT:
-            student_results = [r for r in submitted_results if r.user_id.ref.id == member.id]
-            student_scores = [r.score for r in student_results]
-            
-            if student_scores:
-                student_stats.append({
-                    "student_id": str(member.id),
-                    "full_name": member.full_name,
-                    "email": member.email,
-                    "exams_taken": len(student_results),
-                    "exams_available": len(exams),
-                    "participation_rate": round(len(student_results) / len(exams) * 100, 2) if exams else 0,
-                    "average_score": round(sum(student_scores) / len(student_scores), 2),
-                    "highest_score": max(student_scores),
-                    "lowest_score": min(student_scores),
-                    "grade": calculate_grade(sum(student_scores) / len(student_scores)),
-                    "percentile": calculate_percentile(sum(student_scores)/len(student_scores), scores) if scores else 0
-                })
+    for member in student_members:
+        student_results = [r for r in submitted_results if r.user_id.ref.id == member.id]
+        student_scores = [r.score for r in student_results]
+        
+        if student_scores:
+            student_stats.append({
+                "student_id": str(member.id),
+                "full_name": member.full_name,
+                "email": member.email,
+                "exams_taken": len(student_results),
+                "exams_available": len(exams),
+                "participation_rate": round(len(student_results) / len(exams) * 100, 2) if exams else 0,
+                "average_score": round(sum(student_scores) / len(student_scores), 2),
+                "highest_score": max(student_scores),
+                "lowest_score": min(student_scores),
+                "grade": calculate_grade(sum(student_scores) / len(student_scores)),
+                "percentile": calculate_percentile(sum(student_scores)/len(student_scores), scores) if scores else 0
+            })
     
     student_stats.sort(key=lambda x: x["average_score"], reverse=True)
     for i, s in enumerate(student_stats):
@@ -639,7 +677,7 @@ async def get_classroom_detailed_statistics(class_id: str, current_user) -> Dict
             "start_at": exam.start_at.isoformat() if exam.start_at else None,
             "end_at": exam.end_at.isoformat() if exam.end_at else None,
             "participants": len(exam_results),
-            "participation_rate": round(len(exam_results) / len(classroom.members) * 100, 2) if classroom.members else 0,
+            "participation_rate": round(len(exam_results) / student_count * 100, 2) if student_count else 0,
             "average_score": round(sum(exam_scores) / len(exam_scores), 2) if exam_scores else 0,
             "pass_rate": round(len([s for s in exam_scores if s >= 5]) / len(exam_scores) * 100, 2) if exam_scores else 0
         })
@@ -665,7 +703,7 @@ async def get_classroom_detailed_statistics(class_id: str, current_user) -> Dict
             "name": classroom.name,
             "class_code": classroom.class_code,
             "subject": classroom.subject if hasattr(classroom, 'subject') else None,
-            "student_count": len(classroom.members),
+            "student_count": student_count,
             "exam_count": len(exams)
         },
         "overall_performance": {

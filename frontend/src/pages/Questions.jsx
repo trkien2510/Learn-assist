@@ -11,7 +11,10 @@ const Questions = () => {
     const [showModal, setShowModal] = useState(false);
     const [editingQuestion, setEditingQuestion] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
     const [filterDifficulty, setFilterDifficulty] = useState('');
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
 
     const [formData, setFormData] = useState({
         content: '',
@@ -21,18 +24,31 @@ const Questions = () => {
     });
 
     useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(searchTerm);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
+
+    useEffect(() => {
+        setPage(1);
+    }, [debouncedSearch, filterDifficulty]);
+
+    useEffect(() => {
         fetchQuestions();
-    }, [filterDifficulty]);
+    }, [page, debouncedSearch, filterDifficulty]);
 
     const fetchQuestions = async () => {
         try {
             setLoading(true);
             const filters = {};
             if (filterDifficulty) filters.difficulty = filterDifficulty;
+            if (debouncedSearch) filters.search = debouncedSearch;
 
-            const response = await questionService.getAll(1, 100, filters);
+            const response = await questionService.getAll(page, 20, filters);
             const data = response.data || response;
             setQuestions(data.items || data || []);
+            setTotalPages(data.total_pages || 1);
         } catch (err) {
             setError(err.message || 'Không thể tải câu hỏi');
         } finally {
@@ -114,9 +130,7 @@ const Questions = () => {
         setEditingQuestion(null);
     };
 
-    const filteredQuestions = questions.filter(q =>
-        q.content.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredQuestions = questions;
 
     return (
         <div className="space-y-6">
@@ -198,7 +212,7 @@ const Questions = () => {
                             <div className="flex items-start justify-between mb-4">
                                 <div className="flex-1">
                                     <div className="flex items-center gap-3 mb-3">
-                                        <span className="text-sm font-semibold text-blue-400">#{index + 1}</span>
+                                        <span className="text-sm font-semibold text-blue-400">#{(page - 1) * 20 + index + 1}</span>
                                         <span className={`text-xs px-2 py-1 rounded ${question.difficulty === 'Easy' ? 'bg-green-500/20 text-green-400' :
                                             question.difficulty === 'Medium' ? 'bg-yellow-500/20 text-yellow-400' :
                                                 'bg-red-500/20 text-red-400'
@@ -243,6 +257,28 @@ const Questions = () => {
                             </div>
                         </div>
                     ))}
+
+                    {totalPages > 1 && (
+                        <div className="flex items-center justify-center gap-2 p-4 pt-6">
+                            <button
+                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                                disabled={page === 1}
+                                className="btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Trước
+                            </button>
+                            <span className="text-gray-600 px-4">
+                                Trang {page} / {totalPages}
+                            </span>
+                            <button
+                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                                disabled={page === totalPages}
+                                className="btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Sau
+                            </button>
+                        </div>
+                    )}
                 </div>
             )}
 

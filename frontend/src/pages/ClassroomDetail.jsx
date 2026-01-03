@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth, ROLES } from '../contexts/AuthContext';
 import { classroomService, examService } from '../services/apiServices';
+import { statisticsService } from '../services/otherServices';
 import {
     ArrowLeftIcon, UsersIcon, MessageIcon, ClipboardIcon,
     ChartIcon, ClockIcon, RefreshIcon
@@ -20,7 +21,9 @@ const ClassroomDetail = () => {
     const { user, hasRole } = useAuth();
 
     const [classroom, setClassroom] = useState(null);
+    const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [loadingStats, setLoadingStats] = useState(false);
     const [error, setError] = useState('');
     const [activeTab, setActiveTab] = useState('overview');
     const [copied, setCopied] = useState(false);
@@ -38,11 +41,28 @@ const ClassroomDetail = () => {
             setLoading(true);
             setError('');
             const response = await classroomService.getDetail(classCode);
-            setClassroom(response.data || response);
+            const classData = response.data || response;
+            setClassroom(classData);
+
+            if (classData?._id || classData?.id) {
+                fetchClassroomStats(classData._id || classData.id);
+            }
         } catch (err) {
             setError(err.message || 'Không thể tải thông tin lớp học');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchClassroomStats = async (classId) => {
+        try {
+            setLoadingStats(true);
+            const response = await statisticsService.getClassroomDetailed(classId);
+            setStats(response.data || response);
+        } catch (err) {
+            console.error('Không thể tải thống kê lớp học:', err);
+        } finally {
+            setLoadingStats(false);
         }
     };
 
@@ -151,7 +171,7 @@ const ClassroomDetail = () => {
                 </div>
 
                 <div className="p-6">
-                    {activeTab === 'overview' && <ClassroomOverview classroom={classroom} />}
+                    {activeTab === 'overview' && <ClassroomOverview classroom={classroom} stats={stats} loadingStats={loadingStats} />}
                     {activeTab === 'messages' && <ClassroomMessages classCode={classCode} classroom={classroom} />}
                     {activeTab === 'exams' && <ClassroomExams classCode={classCode} classroom={classroom} onRefresh={fetchClassroomDetail} />}
                     {activeTab === 'members' && <ClassroomMembers classCode={classCode} classroom={classroom} isCreator={classroom.is_creator} />}

@@ -105,7 +105,7 @@ async def get_available_subjects():
     return subjects
 
 
-async def get_my_questions(page: int, page_size: int, current_user):
+async def get_my_questions(page: int, page_size: int, current_user, search: str = None, difficulty: str = None):
     if page < 1:
         page = 1
     if page_size < 1 or page_size > 100:
@@ -113,17 +113,34 @@ async def get_my_questions(page: int, page_size: int, current_user):
 
     skip = (page - 1) * page_size
 
-    items = []
-    total = 0
+    query_conditions = []
+    
+    if current_user.role != "admin":
+        query_conditions.append({"creator_id.$id": current_user.id})
+    
+    if search:
+        from beanie.operators import RegEx, Or
+        search_pattern = f".*{search}.*"
+        query_conditions.append(Or(
+            RegEx(QuestionModel.content, search_pattern, options="i")
+        ))
+    
+    if difficulty:
+        query_conditions.append({"difficulty": difficulty})
 
-    if current_user.role == "admin":
-        query = QuestionModel.find_all().sort([("created_at", -1)])
-        total = await QuestionModel.find_all().count()
-        items = await query.skip(skip).limit(page_size).to_list()
+    if query_conditions:
+        if len(query_conditions) == 1:
+            query = QuestionModel.find(query_conditions[0])
+            total = await QuestionModel.find(query_conditions[0]).count()
+        else:
+            from beanie.operators import And
+            query = QuestionModel.find(And(*query_conditions))
+            total = await QuestionModel.find(And(*query_conditions)).count()
     else:
-        query = QuestionModel.find({"creator_id.$id": current_user.id}).sort([("created_at", -1)])
-        total = await QuestionModel.find({"creator_id.$id": current_user.id}).count()
-        items = await query.skip(skip).limit(page_size).to_list()
+        query = QuestionModel.find_all()
+        total = await QuestionModel.find_all().count()
+
+    items = await query.sort([("created_at", -1)]).skip(skip).limit(page_size).to_list()
 
     total_pages = (total + page_size - 1) // page_size
 

@@ -13,6 +13,7 @@ import {
     PlayIcon,
     RefreshIcon
 } from '../components/icons/Icons';
+import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
 
 const Practice = () => {
     const navigate = useNavigate();
@@ -345,55 +346,55 @@ const Practice = () => {
                         )}
 
                         {activeTab === 'stats' && (
-                            <div className="space-y-6">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-8 animate-fadeIn">
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                                     <div className="space-y-4">
-                                        <h3 className="font-semibold text-gray-900 dark:text-white">Tổng quan</h3>
-                                        <div className="space-y-3">
-                                            <div className="flex justify-between items-center p-3 bg-gray-100 dark:bg-white/5 rounded-lg">
-                                                <span className="text-gray-500">Tổng bài đã tạo</span>
-                                                <span className="font-bold text-gray-900 dark:text-white">{stats?.total_exams || 0}</span>
-                                            </div>
-                                            <div className="flex justify-between items-center p-3 bg-gray-100 dark:bg-white/5 rounded-lg">
-                                                <span className="text-gray-500">Bài đã hoàn thành</span>
-                                                <span className="font-bold text-gray-900 dark:text-white">{stats?.completed_exams || 0}</span>
-                                            </div>
-                                            <div className="flex justify-between items-center p-3 bg-gray-100 dark:bg-white/5 rounded-lg">
-                                                <span className="text-gray-500">Điểm cao nhất</span>
-                                                <span className="font-bold text-green-500">{stats?.highest_score?.toFixed(1) || '0.0'}</span>
-                                            </div>
-                                            <div className="flex justify-between items-center p-3 bg-gray-100 dark:bg-white/5 rounded-lg">
-                                                <span className="text-gray-500">Điểm thấp nhất</span>
-                                                <span className="font-bold text-red-400">{stats?.lowest_score?.toFixed(1) || '0.0'}</span>
-                                            </div>
+                                        <h3 className="font-bold text-gray-900 flex items-center gap-2">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+                                            Phân bố độ khó câu hỏi
+                                        </h3>
+                                        <div className="h-[250px] w-full">
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <PieChart>
+                                                    <Pie
+                                                        data={[
+                                                            { name: 'Dễ', value: questions.filter(q => q.difficulty?.toLowerCase() === 'easy' || q.difficulty?.toLowerCase() === 'dễ').length },
+                                                            { name: 'Trung bình', value: questions.filter(q => q.difficulty?.toLowerCase() === 'medium' || q.difficulty?.toLowerCase() === 'trung bình').length },
+                                                            { name: 'Khó', value: questions.filter(q => q.difficulty?.toLowerCase() === 'hard' || q.difficulty?.toLowerCase() === 'khó').length }
+                                                        ].filter(i => i.value > 0)}
+                                                        innerRadius={60}
+                                                        outerRadius={80}
+                                                        paddingAngle={5}
+                                                        dataKey="value"
+                                                    >
+                                                        <Cell fill="#10b981" />
+                                                        <Cell fill="#f59e0b" />
+                                                        <Cell fill="#ef4444" />
+                                                    </Pie>
+                                                    <Tooltip />
+                                                    <Legend />
+                                                </PieChart>
+                                            </ResponsiveContainer>
                                         </div>
                                     </div>
 
                                     <div className="space-y-4">
-                                        <h3 className="font-semibold text-gray-900 dark:text-white">Ngân hàng câu hỏi</h3>
-                                        <div className="space-y-3">
-                                            <div className="flex justify-between items-center p-3 bg-gray-100 dark:bg-white/5 rounded-lg">
-                                                <span className="text-gray-500">Tổng câu hỏi</span>
-                                                <span className="font-bold text-gray-900 dark:text-white">{questions.length}</span>
-                                            </div>
-                                            <div className="flex justify-between items-center p-3 bg-gray-100 dark:bg-white/5 rounded-lg">
-                                                <span className="text-gray-500">Câu dễ</span>
-                                                <span className="font-bold text-green-500">
-                                                    {questions.filter(q => q.difficulty?.toLowerCase() === 'easy' || q.difficulty?.toLowerCase() === 'dễ').length}
-                                                </span>
-                                            </div>
-                                            <div className="flex justify-between items-center p-3 bg-gray-100 dark:bg-white/5 rounded-lg">
-                                                <span className="text-gray-500">Câu trung bình</span>
-                                                <span className="font-bold text-orange-400">
-                                                    {questions.filter(q => q.difficulty?.toLowerCase() === 'medium' || q.difficulty?.toLowerCase() === 'trung bình').length}
-                                                </span>
-                                            </div>
-                                            <div className="flex justify-between items-center p-3 bg-gray-100 dark:bg-white/5 rounded-lg">
-                                                <span className="text-gray-500">Câu khó</span>
-                                                <span className="font-bold text-red-400">
-                                                    {questions.filter(q => q.difficulty?.toLowerCase() === 'hard' || q.difficulty?.toLowerCase() === 'khó').length}
-                                                </span>
-                                            </div>
+                                        <h3 className="font-bold text-gray-900 flex items-center gap-2">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
+                                            Tóm tắt thành tích
+                                        </h3>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            {[
+                                                { label: 'Bài đã hoàn thành', value: stats?.completed_exams || 0, color: 'text-blue-500' },
+                                                { label: 'Điểm TB', value: stats?.average_score?.toFixed(1) || '0.0', color: 'text-emerald-500' },
+                                                { label: 'Điểm cao nhất', value: stats?.highest_score?.toFixed(1) || '0.0', color: 'text-amber-500' },
+                                                { label: 'Điểm thấp nhất', value: stats?.lowest_score?.toFixed(1) || '0.0', color: 'text-rose-500' }
+                                            ].map((item, i) => (
+                                                <div key={i} className="bg-slate-800/5 p-4 rounded-2xl border border-white/5">
+                                                    <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mb-1">{item.label}</p>
+                                                    <p className={`text-2xl font-black ${item.color}`}>{item.value}</p>
+                                                </div>
+                                            ))}
                                         </div>
                                     </div>
                                 </div>

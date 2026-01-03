@@ -1,22 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import { notificationService } from '../services/otherServices';
+import { useNotifications } from '../contexts/NotificationContext';
 import { BellIcon, TrashIcon, CheckIcon } from '../components/icons/Icons';
 
 const Notifications = () => {
+    const {
+        unreadCount,
+        fetchUnreadCount,
+        markAsRead: contextMarkAsRead,
+        markAllAsRead: contextMarkAllAsRead,
+        deleteNotification: contextDeleteNotification
+    } = useNotifications();
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
 
     useEffect(() => {
         fetchNotifications();
-    }, []);
+    }, [page]);
 
     const fetchNotifications = async () => {
         try {
             setLoading(true);
-            const response = await notificationService.getAll();
+            const response = await notificationService.getAll(page, 20);
             const data = response.data || response;
             setNotifications(data.items || data || []);
+            setTotalPages(data.total_pages || 1);
+            fetchUnreadCount();
         } catch (err) {
             setError(err.message || 'Không thể tải thông báo');
         } finally {
@@ -25,37 +37,23 @@ const Notifications = () => {
     };
 
     const markAsRead = async (notificationId) => {
-        try {
-            await notificationService.markAsRead(notificationId);
-            fetchNotifications();
-        } catch (err) {
-            console.error('Error marking as read:', err);
-        }
+        await contextMarkAsRead([notificationId]);
+        fetchNotifications();
     };
 
     const markAllAsRead = async () => {
-        try {
-            await notificationService.markAsRead(null);
-            fetchNotifications();
-        } catch (err) {
-            console.error('Error marking all as read:', err);
-        }
+        await contextMarkAllAsRead();
+        fetchNotifications();
     };
 
     const deleteNotification = async (notificationId) => {
-        try {
-            await notificationService.delete(notificationId);
-            fetchNotifications();
-        } catch (err) {
-            console.error('Error deleting notification:', err);
-        }
+        await contextDeleteNotification(notificationId);
+        fetchNotifications();
     };
 
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleString('vi-VN');
     };
-
-    const unreadCount = notifications.filter(n => !n.is_read).length;
 
     return (
         <div className="max-w-4xl mx-auto space-y-6">
@@ -140,7 +138,7 @@ const Notifications = () => {
                                             e.stopPropagation();
                                             deleteNotification(notification._id || notification.id);
                                         }}
-                                        className="p-2 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20 transition-colors"
+                                        className="p-2 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/10 transition-colors"
                                         title="Xóa"
                                     >
                                         <TrashIcon className="w-4 h-4" />
@@ -149,6 +147,28 @@ const Notifications = () => {
                             </div>
                         </div>
                     ))}
+
+                    {totalPages > 1 && (
+                        <div className="flex items-center justify-center gap-2 p-4 pt-6">
+                            <button
+                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                                disabled={page === 1}
+                                className="btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Trước
+                            </button>
+                            <span className="text-gray-600 px-4">
+                                Trang {page} / {totalPages}
+                            </span>
+                            <button
+                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                                disabled={page === totalPages}
+                                className="btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Sau
+                            </button>
+                        </div>
+                    )}
                 </div>
             )}
         </div>

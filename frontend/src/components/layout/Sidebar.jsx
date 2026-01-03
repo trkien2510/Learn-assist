@@ -19,7 +19,7 @@ import {
     SunIcon,
     MoonIcon
 } from '../../components/icons/Icons';
-import useNotifications from '../../hooks/useNotifications';
+import { useNotifications } from '../../contexts/NotificationContext';
 import { useTheme } from '../../contexts/ThemeContext';
 
 const Sidebar = () => {
@@ -154,7 +154,7 @@ const Sidebar = () => {
                 </div>
 
 
-                <div className={`p-4 border-b border-white/5 ${isCollapsed ? 'items-center' : ''}`}>
+                <div className={`px-4 py-1 border-b border-white/5 ${isCollapsed ? 'items-center' : ''}`}>
                     <button
                         onClick={() => {
                             navigate('profile');
@@ -190,7 +190,7 @@ const Sidebar = () => {
                     </button>
                 </div>
 
-                <nav className="flex-1 overflow-y-auto p-4 space-y-1">
+                <nav className="flex-1 overflow-y-auto px-4 py-1 space-y-1">
                     {navItems.map((item) => {
                         const IconComponent = item.icon;
 
@@ -244,7 +244,7 @@ const Sidebar = () => {
                     })}
                 </nav>
 
-                <div className="p-4 border-t border-white/5">
+                <div className="px-4 py-1 border-t border-white/5">
                     <button
                         onClick={handleLogout}
                         className={`

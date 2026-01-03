@@ -1,7 +1,7 @@
 import React from 'react';
 import { BookIcon, UsersIcon, ClockIcon, ChartIcon } from '../icons/Icons';
 
-const ClassroomOverview = ({ classroom }) => {
+const ClassroomOverview = ({ classroom, stats, loadingStats }) => {
     return (
         <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -20,7 +20,11 @@ const ClassroomOverview = ({ classroom }) => {
                         <ClockIcon className="w-6 h-6 text-gray-900" />
                     </div>
                     <div className="text-3xl font-bold gradient-text mb-1">
-                        0
+                        {loadingStats ? (
+                            <span className="inline-block w-8 h-8 border-2 border-green-500/30 border-t-green-500 rounded-full animate-spin"></span>
+                        ) : (
+                            stats?.classroom_info?.exam_count || 0
+                        )}
                     </div>
                     <div className="text-gray-500 text-sm">Bài kiểm tra</div>
                 </div>
@@ -30,7 +34,13 @@ const ClassroomOverview = ({ classroom }) => {
                         <ChartIcon className="w-6 h-6 text-gray-900" />
                     </div>
                     <div className="text-3xl font-bold gradient-text mb-1">
-                        --
+                        {loadingStats ? (
+                            <span className="inline-block w-8 h-8 border-2 border-purple-500/30 border-t-purple-500 rounded-full animate-spin"></span>
+                        ) : (
+                            stats?.overall_performance?.average_score !== undefined
+                                ? stats.overall_performance.average_score.toFixed(1)
+                                : '--'
+                        )}
                     </div>
                     <div className="text-gray-500 text-sm">Điểm TB</div>
                 </div>

@@ -16,8 +16,14 @@ async def create_question(question_data: CreateQuestionSchema, current_user: Use
 
 
 @router.get("/all", response_model=BaseResponse)
-async def get_all_questions(page: int = 1, page_size: int = 20, current_user: UserModel = Depends(get_current_user)):
-    data = await question_service.get_my_questions(page, page_size, current_user)
+async def get_all_questions(
+    page: int = 1, 
+    page_size: int = 20, 
+    search: str = None, 
+    difficulty: str = None, 
+    current_user: UserModel = Depends(get_current_user)
+):
+    data = await question_service.get_my_questions(page, page_size, current_user, search, difficulty)
     return BaseResponse(data=data)
 
 

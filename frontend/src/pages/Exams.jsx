@@ -406,7 +406,13 @@ const Exams = () => {
                                                 onClick={() => handleViewResults(exam)}
                                                 className="flex-1 btn-secondary text-sm py-2"
                                             >
-                                                Xem kết quả
+                                                Kết quả
+                                            </button>
+                                            <button
+                                                onClick={() => navigate(`/app/exams/${exam._id || exam.id}/statistics`)}
+                                                className="flex-1 btn-primary text-sm py-2"
+                                            >
+                                                Thống kê
                                             </button>
                                         </>
                                     ) : (
