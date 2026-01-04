@@ -18,23 +18,19 @@ async def get_recent_activities(current_user: UserModel, limit: int = 20) -> lis
     role = current_user.role
     user_id = str(current_user.id)
     
-    # Build query based on role - EXCLUDE auth logs
     if role == "admin":
-        # Admin sees all activities except auth
         query = LogModel.find({"resource_type": {"$ne": "auth"}})
     else:
-        # Teacher/Student see only their own activities except auth
         query = LogModel.find({
             "user_id": user_id,
             "resource_type": {"$ne": "auth"}
         })
     
-    # Get recent logs sorted by created_at desc
+    
     logs = await query.sort([("created_at", -1)]).limit(limit).to_list()
     
     activities = []
     for log in logs:
-        # Get user info
         user_name = "System"
         user_email = ""
         
@@ -48,19 +44,15 @@ async def get_recent_activities(current_user: UserModel, limit: int = 20) -> lis
             except:
                 pass
         
-        # Extract resource name from details if available
+        
         resource_name = log.details.get("resource_name") if log.details else None
         
-        # Ensure resource_name is a string (not dict/object)
         if resource_name is not None:
             if isinstance(resource_name, dict):
-                # If it's a dict, try to get filename or convert to string
                 resource_name = resource_name.get("filename") or str(resource_name)
             elif not isinstance(resource_name, str):
-                # Convert any other type to string
                 resource_name = str(resource_name)
         
-        # Map resource_type to frontend type
         activity_type = log.resource_type if log.resource_type else "system"
         
         activities.append({
@@ -126,7 +118,7 @@ async def get_teacher_dashboard(current_user: UserModel) -> dict:
             member_id = ref.ref.id
             unique_student_ids.add(member_id)
 
-    # Lọc chỉ lấy những user có role là student
+
     total_students = 0
     if unique_student_ids:
         students = await UserModel.find({
@@ -173,7 +165,7 @@ async def get_student_dashboard(current_user: UserModel) -> dict:
 async def get_dashboard(current_user: UserModel) -> dict:
     role = current_user.role
 
-    # Get stats based on role
+
     if role == "admin":
         stats = await get_admin_dashboard()
     elif role == "teacher":
@@ -181,10 +173,10 @@ async def get_dashboard(current_user: UserModel) -> dict:
     else:
         stats = await get_student_dashboard(current_user)
     
-    # Get recent activities for all roles
+    
     recent_activities = await get_recent_activities(current_user, limit=20)
     
-    # Combine stats and activities
+    
     return {
         **stats,
         "recent_activities": recent_activities

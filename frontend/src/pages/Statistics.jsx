@@ -8,8 +8,8 @@ import { statisticsService } from '../services/otherServices';
 import { useAuth, ROLES } from '../contexts/AuthContext';
 import {
     ChartIcon, UsersIcon, BookIcon, ExamIcon,
-    TrendingUpIcon, TrendingDownIcon, AwardIcon, TargetIcon,
-    ArrowRightIcon, CalendarIcon, MoreVerticalIcon
+    TrendingUpIcon, AwardIcon, TargetIcon,
+    ArrowRightIcon, CalendarIcon
 } from '../components/icons/Icons';
 import { useNavigate } from 'react-router-dom';
 

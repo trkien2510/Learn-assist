@@ -11,7 +11,6 @@ import os
 
 
 async def process_upload(number_question: int, file: UploadFile, current_user):
-    # All authenticated users can upload documents
     try:
         document_content = await read_and_clean_uploaded_file(file)
 
@@ -40,15 +39,12 @@ async def process_upload(number_question: int, file: UploadFile, current_user):
         )
         await new_document.insert()
 
-        # Call OpenAI with Structured Outputs - returns {"questions": [...]} dict
         ai_response = call_openai_for_questions(create_question_generation_prompt(document_content.strip(), number_question))
         
-        # Handle AI response (Structured Outputs returns dict with 'questions' key)
         questions = []
         if ai_response and isinstance(ai_response, dict):
             questions = ai_response.get("questions", [])
         elif ai_response and isinstance(ai_response, list):
-            # Fallback for backward compatibility
             questions = ai_response
 
         await log_service.log_document("upload_document", str(new_document.id), current_user, {
@@ -56,7 +52,7 @@ async def process_upload(number_question: int, file: UploadFile, current_user):
             "number_question": number_question
         })
 
-        # Notify user about successful upload
+
         question_count = len(questions)
         await notification_service.notify_document_upload_success(
             user=current_user,
@@ -73,13 +69,11 @@ async def process_upload(number_question: int, file: UploadFile, current_user):
     except AppException:
         raise
     except Exception as e:
-        # Notify user about failed upload
         await notification_service.notify_document_upload_failed(
             user=current_user,
             document_name=file.filename,
             error_message=str(e)
         )
-        # Notify admins about potential system error
         await notification_service.notify_admins_system_error(
             error_type="Document Processing",
             error_message=str(e),
@@ -134,7 +128,6 @@ async def get_my_documents(page: int, page_size: int, current_user):
         items = await query.skip(skip).limit(page_size).to_list()
 
     else:
-        # Students can view their own documents
         query = DocumentModel.find({"creator.$id": current_user.id}).sort([("upload_date", -1)])
         total = await DocumentModel.find({"creator.$id": current_user.id}).count()
         items = await query.skip(skip).limit(page_size).to_list()
@@ -193,7 +186,6 @@ async def save_questions(list_question_data, document_id: str, current_user):
 
     saved_questions = []
     for q in questions:
-        # Map difficulty from Vietnamese to English Enum values
         raw_diff = q.difficulty.lower()
         if "dễ" in raw_diff or "easy" in raw_diff:
             diff_val = "Easy"

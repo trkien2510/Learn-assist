@@ -30,12 +30,10 @@ async def create_exam(exam_data, current_user):
             except:
                 pass
 
-    # Ensure datetime objects have UTC timezone
+
     start_at = exam_data.start_at
     end_at = exam_data.end_at
     
-    # If datetime is naive (no timezone), assume it's UTC
-    # If it has timezone, convert to UTC
     if start_at.tzinfo is None:
         start_at = start_at.replace(tzinfo=timezone.utc)
     else:

@@ -229,3 +229,9 @@ export const adminService = {
         }
     }
 };
+
+export const dashboardService = {
+    async getDashboard() {
+        return httpClient.get(API_ENDPOINTS.DASHBOARD);
+    }
+};

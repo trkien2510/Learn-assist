@@ -17,7 +17,7 @@ const Results = () => {
     const fetchResults = async () => {
         try {
             setLoading(true);
-            setError(''); 
+            setError('');
             const examId = searchParams.get('exam_id');
             const classId = searchParams.get('class_id');
 
@@ -36,7 +36,7 @@ const Results = () => {
         } catch (err) {
             console.error('Error fetching results:', err);
             setError(err.message || 'Không thể tải kết quả');
-            setResults([]); 
+            setResults([]);
         } finally {
             setLoading(false);
         }

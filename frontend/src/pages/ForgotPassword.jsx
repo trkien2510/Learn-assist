@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authService } from '../services/authService';
-import { EmailIcon } from '../components/icons/Icons';
+import { EmailIcon, KeyIcon, AlertTriangleIcon, CheckCircleIcon, SpinnerIcon } from '../components/icons/Icons';
 
 const ForgotPassword = () => {
     const [step, setStep] = useState(1);
@@ -108,9 +108,7 @@ const ForgotPassword = () => {
             <div className="relative z-10 w-full max-w-md animate-fadeIn">
                 <div className="text-center mb-8">
                     <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-linear-to-br from-blue-500 to-indigo-600 mb-4 glow-primary">
-                        <svg className="w-8 h-8 text-gray-900 dark:text-gray-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                        </svg>
+                        <KeyIcon className="w-8 h-8 text-gray-900 dark:text-gray-900" />
                     </div>
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-900 mb-2">Quên mật khẩu</h1>
                     <p className="text-gray-500 dark:text-gray-400">
@@ -123,9 +121,7 @@ const ForgotPassword = () => {
                     {error && (
                         <div className="mb-6 p-4 rounded-xl bg-red-500/10 border-2 border-red-500/50 animate-fadeIn">
                             <div className="flex items-start gap-3">
-                                <svg className="w-5 h-5 text-red-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                </svg>
+                                <AlertTriangleIcon className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
                                 <p className="text-red-400 font-medium text-sm">{error}</p>
                             </div>
                         </div>
@@ -134,9 +130,7 @@ const ForgotPassword = () => {
                     {success && (
                         <div className="mb-6 p-4 rounded-xl bg-green-500/10 border-2 border-green-500/50 animate-fadeIn">
                             <div className="flex items-start gap-3">
-                                <svg className="w-5 h-5 text-green-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
+                                <CheckCircleIcon className="w-5 h-5 text-green-400 shrink-0 mt-0.5" />
                                 <p className="text-green-400 font-medium text-sm">{success}</p>
                             </div>
                         </div>
@@ -168,10 +162,7 @@ const ForgotPassword = () => {
                             >
                                 {isLoading ? (
                                     <span className="flex items-center justify-center gap-2">
-                                        <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                                        </svg>
+                                        <SpinnerIcon />
                                         Đang gửi...
                                     </span>
                                 ) : 'Gửi mã OTP'}
@@ -223,10 +214,7 @@ const ForgotPassword = () => {
                             >
                                 {isLoading ? (
                                     <span className="flex items-center justify-center gap-2">
-                                        <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                                        </svg>
+                                        <SpinnerIcon />
                                         Đang xử lý...
                                     </span>
                                 ) : 'Đặt lại mật khẩu'}

@@ -101,10 +101,8 @@ async def verify_otp(email: str, otp_code: str, purpose: OTPPurpose) -> bool:
 async def request_registration_otp(email: str, background_tasks = None) -> dict:
     existing_user = await UserModel.find_one({"email": email})
     if existing_user:
-        # Cho phép gửi lại OTP nếu email chưa được xác thực
         if existing_user.email_verified:
             raise AppException(StatusCode.BAD_REQUEST, "Email đã được đăng ký và xác thực")
-        # Nếu email chưa verify, cho phép gửi lại OTP
         return await create_and_send_otp(email, OTPPurpose.REGISTRATION, existing_user.full_name, background_tasks)
 
     return await create_and_send_otp(email, OTPPurpose.REGISTRATION, background_tasks=background_tasks)
