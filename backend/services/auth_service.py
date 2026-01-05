@@ -77,12 +77,6 @@ async def login(login_data):
     user = await UserModel.find_one(query)
 
     if not user or not verify_password(login_data.password, user.hashed_password):
-        await log_service.create_log(
-            action="login_failed",
-            resource_type="auth",
-            details={"identifier": identifier},
-            status="error"
-        )
         raise AppException(StatusCode.UNAUTHORIZED, "Invalid username or password")
 
     if not user.email_verified:
