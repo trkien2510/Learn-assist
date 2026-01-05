@@ -35,10 +35,11 @@ const ForgotPassword = () => {
         setIsLoading(true);
         try {
             await authService.forgotPassword(email);
-            setSuccess('Mã OTP đã được gửi đến email của bạn');
+            setSuccess('Nếu email tồn tại trong hệ thống, mã OTP đã được gửi đến email của bạn');
             setStep(2);
         } catch (err) {
-            setError(err.response?.data?.message || err.message || 'Không thể gửi OTP. Vui lòng thử lại.');
+            setSuccess('Nếu email tồn tại trong hệ thống, mã OTP đã được gửi đến email của bạn');
+            setStep(2);
         } finally {
             setIsLoading(false);
         }
@@ -229,7 +230,7 @@ const ForgotPassword = () => {
                                     setConfirmPassword('');
                                     setError('');
                                 }}
-                                className="w-full py-3 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                                className="w-full btn-primary py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 Gửi lại mã OTP
                             </button>

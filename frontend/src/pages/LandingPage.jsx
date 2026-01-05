@@ -123,7 +123,7 @@ const LandingPage = () => {
                 </div>
             </nav>
 
-            <section className="pt-24 pb-20 px-6 sm:px-8 lg:px-12 mt-16 relative overflow-hidden">
+            <section className="min-h-[calc(100dvh-4rem)] pt-40 pb-20 sm:px-8 lg:px-12 mt-16 relative overflow-hidden">
                 <div className="absolute inset-0 overflow-hidden pointer-events-none">
                     <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl"></div>
                     <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl"></div>
@@ -132,13 +132,11 @@ const LandingPage = () => {
                 <div className="mx-auto max-w-7xl relative z-10">
                     <div className="text-center mb-16">
                         <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-                            <span className="gradient-text">Hệ thống hỗ trợ</span>
-                            <br />
-                            <span className="gradient-text">học tập thông minh</span>
+                            <span className="gradient-text">Hệ thống hỗ trợ học tập</span>
                         </h1>
                         <p className="text-xl text-(--text-muted) mb-8 max-w-3xl mx-auto leading-relaxed">
-                            Nền tảng <strong className="text-(--text-color)">AI-powered</strong> tự động tạo câu hỏi trắc nghiệm từ tài liệu,
-                            hỗ trợ giáo viên tạo đề thi và học viên ôn luyện hiệu quả.
+                            Nền tảng tự động tạo câu hỏi trắc nghiệm từ tài liệu,
+                            hỗ trợ giáo viên tạo bài kiểm tra và học viên ôn luyện hiệu quả.
                             Quản lý lớp học, theo dõi tiến độ với thống kê chi tiết.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">

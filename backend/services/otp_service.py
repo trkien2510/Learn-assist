@@ -131,14 +131,15 @@ async def verify_registration_otp(email: str, otp_code: str) -> dict:
 
 
 async def request_forgot_password_otp(email: str, background_tasks = None) -> dict:
+    success_message = {"message": "Nếu email tồn tại trong hệ thống, mã OTP đã được gửi đến email của bạn"}
+    
     user = await UserModel.find_one({"email": email})
-    if not user:
-        raise AppException(StatusCode.NOT_FOUND, "Không tìm thấy tài khoản với email này")
+    
+    if not user or not user.is_activate:
+        return success_message
 
-    if not user.is_activate:
-        raise AppException(StatusCode.FORBIDDEN, "Tài khoản đã bị vô hiệu hóa")
-
-    return await create_and_send_otp(email, OTPPurpose.FORGOT_PASSWORD, user.full_name, background_tasks)
+    await create_and_send_otp(email, OTPPurpose.FORGOT_PASSWORD, user.full_name, background_tasks)
+    return success_message
 
 
 async def reset_password(email: str, otp_code: str, new_password: str, confirm_password: str) -> dict:

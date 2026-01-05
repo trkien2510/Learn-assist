@@ -191,7 +191,7 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-body::-webkit-scrollbar {
+/* body::-webkit-scrollbar {
   display: none;
 }
 
@@ -202,7 +202,7 @@ body::-webkit-scrollbar {
 
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
-}
+} */
 
 @keyframes fadeIn {
   from {
