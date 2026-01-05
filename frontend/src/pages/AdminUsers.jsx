@@ -4,7 +4,6 @@ import {
     UsersIcon,
     SearchIcon,
     TrashIcon,
-    ChartBarIcon,
     UserGroupIcon,
     ShieldCheckIcon,
     ClockIcon,
@@ -130,7 +129,13 @@ const AdminUsers = () => {
     };
 
     const formatDate = (dateString) => {
-        return new Date(dateString).toLocaleDateString('vi-VN', {
+        if (!dateString) return '';
+        let dateStr = dateString;
+        if (!/Z|[+-]\d{2}:\d{2}$/.test(dateString)) {
+            dateStr = dateString + 'Z';
+        }
+        return new Date(dateStr).toLocaleDateString('vi-VN', {
+            timeZone: 'Asia/Ho_Chi_Minh',
             year: 'numeric',
             month: '2-digit',
             day: '2-digit'
@@ -138,7 +143,12 @@ const AdminUsers = () => {
     };
 
     const formatDateTime = (dateString) => {
-        return new Date(dateString).toLocaleString('vi-VN');
+        if (!dateString) return '';
+        let dateStr = dateString;
+        if (!/Z|[+-]\d{2}:\d{2}$/.test(dateString)) {
+            dateStr = dateString + 'Z';
+        }
+        return new Date(dateStr).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
     };
 
     return (

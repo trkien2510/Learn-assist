@@ -141,7 +141,7 @@ const Profile = () => {
             <div className="card-glass p-8">
                 <div className="flex items-start justify-between mb-6">
                     <div className="flex items-center gap-4">
-                        <div className="w-20 h-20 rounded-full bg-linear-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-gray-900 text-2xl font-bold">
+                        <div className="w-20 h-20 rounded-full bg-linear-to-br/srgb from-cyan-400 to-blue-500 flex items-center justify-center text-gray-900 text-2xl font-bold">
                             {user?.full_name?.charAt(0).toUpperCase() || user?.username?.charAt(0).toUpperCase() || 'U'}
                         </div>
                         <div>

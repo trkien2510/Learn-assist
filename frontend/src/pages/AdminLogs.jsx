@@ -81,20 +81,31 @@ const AdminLogs = () => {
 
     const handleExport = () => {
         const headers = ['Thời gian', 'Người dùng', 'Hành động', 'Tài nguyên', 'Trạng thái'];
+
+        const escapeCSV = (value) => {
+            if (value == null) return '';
+            const str = String(value);
+            if (str.includes(',') || str.includes('\n') || str.includes('"')) {
+                return `"${str.replace(/"/g, '""')}"`;
+            }
+            return str;
+        };
+
         const rows = logs.map(log => [
-            formatDateVN(log.created_at),
-            log.user_id || 'N/A',
-            log.action,
-            log.resource_type || 'N/A',
-            log.status
+            escapeCSV(formatDateVN(log.created_at)),
+            escapeCSV(log.user_id || 'N/A'),
+            escapeCSV(log.action),
+            escapeCSV(log.resource_type || 'N/A'),
+            escapeCSV(log.status)
         ]);
 
         const csvContent = [
-            headers.join(','),
+            headers.map(escapeCSV).join(','),
             ...rows.map(row => row.join(','))
         ].join('\n');
 
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const BOM = '\uFEFF';
+        const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
         link.download = `logs_${new Date().toISOString()}.csv`;

@@ -15,6 +15,7 @@ const useDateFormat = () => {
 
         const defaultOptions = {
             locale: 'vi-VN',
+            timeZone: 'Asia/Ho_Chi_Minh',
             ...options
         };
 

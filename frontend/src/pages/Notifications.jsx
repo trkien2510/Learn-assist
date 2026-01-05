@@ -52,7 +52,12 @@ const Notifications = () => {
     };
 
     const formatDate = (dateString) => {
-        return new Date(dateString).toLocaleString('vi-VN');
+        if (!dateString) return '';
+        let dateStr = dateString;
+        if (!/Z|[+-]\d{2}:\d{2}$/.test(dateString)) {
+            dateStr = dateString + 'Z';
+        }
+        return new Date(dateStr).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
     };
 
     return (

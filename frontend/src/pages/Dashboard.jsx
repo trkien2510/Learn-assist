@@ -141,7 +141,6 @@ const Dashboard = () => {
                     { name: 'Quản lý người dùng', description: 'Xem và quản lý tài khoản', href: '/app/users' },
                     { name: 'Quản lý lớp học', description: 'Xem tất cả lớp học', href: '/app/classrooms' },
                     { name: 'Xem logs hệ thống', description: 'Theo dõi hoạt động', href: '/app/logs' },
-                    { name: 'Thống kê hệ thống', description: 'Xem thống kê tổng quan', href: '/app/statistics' }
                 ];
             case ROLES.TEACHER:
                 return [

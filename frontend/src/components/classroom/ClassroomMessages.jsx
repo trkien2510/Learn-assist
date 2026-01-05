@@ -98,7 +98,14 @@ const ClassroomMessages = ({ classCode, classroom }) => {
     };
 
     const formatTime = (dateString) => {
-        const date = new Date(dateString);
+        if (!dateString) return '';
+
+        let dateStr = dateString;
+        if (!/Z|[+-]\d{2}:\d{2}$/.test(dateString)) {
+            dateStr = dateString + 'Z';
+        }
+
+        const date = new Date(dateStr);
         const now = new Date();
         const diffMs = now - date;
         const diffMins = Math.floor(diffMs / 60000);
@@ -109,7 +116,8 @@ const ClassroomMessages = ({ classCode, classroom }) => {
         if (diffMins < 60) return `${diffMins} phút trước`;
         if (diffHours < 24) return `${diffHours} giờ trước`;
         if (diffDays < 7) return `${diffDays} ngày trước`;
-        return date.toLocaleDateString('vi-VN');
+
+        return date.toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
     };
 
     return (

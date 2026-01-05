@@ -69,7 +69,13 @@ const ClassroomOverview = ({ classroom, stats, loadingStats }) => {
                     <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
                         <span className="text-gray-500">Ngày tạo</span>
                         <span className="text-gray-900">
-                            {new Date(classroom.created_at).toLocaleDateString('vi-VN')}
+                            {(() => {
+                                let dateStr = classroom.created_at;
+                                if (!/Z|[+-]\d{2}:\d{2}$/.test(dateStr)) {
+                                    dateStr = dateStr + 'Z';
+                                }
+                                return new Date(dateStr).toLocaleDateString('vi-VN');
+                            })()}
                         </span>
                     </div>
                 </div>

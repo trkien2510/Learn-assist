@@ -56,9 +56,14 @@ const NotificationItem = ({ notification, onMarkAsRead, onDelete, onClick }) => 
         }
     };
 
-    const timeAgo = notification.created_at
-        ? formatDistanceToNow(new Date(notification.created_at), { addSuffix: true, locale: vi })
-        : '';
+    const timeAgo = (() => {
+        if (!notification.created_at) return '';
+        let dateStr = notification.created_at;
+        if (!/Z|[+-]\d{2}:\d{2}$/.test(dateStr)) {
+            dateStr = dateStr + 'Z';
+        }
+        return formatDistanceToNow(new Date(dateStr), { addSuffix: true, locale: vi });
+    })();
 
     return (
         <div
