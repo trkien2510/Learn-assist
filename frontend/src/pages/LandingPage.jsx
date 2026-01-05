@@ -40,8 +40,8 @@ const LandingPage = () => {
         },
         {
             icon: <DocumentIcon className="w-8 h-8 text-white" />,
-            title: 'Tạo Đề Thi Linh Hoạt',
-            description: 'Tạo đề thi từ ngân hàng câu hỏi, đặt thời gian, chọn lớp học. Hỗ trợ xem trước và thay thế câu hỏi trước khi phát đề.',
+            title: 'Tạo Đề Kiểm Tra Linh Hoạt',
+            description: 'Tạo đề kiểm tra từ ngân hàng câu hỏi, đặt thời gian, chọn lớp học. Hỗ trợ xem trước và thay thế câu hỏi trước khi phát đề.',
             gradient: 'from-orange-500 to-amber-500',
             badge: 'Exams'
         },
@@ -62,7 +62,7 @@ const LandingPage = () => {
         {
             icon: <BellIcon className="w-8 h-8 text-white" />,
             title: 'Thông Báo Thời Gian Thực',
-            description: 'Nhận thông báo khi có bài thi mới, kết quả thi, yêu cầu tham gia lớp và các cập nhật quan trọng khác.',
+            description: 'Nhận thông báo khi có bài kiểm tra mới, kết quả kiểm tra, yêu cầu tham gia lớp và các cập nhật quan trọng khác.',
             gradient: 'from-rose-500 to-red-500',
             badge: 'Real-time'
         }
@@ -73,15 +73,15 @@ const LandingPage = () => {
             { step: 1, title: 'Đăng ký & Tạo lớp học', desc: 'Tạo tài khoản giáo viên và thiết lập lớp học với mã tham gia riêng' },
             { step: 2, title: 'Upload tài liệu', desc: 'Tải lên PDF/DOCX và chọn số lượng câu hỏi để AI tạo tự động' },
             { step: 3, title: 'Quản lý câu hỏi', desc: 'Xem, chỉnh sửa, phân loại câu hỏi theo chủ đề và độ khó' },
-            { step: 4, title: 'Tạo đề thi', desc: 'Chọn câu hỏi, đặt thời gian, gán cho lớp học và phát đề' },
+            { step: 4, title: 'Tạo đề kiểm tra', desc: 'Chọn câu hỏi, đặt thời gian, gán cho lớp học và phát đề' },
             { step: 5, title: 'Xem kết quả', desc: 'Theo dõi điểm số, phân tích thống kê chi tiết của học viên' }
         ],
         student: [
             { step: 1, title: 'Đăng ký & Tham gia lớp', desc: 'Tạo tài khoản học viên và gửi yêu cầu tham gia lớp bằng mã' },
-            { step: 2, title: 'Làm bài thi', desc: 'Nhận thông báo, vào làm bài thi trong thời gian quy định' },
-            { step: 3, title: 'Xem kết quả', desc: 'Xem điểm, đáp án đúng sau khi hoàn thành bài thi' },
+            { step: 2, title: 'Làm bài kiểm tra', desc: 'Nhận thông báo, vào làm bài kiểm tra trong thời gian quy định' },
+            { step: 3, title: 'Xem kết quả', desc: 'Xem điểm, đáp án đúng sau khi hoàn thành bài kiểm tra' },
             { step: 4, title: 'Luyện tập', desc: 'Tự upload tài liệu, tạo đề ôn tập cá nhân không giới hạn' },
-            { step: 5, title: 'Theo dõi tiến độ', desc: 'Xem thống kê điểm số, tiến bộ qua các bài thi' }
+            { step: 5, title: 'Theo dõi tiến độ', desc: 'Xem thống kê điểm số, tiến bộ qua các bài kiểm tra' }
         ]
     };
 
@@ -295,7 +295,7 @@ const LandingPage = () => {
                                 </li>
                                 <li className="flex items-center gap-2">
                                     <CheckIcon className="w-5 h-5 text-green-500" />
-                                    Upload tài liệu, tạo đề thi
+                                    Upload tài liệu, tạo đề kiểm tra
                                 </li>
                                 <li className="flex items-center gap-2">
                                     <CheckIcon className="w-5 h-5 text-green-500" />
@@ -321,7 +321,7 @@ const LandingPage = () => {
                                 </li>
                                 <li className="flex items-center gap-2">
                                     <CheckIcon className="w-5 h-5 text-green-500" />
-                                    Làm bài thi trực tuyến
+                                    Làm bài kiểm tra trực tuyến
                                 </li>
                                 <li className="flex items-center gap-2">
                                     <CheckIcon className="w-5 h-5 text-green-500" />

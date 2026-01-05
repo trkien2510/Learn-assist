@@ -216,8 +216,8 @@ const ClassroomMessages = ({ classCode, classroom }) => {
                                     handleSendMessage(e);
                                 }
                             }}
-                            placeholder="Nhập tin nhắn... (Enter để gửi, Shift+Enter để xuống dòng)"
-                            className="flex-1 input-glass resize-none min-h-[60px] max-h-[120px]"
+                            placeholder="Aa"
+                            className="flex-1 input-glass resize-none min-h-[50px] max-h-[60px]"
                             disabled={sending}
                         />
                         <button

@@ -58,7 +58,7 @@ const ExamStatistics = () => {
             const response = await statisticsService.getExamDetailed(id);
             setStats(response.data || response);
         } catch (err) {
-            setError(err.message || 'Không thể tải thống kê bài thi');
+            setError(err.message || 'Không thể tải thống kê bài kiểm tra');
         } finally {
             setLoading(false);
         }
@@ -89,7 +89,7 @@ const ExamStatistics = () => {
             <div className="min-h-[60vh] flex items-center justify-center">
                 <div className="flex flex-col items-center gap-4">
                     <div className="w-16 h-16 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin"></div>
-                    <p className="text-gray-500 animate-pulse font-medium">Đang tổng hợp dữ liệu bài thi...</p>
+                    <p className="text-gray-500 animate-pulse font-medium">Đang tổng hợp dữ liệu bài kiểm tra...</p>
                 </div>
             </div>
         );
@@ -121,7 +121,7 @@ const ExamStatistics = () => {
                     <div className="p-2 rounded-lg bg-gray-100 group-hover:bg-blue-50 transition-colors">
                         <ArrowLeftIcon className="w-4 h-4" />
                     </div>
-                    Quay lại danh sách bài thi
+                    Quay lại danh sách bài kiểm tra
                 </button>
             </div>
 
@@ -200,7 +200,7 @@ const ExamStatistics = () => {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {/* Score Distribution Chart */}
                         <div className="card-glass p-6">
-                            <h3 className="text-lg font-bold text-gray-900 mb-6">Phổ điểm bài thi</h3>
+                            <h3 className="text-lg font-bold text-gray-900 mb-6">Phổ điểm bài kiểm tra</h3>
                             <div className="w-full">
                                 <ResponsiveContainer width="100%" height={350}>
                                     <ComposedChart data={chartData.scoreDistribution}>

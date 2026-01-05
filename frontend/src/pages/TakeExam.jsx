@@ -69,7 +69,7 @@ const TakeExam = () => {
             });
             setAnswers(initialAnswers);
         } catch (err) {
-            setError(err.message || 'Không thể bắt đầu bài thi');
+            setError(err.message || 'Không thể bắt đầu bài kiểm tra');
             setTimeout(() => navigate('/app/exams'), 3000);
         } finally {
             setLoading(false);
@@ -115,7 +115,7 @@ const TakeExam = () => {
     const getTimeColor = () => {
         if (timeRemaining > 300) return 'text-green-400';
         if (timeRemaining > 60) return 'text-yellow-400';
-        return 'text-red-400 animate-pulse'; 
+        return 'text-red-400 animate-pulse';
     };
 
     const goToQuestion = (index) => {
@@ -143,7 +143,7 @@ const TakeExam = () => {
             <div className="min-h-[60vh] flex items-center justify-center">
                 <div className="text-center">
                     <div className="w-16 h-16 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto mb-4"></div>
-                    <p className="text-gray-600">Đang tải đề thi...</p>
+                    <p className="text-gray-600">Đang tải đề kiểm tra...</p>
                 </div>
             </div>
         );
@@ -169,7 +169,7 @@ const TakeExam = () => {
                     <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-linear-to-br from-green-500 to-emerald-500 flex items-center justify-center">
                         <CheckIcon className="w-12 h-12 text-gray-900" />
                     </div>
-                    <h2 className="text-3xl font-bold gradient-text mb-4">Hoàn thành bài thi!</h2>
+                    <h2 className="text-3xl font-bold gradient-text mb-4">Hoàn thành bài kiểm tra!</h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                         <div className="p-6 bg-white/5 rounded-xl">
                             <p className="text-gray-500 text-sm mb-2">Điểm số</p>
@@ -189,7 +189,7 @@ const TakeExam = () => {
                             Xem chi tiết kết quả
                         </button>
                         <button onClick={() => navigate('/app/exams')} className="btn-secondary">
-                            Về danh sách đề thi
+                            Về danh sách đề kiểm tra
                         </button>
                     </div>
                 </div>

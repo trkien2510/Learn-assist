@@ -97,7 +97,7 @@ const ClassroomStatistics = ({ classCode, classroom }) => {
                     { label: 'Điểm trung bình', value: overall_performance.average_score, icon: AwardIcon, color: 'from-blue-500 to-indigo-600' },
                     { label: 'Tỉ lệ đạt', value: `${overall_performance.pass_rate}%`, icon: TrendingUpIcon, color: 'from-green-500 to-emerald-500' },
                     { label: 'Học sinh giỏi', value: `${overall_performance.excellence_rate}%`, icon: UsersIcon, color: 'from-orange-500 to-amber-500' },
-                    { label: 'Tổng bản đề xuất', value: overall_performance.total_submissions, icon: ExamIcon, color: 'from-purple-500 to-pink-500' }
+                    { label: 'Tổng lượt nộp', value: overall_performance.total_submissions, icon: ExamIcon, color: 'from-purple-500 to-pink-500' }
                 ].map((item, i) => (
                     <div key={i} className="card-glass p-5 hover:translate-y-[-2px] transition-all">
                         <div className="flex items-center gap-4">
@@ -207,34 +207,6 @@ const ClassroomStatistics = ({ classCode, classroom }) => {
                         </tbody>
                     </table>
                 </div>
-            </div>
-
-            <h3 className="text-xl font-bold text-gray-900 mt-12 mb-6">Chi tiết các bài kiểm tra</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {exam_breakdown.map(exam => (
-                    <div key={exam.exam_id} className="card-glass p-6 group hover:translate-y-[-4px] transition-all">
-                        <div className="flex justify-between items-start mb-4">
-                            <h4 className="font-bold text-gray-900 group-hover:text-blue-500 transition-colors truncate pr-4">{exam.title}</h4>
-                            <div className="p-2 bg-blue-500/10 text-blue-600 rounded-xl">
-                                <ExamIcon className="w-5 h-5" />
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="bg-slate-800/5 p-3 rounded-2xl border border-white/5">
-                                <p className="text-[10px] text-gray-500 uppercase font-black mb-1">Điểm TB</p>
-                                <p className="text-xl font-black text-gray-900">{exam.average_score}</p>
-                            </div>
-                            <div className="bg-slate-800/5 p-3 rounded-2xl border border-white/5">
-                                <p className="text-[10px] text-gray-500 uppercase font-black mb-1">Tỉ lệ đạt</p>
-                                <p className="text-xl font-black text-gray-900">{exam.pass_rate}%</p>
-                            </div>
-                        </div>
-                        <div className="mt-4 flex items-center justify-between text-xs text-gray-500 border-t border-white/5 pt-4">
-                            <span>{exam.participants} học sinh nộp</span>
-                            <span>{exam.participation_rate}% tham gia</span>
-                        </div>
-                    </div>
-                ))}
             </div>
         </div>
     );

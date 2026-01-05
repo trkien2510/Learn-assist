@@ -75,7 +75,7 @@ function App() {
                   </Route>
 
                   <Route element={<RoleRoute allowedRoles={[ROLES.ADMIN, ROLES.TEACHER]} />}>
-                    <Route path="exams/create" element={<PlaceholderPage title="Tạo đề thi" />} />
+                    <Route path="exams/create" element={<PlaceholderPage title="Tạo đề kiểm tra" />} />
                   </Route>
 
                   <Route path="documents" element={<Documents />} />
@@ -83,7 +83,7 @@ function App() {
                   <Route path="classrooms" element={<Classrooms />} />
                   <Route path="classroom/:classCode" element={<ClassroomDetail />} />
                   <Route path="exams" element={<Exams />} />
-                  <Route path="exams/:id" element={<PlaceholderPage title="Chi tiết bài thi" />} />
+                  <Route path="exams/:id" element={<PlaceholderPage title="Chi tiết bài kiểm tra" />} />
                   <Route path="exams/:id/statistics" element={<ExamStatistics />} />
                   <Route path="take-exam/:id" element={<TakeExam />} />
                   <Route path="statistics" element={<Statistics />} />

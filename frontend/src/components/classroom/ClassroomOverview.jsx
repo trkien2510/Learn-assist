@@ -6,7 +6,7 @@ const ClassroomOverview = ({ classroom, stats, loadingStats }) => {
         <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="card-glass p-6 text-center hover-scale">
-                    <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-linear-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+                    <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-linear-to-br/srgb from-blue-500 to-cyan-500 flex items-center justify-center">
                         <UsersIcon className="w-6 h-6 text-gray-900" />
                     </div>
                     <div className="text-3xl font-bold gradient-text mb-1">
@@ -16,7 +16,7 @@ const ClassroomOverview = ({ classroom, stats, loadingStats }) => {
                 </div>
 
                 <div className="card-glass p-6 text-center hover-scale">
-                    <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-linear-to-br from-green-500 to-emerald-500 flex items-center justify-center">
+                    <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-linear-to-br/srgb from-green-500 to-emerald-500 flex items-center justify-center">
                         <ClockIcon className="w-6 h-6 text-gray-900" />
                     </div>
                     <div className="text-3xl font-bold gradient-text mb-1">
@@ -30,7 +30,7 @@ const ClassroomOverview = ({ classroom, stats, loadingStats }) => {
                 </div>
 
                 <div className="card-glass p-6 text-center hover-scale">
-                    <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-linear-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                    <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-linear-to-br/srgb from-purple-500 to-pink-500 flex items-center justify-center">
                         <ChartIcon className="w-6 h-6 text-gray-900" />
                     </div>
                     <div className="text-3xl font-bold gradient-text mb-1">

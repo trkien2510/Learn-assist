@@ -70,7 +70,7 @@ const Results = () => {
             setSelectedResult(result);
         } catch (err) {
             console.error('Error fetching exam details:', err);
-            setError(err.message || 'Không thể tải chi tiết bài thi');
+            setError(err.message || 'Không thể tải chi tiết bài kiểm tra');
         } finally {
             setLoading(false);
         }
@@ -115,7 +115,7 @@ const Results = () => {
             {results.length === 0 ? (
                 <div className="card-glass p-12 text-center">
                     <h3 className="text-xl font-semibold text-gray-900 mb-2">Chưa có kết quả nào</h3>
-                    <p className="text-gray-500">Hoàn thành bài thi để xem kết quả</p>
+                    <p className="text-gray-500">Hoàn thành bài kiểm tra để xem kết quả</p>
                 </div>
             ) : selectedResult ? (
                 <div className="space-y-6">
@@ -236,7 +236,7 @@ const Results = () => {
                             <div className="flex items-center justify-between">
                                 <div className="flex-1">
                                     <h3 className="font-semibold text-gray-900 mb-2">
-                                        {result.exam?.title || 'Bài thi'}
+                                        {result.exam?.title || 'Bài kiểm tra'}
                                     </h3>
                                     <div className="flex gap-6 text-sm text-gray-500">
                                         <span>📅 {formatDate(result.submit_at || result.created_at)}</span>

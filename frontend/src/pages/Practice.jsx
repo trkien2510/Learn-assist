@@ -145,13 +145,6 @@ const Practice = () => {
                 </div>
                 <div className="flex gap-3">
                     <button
-                        onClick={fetchData}
-                        className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
-                        title="Làm mới"
-                    >
-                        <RefreshIcon className="w-5 h-5 text-gray-500" />
-                    </button>
-                    <button
                         onClick={() => setShowCreateModal(true)}
                         className="btn-primary flex items-center gap-2"
                         disabled={questions.length === 0}
@@ -241,7 +234,7 @@ const Practice = () => {
                                         onClick={() => setActiveTab(tab.id)}
                                         className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${activeTab === tab.id
                                             ? 'bg-blue-500/20 text-blue-500'
-                                            : 'text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-white/10'
+                                            : 'text-gray-500 hover:text-gray-900 dark:hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-white/10'
                                             }`}
                                     >
                                         <Icon className="w-4 h-4" />

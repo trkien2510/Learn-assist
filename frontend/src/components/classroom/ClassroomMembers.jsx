@@ -96,7 +96,7 @@ const ClassroomMembers = ({ classCode, classroom, isCreator }) => {
                         return (
                             <div key={member.id || member._id} className={`card-glass p-4 hover-scale ${isSelf ? 'ring-2 ring-blue-500/30' : ''}`}>
                                 <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 rounded-full bg-linear-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-gray-900 font-semibold text-lg">
+                                    <div className="w-12 h-12 rounded-full bg-linear-to-br/srgb from-cyan-400 to-blue-500 flex items-center justify-center text-gray-900 font-semibold text-lg">
                                         {member.full_name?.charAt(0).toUpperCase() || member.email?.charAt(0).toUpperCase()}
                                     </div>
                                     <div className="flex-1 min-w-0">

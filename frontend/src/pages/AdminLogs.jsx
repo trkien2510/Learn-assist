@@ -286,7 +286,7 @@ const AdminLogs = () => {
                         <option value="">Tất cả tài nguyên</option>
                         <option value="user">Người dùng</option>
                         <option value="classroom">Lớp học</option>
-                        <option value="exam">Đề thi</option>
+                        <option value="exam">Đề kiểm tra</option>
                         <option value="question">Câu hỏi</option>
                         <option value="document">Tài liệu</option>
                         <option value="auth">Xác thực</option>
