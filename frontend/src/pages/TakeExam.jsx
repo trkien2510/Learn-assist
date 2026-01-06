@@ -237,7 +237,7 @@ const TakeExam = () => {
                                     key={q._id || q.id}
                                     onClick={() => goToQuestion(idx)}
                                     className={`aspect-square rounded-lg text-sm font-semibold transition-all ${idx === currentQuestion
-                                        ? 'bg-linear-to-br from-blue-500 to-indigo-600 text-gray-900'
+                                        ? 'bg-linear-to-br/srgb from-blue-500 to-indigo-600 text-gray-900'
                                         : answers[q._id || q.id]
                                             ? 'bg-green-500/20 text-green-400 border-2 border-green-500/50'
                                             : 'bg-white/5 text-gray-500 hover:bg-white/10'

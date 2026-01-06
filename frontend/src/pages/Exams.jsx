@@ -9,6 +9,7 @@ const Exams = () => {
     const { user, hasRole } = useAuth();
     const navigate = useNavigate();
     const [exams, setExams] = useState([]);
+    const [submittedExamIds, setSubmittedExamIds] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
@@ -48,17 +49,12 @@ const Exams = () => {
             const response = await examService.getAll(1, 50);
             const data = response.data || response;
             const examsData = data.items || data || [];
+            const submittedIds = data.submitted_exam_ids || [];
 
-            if (examsData.length > 0) {
-                console.log('🔍 DEBUG Exam datetime:', {
-                    start_at: examsData[0].start_at,
-                    end_at: examsData[0].end_at,
-                    start_parsed: new Date(examsData[0].start_at),
-                    current_time: new Date()
-                });
-            }
+            console.log('🔍 DEBUG submitted_exam_ids:', submittedIds);
 
             setExams(examsData);
+            setSubmittedExamIds(submittedIds);
         } catch (err) {
             setError(err.message || 'Không thể tải danh sách bài kiểm tra');
         } finally {
@@ -394,12 +390,22 @@ const Exams = () => {
 
                                 <div className="flex gap-2">
                                     {isStudent && canTakeExam(exam) ? (
-                                        <button
-                                            onClick={() => handleStartExam(exam)}
-                                            className="flex-1 btn-primary text-sm py-2"
-                                        >
-                                            Làm bài
-                                        </button>
+                                        submittedExamIds.includes(exam._id || exam.id) ? (
+                                            <button
+                                                disabled
+                                                className="flex-1 btn-secondary text-sm py-2 bg-green-500/20 text-green-600 border-green-500/50 cursor-default flex items-center justify-center gap-2"
+                                            >
+                                                <CheckIcon className="w-4 h-4" />
+                                                Đã nộp
+                                            </button>
+                                        ) : (
+                                            <button
+                                                onClick={() => handleStartExam(exam)}
+                                                className="flex-1 btn-primary text-sm py-2"
+                                            >
+                                                Làm bài
+                                            </button>
+                                        )
                                     ) : (isTeacher || isAdmin) ? (
                                         <>
                                             <button
@@ -415,6 +421,14 @@ const Exams = () => {
                                                 Thống kê
                                             </button>
                                         </>
+                                    ) : isStudent && !canTakeExam(exam) && submittedExamIds.includes(exam._id || exam.id) ? (
+                                        <button
+                                            disabled
+                                            className="flex-1 btn-secondary text-sm py-2 bg-green-500/20 text-green-600 border-green-500/50 cursor-default flex items-center justify-center gap-2"
+                                        >
+                                            <CheckIcon className="w-4 h-4" />
+                                            Đã nộp
+                                        </button>
                                     ) : (
                                         <button disabled className="flex-1 btn-secondary text-sm py-2 opacity-50">
                                             Chưa đến giờ

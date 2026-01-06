@@ -7,7 +7,7 @@ const QuickActions = ({ actions }) => {
 
     return (
         <div className="card-glass">
-            <h2 className="text-lg font-semibold text-gray-900 mb-6">Thao tác nhanh</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-6">Điều hướng nhanh</h2>
 
             <div className="space-y-3">
                 {actions.map((action, index) => (
