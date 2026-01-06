@@ -13,9 +13,8 @@ Hệ thống được thiết kế dựa trên các thực thể chính sau:
 - **Academic:** Classroom, Support (JoinRequest)
 - **Content:** Document, Question
 - **Assessment:** Exam, Result
-- **System:** Log, Notification
-
-Sơ đồ quan hệ tổng quát:
+- **System:** Log, Notification, OTP
+- **Communication:** Message
 
 ### Quan hệ chính (Core Relationships)
 - **User** (1) ---- (n) **Classroom** (Creator - tạo lớp học)
@@ -41,11 +40,16 @@ Sơ đồ quan hệ tổng quát:
 ### Quan hệ nhật ký (Log Relationships)
 - **User** (1) ---- (n) **Log** (Hành động của người dùng)
 
+### Quan hệ OTP (OTP Relationships)
+- **User** (1) ---- (n) **OTP** (Mã xác thực của người dùng)
+
+### Quan hệ tin nhắn (Message Relationships)
+- **User** (1) ---- (n) **Message** (Sender - người gửi)
+- **Classroom** (1) ---- (n) **Message** (Messages trong lớp học)
+
 ---
 
 ## 2. Thiết Kế Schema Chi Tiết (Schema Specification)
-
-Dưới đây là đặc tả chi tiết cho từng Collection trong MongoDB. Các trường dữ liệu đi kèm với kiểu dữ liệu và ràng buộc (Constraints).
 
 ### 2.1 Collection `users`
 Lưu trữ thông tin người dùng hệ thống.
@@ -56,12 +60,14 @@ Lưu trữ thông tin người dùng hệ thống.
       "_id": "ObjectId",
       "username": "String (Unique, Index)",
       "email": "String (Unique, Index, Format: Email)",
-      "hashed_password": "String (Bcrypt Hash)",
+      "hashed_password": "String (HMAC-SHA256 + Bcrypt Hash)",
       "full_name": "String",
       "dob": "Date",
       "phone_number": "String (Optional)",
       "role": "Enum ['admin', 'teacher', 'student']",
       "is_activate": "Boolean (Default: true)",
+      "email_verified": "Boolean (Default: false)",
+      "verification_expires_at": "DateTime (Optional)",
       "created_at": "DateTime",
       "updated_at": "DateTime"
     }
@@ -122,12 +128,14 @@ Ngân hàng câu hỏi trắc nghiệm.
       "_id": "ObjectId",
       "title": "String",
       "duration": "Integer (Minutes)",
-      "start_at": "DateTime",
-      "end_at": "DateTime",
+      "start_at": "DateTime (UTC)",
+      "end_at": "DateTime (UTC)",
       "expiry_at": "DateTime",
-      "class_id": "Link<ClassroomModel>",
+      "class_id": "Link<ClassroomModel> (Optional - null for personal exams)",
       "creator_id": "Link<UserModel>",
-      "questions": ["Link<QuestionModel>"]
+      "questions": ["Link<QuestionModel>"],
+      "is_personal": "Boolean (Default: false)",
+      "created_at": "DateTime"
     }
     ```
     *Ràng buộc:* `start_at` < `end_at`.
@@ -144,7 +152,7 @@ Lưu trữ bài làm và kết quả của sinh viên.
       "started_at": "DateTime",
       "ended_at": "DateTime (Nullable)",
       "answer_map": "Map<QuestionID, AnswerString>",
-      "submitted": "Boolean",
+      "submitted": "Boolean (Default: false)",
       "score": "Float (Scale: 2)",
       "submit_at": "DateTime"
     }
@@ -175,7 +183,7 @@ Quản lý thông báo cho người dùng và hệ thống.
     {
       "_id": "ObjectId",
       "user_id": "Link<UserModel>",
-      "notification_type": "Enum ['exam_created', 'exam_started', 'exam_ended', 'exam_result', 'document_upload_success', 'document_upload_failed', 'exam_creation_success', 'exam_statistics_available', 'system_error', 'system_warning', 'user_anomaly', 'high_error_rate']",
+      "notification_type": "Enum ['exam_created', 'exam_started', 'exam_ended', 'exam_result', 'exam_submitted', 'document_upload_success', 'document_upload_failed', 'exam_creation_success', 'exam_statistics_available', 'personal_exam_created', 'system_error', 'system_warning', 'user_anomaly', 'high_error_rate']",
       "title": "String",
       "message": "String",
       "related_id": "String (Optional - ID of related resource)",
@@ -197,26 +205,61 @@ Quản lý yêu cầu tham gia lớp học.
     }
     ```
 
+### 2.10 Collection `otp`
+Quản lý mã OTP cho xác thực.
+*   **Index:** `email + purpose`, `expires_at` (TTL).
+*   **Schema:**
+    ```json
+    {
+      "_id": "ObjectId",
+      "email": "String",
+      "otp_code": "String (6 digits)",
+      "purpose": "Enum ['registration', 'forgot_password', 'reactivate_account']",
+      "expires_at": "DateTime (UTC)",
+      "is_used": "Boolean (Default: false)",
+      "attempts": "Integer (Default: 0)",
+      "max_attempts": "Integer (Default: 3)",
+      "created_at": "DateTime (UTC)"
+    }
+    ```
+
+### 2.11 Collection `messages`
+Quản lý tin nhắn trong lớp học.
+*   **Index:** `classroom_id + created_at`.
+*   **Schema:**
+    ```json
+    {
+      "_id": "ObjectId",
+      "classroom_id": "Link<ClassroomModel>",
+      "sender": "Link<UserModel>",
+      "content": "String",
+      "created_at": "DateTime (UTC)"
+    }
+    ```
+
 ---
 
 ## 3. Phân Tích Quan Hệ Dữ Liệu
 
 ### 3.1 Quan Hệ Tham Chiếu (Reference)
 MongoDB không hỗ trợ Foreign Key cứng như SQL, nhưng thiết kế sử dụng **DBRef (Link)** để duy trì quan hệ logic:
-*   **Classroom - User:** Quan hệ N-N. Được xử lý bằng cách nhúng mảng `members (List[Link])` vào trong Document `Classroom`. Lý do: Số lượng thành viên trong một lớp học thường giới hạn (< 100), việc nhúng giúp truy vấn nhanh hơn.
+*   **Classroom - User:** Quan hệ N-N. Được xử lý bằng cách nhúng mảng `members (List[Link])` vào trong Document `Classroom`.
 *   **Exam - Question:** Quan hệ 1-N. Nhúng mảng `questions (List[Link])` trong Document `Exam`.
 *   **Document - Question:** Quan hệ 1-N. `Question` tham chiếu ngược về `Document` thông qua `document_id`.
 
 ### 3.2 Chiến Lược Đánh Index
-Để tối ưu hóa hiệu năng truy vấn cho các chức năng chính, các Index sau được đề xuất:
-1.  **Authentication:** `users.email` và `users.username` để đảm bảo đăng nhập và đăng ký nhanh chóng.
-2.  **Classroom Access:** `classrooms.class_code` phục vụ tính năng tìm kiếm lớp. `classrooms.members.$id` để sinh viên load danh sách lớp của mình (Reverse Lookup).
-3.  **Analytics:** `results.exam_id` và `results.user_id` để tổng hợp điểm số.
+1.  **Authentication:** `users.email` và `users.username`.
+2.  **Classroom Access:** `classrooms.class_code`, `classrooms.members.$id`.
+3.  **Analytics:** `results.exam_id` và `results.user_id`.
+4.  **OTP Lookup:** `otp.email + otp.purpose`.
+5.  **Log Cleanup:** `logs.created_at` (TTL Index).
 
 ---
 
 ## 4. Chính Sách Dữ Liệu
 
-*   **Tính Vẹn Toàn:** Khi xóa `User`, các `Result` của user đó sẽ được giữ lại (không xóa cascade) để đảm bảo tính lịch sử của dữ liệu thi cử.
-*   **Vòng Đời Dữ Liệu:** Logs sẽ tự động bị xóa sau 30 ngày nhờ TTL Index để tiết kiệm dung lượng lưu trữ.
-*   **Định Dạng Thời Gian:** Tất cả `DateTime` đều được lưu dưới dạng UTC để đảm bảo tính nhất quán múi giờ.
+*   **Tính Vẹn Toàn:** Khi xóa `User`, các `Result` của user đó sẽ được giữ lại (không xóa cascade).
+*   **Vòng Đời Dữ Liệu:** Logs sẽ tự động bị xóa sau 30 ngày nhờ TTL Index.
+*   **OTP Expiry:** OTP sẽ tự động hết hạn sau 5 phút.
+*   **Định Dạng Thời Gian:** Tất cả `DateTime` đều được lưu dưới dạng UTC.
+*   **Bảo mật mật khẩu:** Sử dụng HMAC-SHA256 + Bcrypt với 12 rounds.

@@ -4,27 +4,35 @@
 
 ---
 
-## 1. Authentication (`/auth`) - 3 endpoints
+## 1. Authentication (`/auth`) - 10 endpoints
 
 | Method | Endpoint | Function |
 |--------|----------|----------|
+| POST | `/add-user/for-test` | Add user for testing (bypass OTP) |
 | POST | `/register` | Register new account |
 | POST | `/login` | Login, returns access_token and refresh_token |
 | POST | `/refresh-token` | Refresh access token |
+| POST | `/otp/request` | Request registration OTP |
+| POST | `/otp/verify` | Verify registration OTP |
+| POST | `/forgot-password` | Request forgot password OTP |
+| POST | `/reset-password` | Reset password with OTP |
+| POST | `/reactivate/request` | Request account reactivation OTP |
+| POST | `/reactivate/verify` | Verify and reactivate account |
 
 ---
 
-## 2. User (`/user`) - 3 endpoints
+## 2. User (`/user`) - 4 endpoints
 
 | Method | Endpoint | Function |
 |--------|----------|----------|
 | GET | `/me` | Get current user profile |
 | PUT | `/profile` | Update current user profile |
-| POST | `/deactivate` | Deactivate current user account |
+| POST | `/change-password` | Change current user password |
+| DELETE | `/delete` | Delete current user account |
 
 ---
 
-## 3. Classroom (`/classroom`) - 12 endpoints
+## 3. Classroom (`/classroom`) - 13 endpoints
 
 ### Classroom CRUD
 
@@ -32,6 +40,7 @@
 |--------|----------|----------|
 | POST | `/create` | Create new classroom (teachers only) |
 | GET | `/all` | Get classrooms based on user role |
+| GET | `/{class_code}` | Get classroom details |
 | GET | `/{class_code}/members` | Get classroom members and pending requests |
 | DELETE | `/{class_code}` | Delete classroom |
 
@@ -61,7 +70,7 @@
 |--------|----------|----------|
 | GET | `/all` | Get documents based on user role |
 | POST | `/upload/{number_question}` | Upload document and generate questions with AI |
-| POST | `/save-questions` | Save AI-generated questions |
+| POST | `/save-questions/{document_id}` | Save AI-generated questions |
 | DELETE | `/{document_id}` | Delete document |
 
 ---
@@ -71,7 +80,7 @@
 | Method | Endpoint | Function |
 |--------|----------|----------|
 | POST | `/create` | Create new question |
-| GET | `/all` | Get questions based on user role |
+| GET | `/all` | Get questions based on user role (supports search, difficulty filter) |
 | GET | `/subject/list` | Get available subjects |
 | GET | `/{question_id}` | Get question details |
 | PUT | `/{question_id}` | Update question |
@@ -79,15 +88,18 @@
 
 ---
 
-## 6. Exam (`/exam`) - 6 endpoints
+## 6. Exam (`/exam`) - 9 endpoints
 
 ### Exam CRUD
 
 | Method | Endpoint | Function |
 |--------|----------|----------|
 | POST | `/create` | Create new exam (teachers only) |
+| POST | `/preview` | Preview questions before creating exam |
+| POST | `/replace-question` | Replace a question in preview |
 | GET | `/all` | Get all exams based on user role |
 | GET | `/class/{class_id}` | Get exams by classroom |
+| GET | `/{exam_id}` | Get exam details |
 | DELETE | `/{exam_id}` | Delete exam (creator only) |
 
 ### Exam Flow
@@ -96,10 +108,6 @@
 |--------|----------|----------|
 | POST | `/{exam_id}/start` | Start exam, creates Result to track time |
 | POST | `/{exam_id}/submit` | Submit exam, calculates score |
-
-**Exam Flow:**
-1. `POST /{exam_id}/start` → Returns exam info, result_id, time_remaining
-2. `POST /{exam_id}/submit` → Send `{"answers": {"question_id": "A", ...}}` → Returns score
 
 ---
 
@@ -114,12 +122,20 @@
 
 ---
 
-## 8. Statistics (`/statistics`) - 2 endpoints
+## 8. Statistics (`/statistics`) - 10 endpoints
 
 | Method | Endpoint | Function |
 |--------|----------|----------|
 | GET | `/exam/{exam_id}` | Get statistics by exam |
 | GET | `/class/{class_id}` | Get statistics by classroom |
+| GET | `/personal` | Get personal practice results |
+| GET | `/comprehensive` | Get comprehensive statistics (role-based) |
+| GET | `/student/comprehensive` | Get student comprehensive statistics |
+| GET | `/teacher/comprehensive` | Get teacher comprehensive statistics |
+| GET | `/exam/{exam_id}/detailed` | Get detailed exam statistics |
+| GET | `/class/{class_id}/detailed` | Get detailed classroom statistics |
+| GET | `/platform` | Get platform statistics (admin only) |
+| GET | `/overall` | Get user overall statistics |
 
 ---
 
@@ -127,12 +143,12 @@
 
 | Method | Endpoint | Function |
 |--------|----------|----------|
-| GET | `/` | Get dashboard statistics based on user role |
+| GET | `` | Get dashboard statistics based on user role |
 
 **Response by role:**
-- **Admin**: `total_users`, `total_classrooms`, `total_documents`, `total_exams`, `total_questions`
-- **Teacher**: `total_classrooms`, `total_documents`, `total_questions`, `total_exams`, `total_students`
-- **Student**: `total_classrooms`, `total_exams_taken`, `average_score`
+- **Admin**: `total_users`, `total_classrooms`, `total_documents`, `total_exams`, `total_questions`, `recent_activities`
+- **Teacher**: `total_classrooms`, `total_documents`, `total_questions`, `total_exams`, `total_students`, `recent_activities`
+- **Student**: `total_classrooms`, `total_exams_taken`, `average_score`, `recent_activities`
 
 ---
 
@@ -146,27 +162,41 @@
 | DELETE | `/{notification_id}` | Delete a specific notification |
 | DELETE | `/` | Delete all notifications for current user |
 
-**Notification Types:**
-- `exam_created`: New exam created in student's class
-- `exam_started`: Exam has started
-- `exam_ended`: Exam has ended
-- `exam_result`: Exam results available
-- `document_upload_success/failed`: Document upload status
-- `exam_creation_success`: Exam created successfully
-- `exam_statistics_available`: Exam statistics ready
-- `system_error/warning`: System alerts (admin only)
-- `user_anomaly`: User behavior anomaly detected
-- `high_error_rate`: High API error rate alert
+---
+
+## 11. Messages (`/message`) - 3 endpoints
+
+| Method | Endpoint | Function |
+|--------|----------|----------|
+| POST | `/{class_code}/send` | Send message to classroom |
+| GET | `/{class_code}/messages` | Get classroom messages |
+| DELETE | `/{message_id}` | Delete message |
 
 ---
 
-## 11. Admin (`/admin`) - 16 endpoints (Admin Only)
+## 12. Practice (`/practice`) - 9 endpoints
+
+| Method | Endpoint | Function |
+|--------|----------|----------|
+| POST | `/exam/create` | Create personal practice exam |
+| GET | `/exams` | Get personal exams list |
+| POST | `/exam/{exam_id}/start` | Start personal exam |
+| POST | `/exam/{exam_id}/submit` | Submit personal exam |
+| DELETE | `/exam/{exam_id}` | Delete personal exam |
+| GET | `/statistics` | Get personal exam statistics |
+| GET | `/statistics/detailed` | Get detailed practice statistics |
+| GET | `/exam/{exam_id}/statistics` | Get personal exam detailed statistics |
+| GET | `/documents/statistics` | Get document statistics |
+
+---
+
+## 13. Admin (`/admin`) - 21 endpoints (Admin Only)
 
 ### User Management (`/admin/users`)
 
 | Method | Endpoint | Function |
 |--------|----------|----------|
-| GET | `/` | Get all users (paginated) |
+| GET | `/` | Get all users (paginated, supports role/status/search filters) |
 | GET | `/{user_id}` | Get user details |
 | PUT | `/{user_id}` | Update user information |
 | DELETE | `/{user_id}` | Delete user |
@@ -184,7 +214,7 @@
 
 | Method | Endpoint | Function |
 |--------|----------|----------|
-| GET | `/` | Get logs with filters (action, user_id, resource_type, status, from_date, to_date) |
+| GET | `/` | Get logs with filters (action, user_id, resource_type, status) |
 | GET | `/statistics` | Get log statistics (total, success, error, 24h, 7d) |
 | GET | `/{log_id}` | Get log details |
 | DELETE | `/cleanup` | Delete old logs (default 30 days) |
@@ -197,6 +227,16 @@
 | GET | `/system-health` | Check system health and detect anomalies |
 | POST | `/cleanup-notifications` | Cleanup old notifications (default 30 days) |
 | POST | `/test-notification` | Send a test notification to verify system |
+
+### Statistics Management (`/admin/stats`)
+
+| Method | Endpoint | Function |
+|--------|----------|----------|
+| GET | `/statistics` | Get admin statistics |
+| GET | `/users/{user_id}/activity` | Get user activity timeline |
+| GET | `/system/health` | Get system health metrics |
+| GET | `/analytics/user-growth` | Get user growth stats |
+| GET | `/analytics/activity-heatmap` | Get activity heatmap |
 
 ---
 
@@ -214,15 +254,17 @@
 
 | Module | Endpoints |
 |--------|----------|
-| Auth | 3 |
-| User | 3 |
-| Classroom | 12 |
+| Auth | 10 |
+| User | 4 |
+| Classroom | 13 |
 | Document | 4 |
 | Question | 6 |
-| Exam | 6 |
+| Exam | 9 |
 | Result | 4 |
-| Statistics | 2 |
+| Statistics | 10 |
 | Dashboard | 1 |
 | Notifications | 5 |
-| Admin | 16 |
-| **Total** | **62** |
+| Messages | 3 |
+| Practice | 9 |
+| Admin | 21 |
+| **Total** | **99** |

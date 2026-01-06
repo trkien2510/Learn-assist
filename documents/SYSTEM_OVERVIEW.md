@@ -1,6 +1,7 @@
 # Đặc Tả Kiến Trúc Hệ Thống (System Architecture Document)
 
-**Đề tài:** Nghiên cứu xây dựng Website tự động tạo bộ câu hỏi ôn tập từ tài liệu hỗ trợ giáo viên kiểm tra sinh viên ôn luyện kèm hệ thống thống kê
+**Đề tài:** Nghiên cứu xây dựng Website tự động tạo bộ câu hỏi ôn tập từ tài liệu hỗ trợ giáo viên kiểm tra sinh viên ôn luyện kèm hệ thống thống kê  
+
 ---
 
 ## 1. Giới Thiệu Dự Án
@@ -10,73 +11,232 @@ Xây dựng nền tảng hỗ trợ giáo dục trực tuyến, tập trung vào
 
 ### 1.2 Phạm Vi Dự Án
 Hệ thống bao gồm các phân hệ chính:
-- **Phân hệ Quản trị (Admin Dashboard):** Quản lý người dùng, tài nguyên hệ thống.
-- **Phân hệ Giáo viên (Teacher Portal):** Quản lý lớp học, upload tài liệu, sinh câu hỏi AI, tổ chức kiểm tra.
-- **Phân hệ Học sinh (Student Portal):** Tham gia lớp học, làm bài kiểm tra, xem kết quả.
+- **Phân hệ Quản trị (Admin Dashboard):** Quản lý người dùng, tài nguyên hệ thống, theo dõi logs.
+- **Phân hệ Giáo viên (Teacher Portal):** Quản lý lớp học, upload tài liệu, sinh câu hỏi AI, tổ chức kiểm tra, xem thống kê.
+- **Phân hệ Học sinh (Student Portal):** Tham gia lớp học, làm bài kiểm tra, luyện tập cá nhân, xem kết quả.
 
 ---
 
 ## 2. Các Thành Phần Chính
 
-1.  **Presentation Layer (Frontend ReactJS):** Giao diện người dùng (Web) tương tác với hệ thống qua HTTP Requests.
+1.  **Presentation Layer (Frontend ReactJS):** 
+    *   Giao diện người dùng (Web) tương tác với hệ thống qua HTTP Requests.
+    *   Sử dụng React 18+ với Vite làm build tool.
+    *   State management với React Context API.
+    *   Styling với Vanilla CSS và thiết kế Glassmorphism.
+    
 2.  **Application Layer (Backend API):**
     *   Xây dựng trên nền tảng **FastAPI** (Python) cho hiệu năng cao và khả năng xử lý bất đồng bộ (async).
-    *   Đảm nhiệm xác thực, logic nghiệp vụ, xử lý dữ liệu.
+    *   Đảm nhiệm xác thực (JWT), logic nghiệp vụ, xử lý dữ liệu.
+    *   Hệ thống OTP để xác thực email.
+    *   Hệ thống notification real-time.
+    
 3.  **Data Layer (Database):**
-    *   Sử dụng **MongoDB** (NoSQL) để lưu trữ dữ liệu phi cấu trúc (đề thi, log, tài liệu) linh hoạt.
+    *   Sử dụng **MongoDB** (NoSQL) để lưu trữ dữ liệu phi cấu trúc.
     *   Sử dụng **Beanie ODM** để ánh xạ dữ liệu object-document.
+    *   TTL Index cho logs và OTP tự động expire.
+    
 4.  **Integration Layer (AI Service):**
-    *   Tích hợp **OpenAI API** để xử lý ngôn ngữ tự nhiên, trích xuất nội dung từ PDF/DOCX và sinh câu hỏi trắc nghiệm.
+    *   Tích hợp **OpenAI API** với Structured Outputs để sinh câu hỏi trắc nghiệm.
+    *   Sử dụng GPT-4o-mini cho xử lý ngôn ngữ tự nhiên.
+
+5.  **Email Service:**
+    *   Sử dụng **FastAPI-Mail** để gửi email OTP.
+    *   Hỗ trợ gửi email bất đồng bộ qua Background Tasks.
 
 ---
 
 ## 3. Lựa Chọn Công Nghệ (Technology Stack)
 
-| Thành phần | Công nghệ Đề Xuất | Lý do lựa chọn |
-|------------|-------------------|----------------|
-| **Backend Framework** | **FastAPI** | Hiệu năng cao (ngang NodeJS/Go), hỗ trợ Async IO mạnh mẽ, tự động sinh API Docs, phù hợp với các tác vụ AI/Data. |
-| **Database** | **MongoDB** | Schema linh hoạt phù hợp với cấu trúc đề thi đa dạng, khả năng scale tốt (Sharding/Replica Set). |
-| **ODM** | **Beanie** | Tận dụng sức mạnh của Motor (Async driver), cú pháp Pythonic, hỗ trợ migration tốt. |
-| **Authentication** | **JWT (OAuth2)** | Chuẩn bảo mật stateless, phù hợp cho mô hình RESTful API và Mobile App scaling. |
-| **AI Integration** | **OpenAI API** | Mô hình LLM tiên tiến nhất hiện nay, khả năng hiểu ngữ cảnh tiếng Việt tốt để sinh câu hỏi chất lượng. |
-| **Document Processing** | **PyPDF, Python-docx** | Thư viện native Python mạnh mẽ để xử lý văn bản đầu vào cho AI. |
+| Thành phần | Công nghệ | Lý do lựa chọn |
+|------------|-----------|----------------|
+| **Frontend Framework** | **React 18 + Vite** | Hot Module Replacement nhanh, build tối ưu. |
+| **Backend Framework** | **FastAPI** | Hiệu năng cao, hỗ trợ Async IO, tự động sinh API Docs. |
+| **Database** | **MongoDB** | Schema linh hoạt, khả năng scale tốt. |
+| **ODM** | **Beanie** | Async driver, cú pháp Pythonic. |
+| **Authentication** | **JWT (OAuth2)** | Chuẩn bảo mật stateless. |
+| **Password Hashing** | **HMAC-SHA256 + Bcrypt** | Bảo mật cao với 12 rounds. |
+| **AI Integration** | **OpenAI API (GPT-4o-mini)** | Structured Outputs, hiểu ngữ cảnh tiếng Việt tốt. |
+| **Document Processing** | **PyPDF, Python-docx** | Xử lý văn bản đầu vào cho AI. |
+| **Email Service** | **FastAPI-Mail** | Gửi email bất đồng bộ. |
+| **Charts** | **Recharts** | Biểu đồ đẹp, responsive. |
 
 ---
 
-## 4. Thiết Kế Luồng Xử Lý Chính (Workflow Design)
+## 4. Cấu Trúc Dự Án
 
-### 4.1 Quy Trình Sinh Câu Hỏi Tự Động
+### 4.1 Frontend Structure
+```
+frontend/src/
+├── components/
+│   ├── common/           # UI components dùng chung
+│   │   ├── LoadingSpinner.jsx
+│   │   ├── Alert.jsx
+│   │   ├── EmptyState.jsx
+│   │   ├── Pagination.jsx
+│   │   ├── ConfirmModal.jsx
+│   │   ├── StatusBadge.jsx
+│   │   └── Portal.jsx
+│   ├── classroom/        # Components cho lớp học
+│   ├── dashboard/        # Components cho dashboard
+│   ├── icons/           # Icon components
+│   ├── layout/          # Layout components
+│   └── notifications/   # Notification components
+├── hooks/               # Custom hooks
+│   ├── useApi.js
+│   ├── usePagination.js
+│   ├── useModal.js
+│   └── useDateFormat.js
+├── services/            # API services
+│   ├── apiServices.js
+│   ├── otherServices.js
+│   ├── httpClient.js
+│   └── authService.js
+├── contexts/            # React Context
+├── pages/               # Page components
+├── utils/              # Utilities
+└── config/             # Configuration
+```
+
+### 4.2 Backend Structure
+```
+backend/
+├── api/                 # API Routers
+│   ├── admin/          # Admin endpoints
+│   │   ├── admin_router.py
+│   │   ├── admin_user_router.py
+│   │   ├── admin_classroom_router.py
+│   │   ├── admin_log_router.py
+│   │   ├── admin_notification_router.py
+│   │   └── admin_stats_router.py
+│   ├── auth_router.py
+│   ├── classroom_router.py
+│   ├── dashboard_router.py
+│   ├── document_router.py
+│   ├── exam_router.py
+│   ├── message_router.py
+│   ├── notification_router.py
+│   ├── practice_router.py
+│   ├── question_router.py
+│   ├── result_router.py
+│   ├── statistical_router.py
+│   └── user_router.py
+├── core/               # Core modules
+│   ├── config.py
+│   ├── dependencies.py
+│   ├── exception_handler.py
+│   ├── jwt.py
+│   ├── security.py
+│   └── status_code.py
+├── models/             # Database models
+│   ├── user_model.py
+│   ├── classroom_model.py
+│   ├── document_model.py
+│   ├── question_model.py
+│   ├── exam_model.py
+│   ├── result_model.py
+│   ├── log_model.py
+│   ├── notification_model.py
+│   ├── otp_model.py
+│   ├── message_model.py
+│   └── join_request_model.py
+├── schemas/            # Pydantic schemas
+├── services/           # Business logic
+│   ├── admin_service.py
+│   ├── ai_service.py
+│   ├── auth_service.py
+│   ├── classroom_service.py
+│   ├── dashboard_service.py
+│   ├── document_service.py
+│   ├── email_service.py
+│   ├── exam_service.py
+│   ├── log_service.py
+│   ├── message_service.py
+│   ├── notification_service.py
+│   ├── otp_service.py
+│   ├── question_service.py
+│   ├── result_service.py
+│   ├── statistics_service.py
+│   └── user_service.py
+├── utils/              # Utilities
+│   ├── document_util.py
+│   └── validation.py
+└── db/                 # Database connection
+```
+
+---
+
+## 5. Thiết Kế Luồng Xử Lý Chính (Workflow Design)
+
+### 5.1 Quy Trình Đăng Ký Với OTP
+1.  **Request OTP:** User nhập email -> Hệ thống gửi mã OTP 6 số qua email.
+2.  **Verify OTP:** User nhập OTP -> Hệ thống xác thực và kích hoạt tài khoản.
+3.  **Expiry:** OTP hết hạn sau 5 phút, tối đa 3 lần nhập sai.
+
+### 5.2 Quy Trình Sinh Câu Hỏi Tự Động
 1.  **Upload:** Giáo viên tải lên file tài liệu (PDF/Word).
-2.  **Pre-processing:** Hệ thống đọc file, làm sạch văn bản (remove noise), chia nhỏ văn bản nếu quá dài.
-3.  **AI Processing:** Gửi văn bản đã xử lý kèm Prompt kỹ thuật (Prompt Engineering) tới OpenAI.
-4.  **Parsing:** Nhận phản hồi JSON từ AI, validate cấu trúc, chuẩn hóa dữ liệu.
+2.  **Pre-processing:** Hệ thống đọc file, làm sạch văn bản.
+3.  **AI Processing:** Gửi văn bản tới OpenAI với Structured Outputs.
+4.  **Parsing:** Nhận phản hồi JSON đã được validate.
 5.  **Review:** Hiển thị cho giáo viên kiểm tra, chỉnh sửa.
 6.  **Storage:** Lưu câu hỏi vào Ngân hàng câu hỏi.
 
-### 4.2 Quy Trình Tổ Chức Kiểm Tra
-1.  **Setup:** Giáo viên tạo bài kiểm tra -> Chọn số lượng câu hỏi từ Ngân hàng -> Cấu hình thời gian.
-2.  **Distribution:** Bài thi được gán cho Lớp học (Classroom).
-3.  **Execution:** Sinh viên bắt đầu làm bài -> Hệ thống tạo phiên làm bài (Session) -> Đếm ngược thời gian.
-4.  **Submission:** Sinh viên nộp bài hoặc hết giờ -> Hệ thống tự động chấm điểm.
-5.  **Analytics:** Cập nhật bảng điểm và thống kê.
+### 5.3 Quy Trình Tổ Chức Kiểm Tra
+1.  **Preview:** Giáo viên chọn số lượng câu hỏi theo độ khó -> Xem trước câu hỏi.
+2.  **Replace:** Có thể thay thế câu hỏi không phù hợp.
+3.  **Setup:** Cấu hình thời gian bắt đầu, kết thúc, thời lượng.
+4.  **Distribution:** Bài thi được gán cho Lớp học.
+5.  **Execution:** Sinh viên làm bài -> Hệ thống đếm ngược thời gian.
+6.  **Submission:** Nộp bài hoặc hết giờ -> Chấm điểm tự động.
+7.  **Analytics:** Cập nhật thống kê và thông báo.
 
-### 4.3 Quy Trình Thông Báo Tự Động
-1.  **Trigger Event:** Hệ thống phát hiện sự kiện (exam created, document uploaded, exam ended, etc.).
-2.  **Target Users:** Xác định người dùng cần nhận thông báo dựa trên vai trò và lớp học.
-3.  **Create Notification:** Tạo notification với title, message, và related_id.
-4.  **Delivery:** Lưu vào DB và hiển thị cho người dùng qua giao diện.
+### 5.4 Quy Trình Luyện Tập Cá Nhân
+1.  **Create:** Học sinh tạo bài kiểm tra từ ngân hàng câu hỏi cá nhân.
+2.  **Practice:** Làm bài không giới hạn số lần.
+3.  **Review:** Xem kết quả và thống kê chi tiết.
+
+### 5.5 Quy Trình Thông Báo Tự Động
+1.  **Trigger Event:** Hệ thống phát hiện sự kiện.
+2.  **Target Users:** Xác định người dùng cần nhận thông báo.
+3.  **Create Notification:** Tạo notification với title, message, related_id.
+4.  **Delivery:** Lưu vào DB và hiển thị cho người dùng.
 5.  **Tracking:** Theo dõi trạng thái đã đọc/chưa đọc.
 
 **Các loại thông báo hệ thống:**
-- **Student**: exam_created, exam_started, exam_result
-- **Teacher**: document_upload_success/failed, exam_creation_success, exam_statistics_available
-- **Admin**: system_error, system_warning, user_anomaly, high_error_rate
+- **Student:** exam_created, exam_started, exam_result, exam_submitted
+- **Teacher:** document_upload_success/failed, exam_creation_success, exam_statistics_available
+- **Admin:** system_error, system_warning, user_anomaly, high_error_rate
+- **All:** personal_exam_created
 
 ---
 
-## 5. Yêu Cầu Phi Chức Năng (Non-functional Requirements)
+## 6. Bảo Mật (Security)
 
-*   **Bảo mật:** Mật khẩu phải được mã hóa (Bcrypt). API phải được bảo vệ bằng Token.
-*   **Hiệu năng:** API phản hồi trung bình < 200ms. AI Processing < 30s cho tài liệu tiêu chuẩn. Với API dùng để sinh câu hỏi thì thời gian phản hồi có thể lâu hơn
-*   **Độ tin cậy:** Hệ thống ghi log đầy đủ các thao tác quan trọng (Audit Log).
-*   **Khả năng bảo trì:** Code phải tuân thủ chuẩn PEP-8, cấu trúc thư mục rõ ràng theo mô hình MVC/Service-Repository.
+### 6.1 Authentication & Authorization
+*   **JWT Token:** Access token (30 phút) + Refresh token (7 ngày).
+*   **Role-based Access Control:** Admin, Teacher, Student.
+*   **OTP Verification:** Xác thực email khi đăng ký.
+
+### 6.2 Password Security
+*   Sử dụng HMAC-SHA256 với SECRET_KEY trước khi hash.
+*   Bcrypt với 12 rounds.
+*   Format: `hmac_sha256$12$<bcrypt_hash>`.
+
+### 6.3 NoSQL Injection Prevention
+*   Validate tất cả ObjectId inputs.
+*   Sanitize string inputs.
+*   Sử dụng Beanie ODM thay vì raw queries.
+
+### 6.4 Input Validation
+*   Pydantic schemas cho tất cả request bodies.
+*   Validation utilities trong `utils/validation.py`.
+
+---
+
+## 7. Yêu Cầu Phi Chức Năng (Non-functional Requirements)
+
+*   **Bảo mật:** Mật khẩu phải được mã hóa (HMAC + Bcrypt). API phải được bảo vệ bằng Token.
+*   **Hiệu năng:** API phản hồi trung bình < 200ms. AI Processing < 30s cho tài liệu tiêu chuẩn.
+*   **Độ tin cậy:** Hệ thống ghi log đầy đủ các thao tác quan trọng (Audit Log) với TTL 30 ngày.
+*   **Khả năng bảo trì:** Code tuân thủ chuẩn PEP-8, cấu trúc thư mục rõ ràng theo mô hình Service-Repository.
+*   **Responsive:** UI hoạt động tốt trên Desktop và Mobile.
