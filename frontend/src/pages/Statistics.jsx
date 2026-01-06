@@ -276,7 +276,7 @@ const Statistics = () => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="card-glass p-6">
                     <h3 className="text-lg font-bold text-gray-900 mb-6">Hiệu suất theo môn học</h3>
                     <div className="w-full">
@@ -343,7 +343,7 @@ const Statistics = () => {
                         <p className="text-gray-500 italic">Chưa có đủ dữ liệu để đưa ra gợi ý...</p>
                     )}
                 </div>
-            </div>
+            </div> */}
         </div>
     );
 

@@ -99,9 +99,9 @@ const ClassroomStatistics = ({ classCode, classroom }) => {
                     { label: 'Học sinh giỏi', value: `${overall_performance.excellence_rate}%`, icon: UsersIcon, color: 'from-orange-500 to-amber-500' },
                     { label: 'Tổng lượt nộp', value: overall_performance.total_submissions, icon: ExamIcon, color: 'from-purple-500 to-pink-500' }
                 ].map((item, i) => (
-                    <div key={i} className="card-glass p-5 hover:translate-y-[-2px] transition-all">
+                    <div key={i} className="card-glass p-5 hover:-translate-y-0.5 transition-all">
                         <div className="flex items-center gap-4">
-                            <div className={`w-10 h-10 rounded-xl bg-linear-to-br ${item.color} flex items-center justify-center text-gray-900 shrink-0`}>
+                            <div className={`w-10 h-10 rounded-xl bg-linear-to-br/srgb ${item.color} flex items-center justify-center text-gray-900 shrink-0`}>
                                 <item.icon className="w-5 h-5" />
                             </div>
                             <div>
