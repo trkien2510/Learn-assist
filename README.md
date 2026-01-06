@@ -26,7 +26,7 @@
 *   **Backend Core:** Python 3.12, FastAPI.
 *   **Database:** MongoDB + Beanie ODM.
 *   **AI Engine:** OpenAI GPT Models.
-*   **Authentication:** JWT (JSON Web Tokens) với thuật toán HS256/RS256.
+*   **Authentication:** JWT với thuật toán HS256/RS256.
 *   **Frontend Core:** ReactJS, TaiwindCSS.
 
 ---
@@ -35,14 +35,19 @@
 
 Dành cho Developers muốn chạy thử môi trường phát triển cục bộ.
 
+### Backend
+
 1.  **Clone source code:**
     ```bash
     git clone <repo_url>
-    cd backend
+    cd LearnAssist/backend
     ```
 
-2.  **Cài đặt dependencies:**
+2.  **Tạo môi trường ảo & cài đặt dependencies:**
     ```bash
+    python -m venv .venv
+    .venv\Scripts\activate      # Windows
+    # source .venv/bin/activate # Linux/Mac
     pip install -r requirements.txt
     ```
 
@@ -53,3 +58,36 @@ Dành cho Developers muốn chạy thử môi trường phát triển cục bộ
         uvicorn main:app --reload
         ```
     *   Truy cập Swagger UI: `http://localhost:8000/docs`
+
+### Frontend
+
+1.  **Di chuyển đến thư mục frontend:**
+    ```bash
+    cd LearnAssist/frontend
+    ```
+
+2.  **Cài đặt dependencies:**
+    ```bash
+    npm install
+    ```
+
+3.  **Cấu hình & Chạy:**
+    *   Tạo file `.env`:
+        ```env
+        VITE_API_URL=http://localhost:8000/api
+        ```
+    *   Chạy development server:
+        ```bash
+        npm run dev
+        ```
+    *   Truy cập: `http://localhost:3000`
+
+### Chạy Đồng Thời
+
+```bash
+# Backend
+cd backend && uvicorn main:app --reload
+
+# Frontend
+cd frontend && npm run dev
+```
