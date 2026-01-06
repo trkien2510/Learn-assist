@@ -269,7 +269,7 @@ const Documents = () => {
                         <div key={doc._id || doc.id} className="card-glass p-6 hover-scale">
                             <div className="flex items-start justify-between">
                                 <div className="flex items-start gap-4 flex-1">
-                                    <div className="w-12 h-12 rounded-xl bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center flex-shrink-0">
+                                    <div className="w-12 h-12 rounded-xl bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center shrink-0">
                                         <FileIcon className="w-6 h-6 text-gray-900" />
                                     </div>
                                     <div className="flex-1 min-w-0">
@@ -283,7 +283,7 @@ const Documents = () => {
                                 </div>
                                 <button
                                     onClick={() => handleDeleteDocument(doc._id || doc.id)}
-                                    className="p-2 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20 transition-colors flex-shrink-0"
+                                    className="p-2 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20 transition-colors shrink-0"
                                 >
                                     <TrashIcon className="w-5 h-5" />
                                 </button>
@@ -294,7 +294,7 @@ const Documents = () => {
             )}
 
             {showUploadModal && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-100 p-4">
                     <div className="card-glass p-8 max-w-lg w-full animate-fadeIn">
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-2xl font-bold gradient-text">Upload tài liệu</h2>
@@ -398,7 +398,7 @@ const Documents = () => {
             )}
 
             {showPreviewModal && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-100 p-4">
                     <div className="card-glass p-8 max-w-5xl w-full my-8 animate-fadeIn max-h-[85vh] overflow-hidden flex flex-col">
                         <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
                             <div>
@@ -509,7 +509,7 @@ const Documents = () => {
             )}
 
             {editingQuestion && (
-                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-100 p-4">
                     <div className="card-glass p-6 max-w-4xl w-full animate-fadeIn max-h-[80vh] overflow-y-auto scrollbar-hide">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-xl font-bold text-gray-900">Chỉnh sửa câu hỏi</h3>
