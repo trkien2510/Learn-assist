@@ -288,7 +288,7 @@ async def submit_exam(exam_id: str, submit_data, current_user):
 
     result = await ResultModel.find_one({
         "exam_id.$id": obj_id,
-        "user_id.$id": current_user.id
+        "user_id.$id": PydanticObjectId(current_user.id)
     })
 
     if not result:
