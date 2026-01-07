@@ -56,7 +56,7 @@ const Exams = () => {
             setExams(examsData);
             setSubmittedExamIds(submittedIds);
         } catch (err) {
-            // Error is handled by examsApi
+
         }
     };
 
@@ -419,7 +419,6 @@ const Exams = () => {
                 <Portal>
                     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-100 p-4">
                         <div className="card-glass p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto animate-fadeIn relative">
-                            {/* Header */}
                             <div className="flex items-center justify-between mb-8 pb-4 border-b border-white/10">
                                 <div>
                                     <h2 className="text-3xl font-black gradient-text">Thiết lập bài kiểm tra</h2>
@@ -584,7 +583,7 @@ const Exams = () => {
                                         {previewQuestions.length < formData.total_questions ? (
                                             <div className="p-4 bg-yellow-500/10 border border-yellow-500/50 rounded-xl">
                                                 <p className="text-yellow-400 font-medium mb-2">
-                                                    ⚠️ Ngân hàng câu hỏi của bạn không đủ!
+                                                    Ngân hàng câu hỏi của bạn không đủ!
                                                 </p>
                                                 <p className="text-yellow-400/80 text-sm">
                                                     Yêu cầu: {formData.total_questions} câu hỏi | Hiện có: {previewQuestions.length} câu hỏi

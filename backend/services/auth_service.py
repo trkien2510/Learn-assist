@@ -88,8 +88,6 @@ async def login(login_data):
     access = create_access_token({"sub": str(user.id), "role": user.role})
     refresh = create_refresh_token({"sub": str(user.id)})
 
-    await log_service.log_auth("login", user=user)
-
     return TokenResponse(access_token=access, refresh_token=refresh, role=user.role)
 
 

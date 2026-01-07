@@ -87,7 +87,6 @@ const RecentActivity = ({ activities }) => {
 
     const formatAction = (action) => {
         const actionMap = {
-            'login': 'Đăng nhập hệ thống',
             'register': 'Đăng ký tài khoản',
             'create_classroom': 'Tạo lớp học mới',
             'join_request': 'Gửi yêu cầu tham gia lớp học',

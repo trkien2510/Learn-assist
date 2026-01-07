@@ -105,7 +105,6 @@ const ExamStatistics = () => {
 
     return (
         <div className="pb-20 animate-fadeIn">
-            {/* Breadcrumbs & Actions */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                 <button
                     onClick={() => navigate('/app/exams')}
@@ -118,7 +117,6 @@ const ExamStatistics = () => {
                 </button>
             </div>
 
-            {/* Exam Header Card */}
             <div className="card-glass p-8 mb-8 bg-linear-to-br from-slate-900 via-slate-900 to-indigo-950/20 overflow-hidden relative">
                 <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
                     <ChartIcon className="w-64 h-64" />
@@ -147,7 +145,6 @@ const ExamStatistics = () => {
                         </div>
                     </div>
 
-                    {/* Summary Stats Grid */}
                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                         {[
                             { label: 'Điểm TB', value: scores.average, color: 'text-blue-400' },
@@ -166,7 +163,6 @@ const ExamStatistics = () => {
                 </div>
             </div>
 
-            {/* Tabs */}
             <div className="flex items-center gap-2 mb-8 bg-gray-100 p-1.5 rounded-2xl w-fit">
                 {[
                     { id: 'overview', label: 'Tổng quan', icon: ChartIcon },
@@ -187,11 +183,9 @@ const ExamStatistics = () => {
                 ))}
             </div>
 
-            {/* Tab content */}
             {activeTab === 'overview' && (
                 <div className="space-y-6">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {/* Score Distribution Chart */}
                         <div className="card-glass p-6">
                             <h3 className="text-lg font-bold text-gray-900 mb-6">Phổ điểm bài kiểm tra</h3>
                             <div className="w-full">
@@ -207,7 +201,6 @@ const ExamStatistics = () => {
                             </div>
                         </div>
 
-                        {/* Grade Pie Chart */}
                         <div className="card-glass p-6">
                             <h3 className="text-lg font-bold text-gray-900 mb-6">Phân loại học lực</h3>
                             <div className="w-full shadow-inner">
@@ -234,7 +227,6 @@ const ExamStatistics = () => {
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {/* Question Performance Trend */}
                         <div className="card-glass p-6">
                             <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
                                 <TargetIcon className="w-5 h-5 text-emerald-500" />
@@ -259,7 +251,6 @@ const ExamStatistics = () => {
                             </div>
                         </div>
 
-                        {/* Completion Time Table */}
                         <div className="card-glass p-6">
                             <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
                                 <ClockIcon className="w-5 h-5 text-indigo-500" />

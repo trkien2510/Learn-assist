@@ -1,14 +1,6 @@
 import { useEffect, useCallback, useRef } from 'react';
 import useApi from './useApi';
 
-/**
- * Hook for fetching data on component mount or based on dependencies.
- * Handles the common BaseResponse pattern automatically.
- * 
- * @param {Function} apiFunction - The service function to call (e.g., classroomService.getAll)
- * @param {Array} dependencies - Array of values that trigger a re-fetch when changed
- * @param {Object} options - { immediate: bool, onSuccess: func, onError: func, initialParams: [] }
- */
 const useFetch = (apiFunction, dependencies = [], options = {}) => {
     const {
         immediate = true,
