@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, ROLES } from '../contexts/AuthContext';
+import { useDateFormat, useModal, useApi } from '../hooks';
 import { examService, classroomService, questionService } from '../services/apiServices';
 import { PlusIcon, ClockIcon, CalendarIcon, UsersIcon, BookIcon, CloseIcon, SearchIcon, EditIcon, RefreshIcon, CheckIcon } from '../components/icons/Icons';
 import Portal from '../components/common/Portal';
@@ -10,15 +11,17 @@ const Exams = () => {
     const navigate = useNavigate();
     const [exams, setExams] = useState([]);
     const [submittedExamIds, setSubmittedExamIds] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
-    const [showCreateModal, setShowCreateModal] = useState(false);
+    const createModal = useModal(false);
     const [classrooms, setClassrooms] = useState([]);
     const [step, setStep] = useState(1);
     const [previewQuestions, setPreviewQuestions] = useState([]);
     const [excludedIds, setExcludedIds] = useState([]);
+
+    const examsApi = useApi(() => examService.getAll(1, 50));
 
     const [formData, setFormData] = useState({
         title: '',
@@ -35,6 +38,7 @@ const Exams = () => {
     const isTeacher = hasRole([ROLES.TEACHER]);
     const isAdmin = hasRole([ROLES.ADMIN]);
     const isStudent = hasRole([ROLES.STUDENT]);
+    const { formatDateTime, formatDateTimeWithOffset } = useDateFormat();
 
     useEffect(() => {
         fetchExams();
@@ -45,20 +49,14 @@ const Exams = () => {
 
     const fetchExams = async () => {
         try {
-            setLoading(true);
-            const response = await examService.getAll(1, 50);
-            const data = response.data || response;
+            const data = await examsApi.execute();
             const examsData = data.items || data || [];
             const submittedIds = data.submitted_exam_ids || [];
-
-            console.log('🔍 DEBUG submitted_exam_ids:', submittedIds);
 
             setExams(examsData);
             setSubmittedExamIds(submittedIds);
         } catch (err) {
-            setError(err.message || 'Không thể tải danh sách bài kiểm tra');
-        } finally {
-            setLoading(false);
+            // Error is handled by examsApi
         }
     };
 
@@ -167,23 +165,6 @@ const Exams = () => {
                 return;
             }
 
-            const formatDateTimeWithOffset = (dateTimeStr) => {
-                const date = new Date(dateTimeStr);
-                const offset = -date.getTimezoneOffset();
-                const offsetHours = String(Math.floor(Math.abs(offset) / 60)).padStart(2, '0');
-                const offsetMins = String(Math.abs(offset) % 60).padStart(2, '0');
-                const offsetSign = offset >= 0 ? '+' : '-';
-
-                const year = date.getFullYear();
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const day = String(date.getDate()).padStart(2, '0');
-                const hours = String(date.getHours()).padStart(2, '0');
-                const minutes = String(date.getMinutes()).padStart(2, '0');
-                const seconds = '00';
-
-                return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${offsetSign}${offsetHours}:${offsetMins}`;
-            };
-
             await examService.create({
                 title: formData.title,
                 class_code: selectedClassroom.class_code,
@@ -194,7 +175,7 @@ const Exams = () => {
             });
 
             setSuccess('Tạo bài kiểm tra thành công!');
-            setShowCreateModal(false);
+            createModal.close();
             resetForm();
             fetchExams();
             setTimeout(() => setSuccess(''), 3000);
@@ -265,7 +246,7 @@ const Exams = () => {
         setError('');
     };
 
-    const formatDate = (dateString) => {
+    const formatDateLocal = (dateString) => {
         let dateStr = dateString;
         if (!/Z|[+-]\d{2}:\d{2}$/.test(dateString)) {
             dateStr = dateString + 'Z';
@@ -314,10 +295,7 @@ const Exams = () => {
                     </p>
                 </div>
                 {isTeacher && (
-                    <button
-                        onClick={() => setShowCreateModal(true)}
-                        className="btn-primary flex items-center gap-2"
-                    >
+                    <button onClick={() => createModal.open()} className="btn-primary flex items-center gap-2">
                         <PlusIcon className="w-5 h-5" />
                         Tạo bài kiểm tra
                     </button>
@@ -336,14 +314,10 @@ const Exams = () => {
                 </div>
             )}
 
-            {loading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {[1, 2, 3].map(i => (
-                        <div key={i} className="card-glass p-6 animate-pulse">
-                            <div className="h-6 bg-slate-700 rounded mb-4"></div>
-                            <div className="h-4 bg-slate-700 rounded"></div>
-                        </div>
-                    ))}
+            {examsApi.loading && exams.length === 0 ? (
+                <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+                    <div className="w-12 h-12 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div>
+                    <p className="text-gray-500 animate-pulse font-medium">Đang tải danh sách bài kiểm tra...</p>
                 </div>
             ) : exams.length === 0 ? (
                 <div className="card-glass p-12 text-center">
@@ -355,7 +329,7 @@ const Exams = () => {
                         {isTeacher ? 'Tạo bài kiểm tra đầu tiên cho lớp học của bạn' : 'Đợi giáo viên tạo bài kiểm tra'}
                     </p>
                     {isTeacher && (
-                        <button onClick={() => setShowCreateModal(true)} className="btn-primary">
+                        <button onClick={() => createModal.open()} className="btn-primary">
                             Tạo bài kiểm tra
                         </button>
                     )}
@@ -380,7 +354,7 @@ const Exams = () => {
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <CalendarIcon className="w-4 h-4 text-gray-500" />
-                                        <span>{formatDate(exam.start_at)}</span>
+                                        <span>{formatDateTime(exam.start_at)}</span>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <BookIcon className="w-4 h-4 text-gray-500" />
@@ -441,22 +415,21 @@ const Exams = () => {
                 </div>
             )}
 
-            {showCreateModal && (
+            {createModal.isOpen && (
                 <Portal>
-                    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-100 p-4">
-                        <div className="card-glass max-w-4xl w-full my-8 max-h-[90vh] overflow-hidden flex flex-col animate-fadeIn shadow-2xl">
-                            <div className="flex items-center justify-between p-6 border-b border-gray-200/10">
-                                <h2 className="text-2xl font-bold gradient-text">
-                                    {step === 1 ? 'Cấu hình bài kiểm tra' : 'Xem trước câu hỏi'}
-                                </h2>
+                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-100 p-4">
+                        <div className="card-glass p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto animate-fadeIn relative">
+                            {/* Header */}
+                            <div className="flex items-center justify-between mb-8 pb-4 border-b border-white/10">
+                                <div>
+                                    <h2 className="text-3xl font-black gradient-text">Thiết lập bài kiểm tra</h2>
+                                    <p className="text-slate-400 font-medium">Bước {step}/2: {step === 1 ? 'Thông tin cơ bản' : 'Cấu hình câu hỏi'}</p>
+                                </div>
                                 <button
-                                    onClick={() => {
-                                        setShowCreateModal(false);
-                                        resetForm();
-                                    }}
-                                    className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                                    onClick={() => createModal.close()}
+                                    className="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-xl transition-all group"
                                 >
-                                    <CloseIcon className="w-5 h-5 text-gray-500" />
+                                    <CloseIcon className="w-6 h-6 text-slate-400 group-hover:rotate-90 transition-transform" />
                                 </button>
                             </div>
 
@@ -681,7 +654,7 @@ const Exams = () => {
                                 <div className="flex gap-3 ml-auto">
                                     <button
                                         onClick={() => {
-                                            setShowCreateModal(false);
+                                            createModal.close();
                                             resetForm();
                                         }}
                                         className="btn-secondary"

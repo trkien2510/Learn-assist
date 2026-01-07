@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth, ROLES } from '../../contexts/AuthContext';
+import { useDateFormat } from '../../hooks';
 import { classroomService } from '../../services/apiServices';
 import { SendIcon, TrashIcon } from '../icons/Icons';
 
 const ClassroomMessages = ({ classCode, classroom }) => {
     const { user, hasRole } = useAuth();
+    const { formatRelative } = useDateFormat();
     const isAdmin = hasRole([ROLES.ADMIN]);
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
@@ -81,44 +83,9 @@ const ClassroomMessages = ({ classCode, classroom }) => {
         }
     };
 
-    const handleDeleteMessage = async (messageId) => {
-        if (!confirm('Bạn có chắc muốn xóa tin nhắn này?')) return;
 
-        try {
-            await classroomService.deleteMessage(messageId);
-            await fetchMessages();
-        } catch (err) {
-            setError(err.message || 'Không thể xóa tin nhắn');
-        }
-    };
 
-    const canDeleteMessage = (message) => {
-        if (isAdmin) return false;
-        return message.sender_id === user?.id || classroom?.is_creator;
-    };
 
-    const formatTime = (dateString) => {
-        if (!dateString) return '';
-
-        let dateStr = dateString;
-        if (!/Z|[+-]\d{2}:\d{2}$/.test(dateString)) {
-            dateStr = dateString + 'Z';
-        }
-
-        const date = new Date(dateStr);
-        const now = new Date();
-        const diffMs = now - date;
-        const diffMins = Math.floor(diffMs / 60000);
-        const diffHours = Math.floor(diffMs / 3600000);
-        const diffDays = Math.floor(diffMs / 86400000);
-
-        if (diffMins < 1) return 'Vừa xong';
-        if (diffMins < 60) return `${diffMins} phút trước`;
-        if (diffHours < 24) return `${diffHours} giờ trước`;
-        if (diffDays < 7) return `${diffDays} ngày trước`;
-
-        return date.toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
-    };
 
     return (
         <div className="flex flex-col h-[600px]">
@@ -161,7 +128,7 @@ const ClassroomMessages = ({ classCode, classroom }) => {
                                                 {message.sender_name}
                                             </span>
                                             <span className="text-xs text-gray-500">
-                                                {formatTime(message.created_at)}
+                                                {formatRelative(message.created_at)}
                                             </span>
                                         </div>
 
@@ -173,15 +140,7 @@ const ClassroomMessages = ({ classCode, classroom }) => {
                                                 <p className="whitespace-pre-wrap wrap-break-word">{message.content}</p>
                                             </div>
 
-                                            {canDeleteMessage(message) && (
-                                                <button
-                                                    onClick={() => handleDeleteMessage(message.id)}
-                                                    className="absolute -top-2 -right-2 p-1.5 bg-red-500 hover:bg-red-600 rounded-full opacity-0 group-hover:opacity-100 transition-all shadow-lg"
-                                                    title="Xóa tin nhắn"
-                                                >
-                                                    <TrashIcon className="w-3 h-3 text-white" />
-                                                </button>
-                                            )}
+
                                         </div>
                                     </div>
                                 </div>

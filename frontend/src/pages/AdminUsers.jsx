@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { adminService } from '../services/otherServices';
+import { useDateFormat, usePagination, useModal } from '../hooks';
 import {
     UsersIcon,
     SearchIcon,
@@ -25,10 +26,9 @@ const AdminUsers = () => {
         search: ''
     });
 
-    const [page, setPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
-    const [showUserModal, setShowUserModal] = useState(false);
-    const [selectedUser, setSelectedUser] = useState(null);
+    const { formatDateOnly, formatDateTime } = useDateFormat();
+    const { page, totalPages, setPage, updateFromResponse } = usePagination(1, 20);
+    const userModal = useModal();
     const [userActivity, setUserActivity] = useState(null);
 
     useEffect(() => {
@@ -45,7 +45,7 @@ const AdminUsers = () => {
             const response = await adminService.users.getAll(page, 20, filters);
             const data = response.data || response;
             setUsers(data.items || data || []);
-            setTotalPages(data.total_pages || 1);
+            updateFromResponse(data);
         } catch (err) {
             setError(err.message || 'Không thể tải danh sách người dùng');
         } finally {
@@ -103,8 +103,7 @@ const AdminUsers = () => {
         try {
             const response = await adminService.stats.getUserActivity(user._id || user.id, 30);
             setUserActivity(response.data || response);
-            setSelectedUser(user);
-            setShowUserModal(true);
+            userModal.open(user);
         } catch (err) {
             setError('Không thể tải hoạt động người dùng');
         }
@@ -126,29 +125,6 @@ const AdminUsers = () => {
                 {labels[role] || role}
             </span>
         );
-    };
-
-    const formatDate = (dateString) => {
-        if (!dateString) return '';
-        let dateStr = dateString;
-        if (!/Z|[+-]\d{2}:\d{2}$/.test(dateString)) {
-            dateStr = dateString + 'Z';
-        }
-        return new Date(dateStr).toLocaleDateString('vi-VN', {
-            timeZone: 'Asia/Ho_Chi_Minh',
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit'
-        });
-    };
-
-    const formatDateTime = (dateString) => {
-        if (!dateString) return '';
-        let dateStr = dateString;
-        if (!/Z|[+-]\d{2}:\d{2}$/.test(dateString)) {
-            dateStr = dateString + 'Z';
-        }
-        return new Date(dateStr).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
     };
 
     return (
@@ -319,7 +295,7 @@ const AdminUsers = () => {
                                             <span className="text-sm text-gray-600">{user.phone_number || '-'}</span>
                                         </td>
                                         <td className="p-4">
-                                            <span className="text-sm text-gray-600">{formatDate(user.created_at)}</span>
+                                            <span className="text-sm text-gray-600">{formatDateOnly(user.created_at)}</span>
                                         </td>
                                         <td className="p-4">
                                             {user.role === 'admin' ? (
@@ -367,7 +343,7 @@ const AdminUsers = () => {
                     {totalPages > 1 && (
                         <div className="flex items-center justify-center gap-2 p-4 border-t border-gray-200">
                             <button
-                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                                onClick={() => setPage(page - 1)}
                                 disabled={page === 1}
                                 className="btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
                             >
@@ -377,7 +353,7 @@ const AdminUsers = () => {
                                 Trang {page} / {totalPages}
                             </span>
                             <button
-                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                                onClick={() => setPage(page + 1)}
                                 disabled={page === totalPages}
                                 className="btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
                             >
@@ -388,19 +364,19 @@ const AdminUsers = () => {
                 </div>
             )}
 
-            {showUserModal && selectedUser && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-100" onClick={() => setShowUserModal(false)}>
+            {userModal.isOpen && userModal.data && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-100" onClick={() => userModal.close()}>
                     <div className="card-glass max-w-2xl w-full max-h-[80vh] overflow-y-auto m-4" onClick={(e) => e.stopPropagation()}>
                         <div className="p-6 border-b border-gray-200">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <h3 className="text-xl font-bold text-gray-900">Hoạt động người dùng</h3>
                                     <p className="text-sm text-gray-500 mt-1">
-                                        {selectedUser.full_name} ({selectedUser.email})
+                                        {userModal.data.full_name} ({userModal.data.email})
                                     </p>
                                 </div>
                                 <button
-                                    onClick={() => setShowUserModal(false)}
+                                    onClick={() => userModal.close()}
                                     className="text-gray-500 hover:text-gray-700"
                                 >
                                     ✕

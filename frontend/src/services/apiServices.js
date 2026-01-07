@@ -62,9 +62,6 @@ export const classroomService = {
         return httpClient.get(API_ENDPOINTS.MESSAGE_GET(classCode), { page, page_size: pageSize });
     },
 
-    async deleteMessage(messageId) {
-        return httpClient.delete(API_ENDPOINTS.MESSAGE_DELETE(messageId));
-    }
 };
 
 export const documentService = {

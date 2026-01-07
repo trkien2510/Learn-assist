@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { notificationService } from '../services/otherServices';
 import { useNotifications } from '../contexts/NotificationContext';
+import { useDateFormat, usePagination, useFetch } from '../hooks';
 import { BellIcon, TrashIcon, CheckIcon } from '../components/icons/Icons';
 
 const Notifications = () => {
@@ -11,30 +12,28 @@ const Notifications = () => {
         markAllAsRead: contextMarkAllAsRead,
         deleteNotification: contextDeleteNotification
     } = useNotifications();
-    const [notifications, setNotifications] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
-    const [page, setPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
+    const { formatDateTime } = useDateFormat();
+    const { page, totalPages, setPage, updateFromResponse } = usePagination(1, 20);
 
-    useEffect(() => {
-        fetchNotifications();
-    }, [page]);
 
-    const fetchNotifications = async () => {
-        try {
-            setLoading(true);
-            const response = await notificationService.getAll(page, 20);
-            const data = response.data || response;
-            setNotifications(data.items || data || []);
-            setTotalPages(data.total_pages || 1);
-            fetchUnreadCount();
-        } catch (err) {
-            setError(err.message || 'Không thể tải thông báo');
-        } finally {
-            setLoading(false);
+    const {
+        data: notificationData,
+        loading,
+        error,
+        refresh: fetchNotifications
+    } = useFetch(
+        () => notificationService.getAll(page, 20),
+        [page],
+        {
+            onSuccess: (data) => {
+                updateFromResponse(data);
+                fetchUnreadCount();
+            }
         }
-    };
+    );
+
+    const notifications = notificationData?.items || [];
+
 
     const markAsRead = async (notificationId) => {
         await contextMarkAsRead([notificationId]);
@@ -49,15 +48,6 @@ const Notifications = () => {
     const deleteNotification = async (notificationId) => {
         await contextDeleteNotification(notificationId);
         fetchNotifications();
-    };
-
-    const formatDate = (dateString) => {
-        if (!dateString) return '';
-        let dateStr = dateString;
-        if (!/Z|[+-]\d{2}:\d{2}$/.test(dateString)) {
-            dateStr = dateString + 'Z';
-        }
-        return new Date(dateStr).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
     };
 
     return (
@@ -122,7 +112,7 @@ const Notifications = () => {
                                     </div>
                                     <p className="text-gray-600 mb-3">{notification.content}</p>
                                     <p className="text-sm text-gray-500">
-                                        {formatDate(notification.created_at)}
+                                        {formatDateTime(notification.created_at)}
                                     </p>
                                 </div>
                                 <div className="flex gap-2 ml-4">

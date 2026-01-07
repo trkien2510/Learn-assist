@@ -85,6 +85,43 @@ const RecentActivity = ({ activities }) => {
         }
     };
 
+    const formatAction = (action) => {
+        const actionMap = {
+            'login': 'Đăng nhập hệ thống',
+            'register': 'Đăng ký tài khoản',
+            'create_classroom': 'Tạo lớp học mới',
+            'join_request': 'Gửi yêu cầu tham gia lớp học',
+            'accept_join_request': 'Chấp nhận yêu cầu tham gia',
+            'upload_document': 'Tải lên tài liệu',
+            'delete_document': 'Xóa tài liệu',
+            'save_questions': 'Lưu câu hỏi từ tài liệu',
+            'create_question': 'Tạo câu hỏi thủ công',
+            'update_question': 'Cập nhật câu hỏi',
+            'delete_question': 'Xóa câu hỏi',
+            'create_exam': 'Tạo bài kiểm tra',
+            'delete_exam': 'Xóa bài kiểm tra',
+            'start_exam': 'Bắt đầu làm bài',
+            'submit_exam': 'Nộp bài kiểm tra',
+            'create_personal_exam': 'Tạo bài tự luyện',
+            'start_personal_exam': 'Bắt đầu tự luyện',
+            'delete_personal_exam': 'Xóa bài tự luyện',
+            'update_profile': 'Cập nhật cá nhân',
+            'change_password': 'Đổi mật khẩu',
+            'delete_own_account': 'Xóa tài khoản',
+            'admin_update_user': 'Admin cập nhật người dùng',
+            'admin_delete_user': 'Admin xóa người dùng',
+            'activate_user': 'Kích hoạt tài khoản',
+            'deactivate_user': 'Vô hiệu hóa tài khoản',
+            'otp_sent': 'Gửi mã OTP',
+            'otp_verified': 'Xác thực OTP',
+            'email_verified': 'Xác thực email',
+            'password_reset': 'Đặt lại mật khẩu',
+            'account_reactivated': 'Kích hoạt lại tài khoản'
+        };
+
+        return actionMap[action] || action;
+    };
+
     return (
         <div className="overflow-hidden">
             {activities.length === 0 ? (
@@ -132,16 +169,8 @@ const RecentActivity = ({ activities }) => {
 
                                         <td className="py-3 px-4">
                                             <p className="text-sm font-medium text-gray-900">
-                                                {activity.action || activity.description}
+                                                {formatAction(activity.action || activity.description)}
                                             </p>
-                                            {activity.resource_name && (
-                                                <p className="text-xs text-gray-500 mt-0.5">
-                                                    {typeof activity.resource_name === 'string'
-                                                        ? activity.resource_name
-                                                        : activity.resource_name?.filename || JSON.stringify(activity.resource_name)
-                                                    }
-                                                </p>
-                                            )}
                                         </td>
 
                                         <td className="py-3 px-4">

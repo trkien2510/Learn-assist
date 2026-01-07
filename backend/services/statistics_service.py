@@ -479,9 +479,21 @@ async def get_exam_detailed_statistics(exam_id: str, current_user) -> Dict[str, 
                 "total_participants": 0,
                 "completion_rate": 0
             },
-            "scores": {},
+            "scores": {
+                "average": 0,
+                "highest": 0,
+                "lowest": 0,
+                "distribution": {
+                    "0-2": 0, "2-4": 0, "4-6": 0, "6-8": 0, "8-10": 0
+                }
+            },
             "questions": [],
-            "time_analysis": {},
+            "time_analysis": {
+                "average_time_minutes": 0,
+                "fastest_time": 0,
+                "slowest_time": 0,
+                "median_time": 0
+            },
             "participants": []
         }
     
@@ -682,21 +694,6 @@ async def get_classroom_detailed_statistics(class_id: str, current_user) -> Dict
             "pass_rate": round(len([s for s in exam_scores if s >= 5]) / len(exam_scores) * 100, 2) if exam_scores else 0
         })
     
-    monthly_performance = defaultdict(list)
-    for r in submitted_results:
-        if r.submit_at:
-            month_key = r.submit_at.strftime("%Y-%m")
-            monthly_performance[month_key].append(r.score)
-    
-    trends = [
-        {
-            "month": month,
-            "average_score": round(sum(scores_list) / len(scores_list), 2),
-            "submissions": len(scores_list)
-        }
-        for month, scores_list in sorted(monthly_performance.items())
-    ]
-    
     return {
         "classroom_info": {
             "id": str(classroom.id),
@@ -718,9 +715,9 @@ async def get_classroom_detailed_statistics(class_id: str, current_user) -> Dict
             } if scores else {}
         },
         "student_performance": student_stats,
-        "exam_breakdown": exam_breakdown,
-        "trends": trends
+        "exam_breakdown": exam_breakdown
     }
+
 
 
 async def get_admin_platform_statistics() -> Dict[str, Any]:    

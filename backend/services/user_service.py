@@ -67,34 +67,8 @@ async def delete_account(pass_data, current_user, background_tasks=None):
     user_email = current_user.email
     user_name = current_user.full_name
 
-    from models.document_model import DocumentModel
-    from models.question_model import QuestionModel
-    from models.exam_model import ExamModel
-    from models.classroom_model import ClassroomModel
-    from models.notification_model import NotificationModel
-    from models.log_model import LogModel
-    from models.otp_model import OTPModel
-    from beanie import PydanticObjectId
+    await _cleanup_user_data(user_id, user_email)
 
-    try:
-        obj_id = PydanticObjectId(user_id)
-        
-        await DocumentModel.find(DocumentModel.uploader.id == obj_id).delete()
-        
-        await QuestionModel.find(QuestionModel.creator.id == obj_id).delete()
-        
-        await ExamModel.find(ExamModel.creator_id.id == obj_id).delete()
-        
-        await ClassroomModel.find(ClassroomModel.creator.id == obj_id).delete()
-        
-        await NotificationModel.find(NotificationModel.user_id == user_id).delete()
-        
-        await LogModel.find(LogModel.user_id == user_id).delete()
-        
-        await OTPModel.find(OTPModel.email == user_email).delete()
-        
-    except Exception as e:
-        print(f"Error deleting related data: {e}")
     await log_service.create_log(
         action="delete_own_account",
         resource_type="user",
@@ -226,8 +200,11 @@ async def delete_user_by_admin(user_id: str, admin_user=None, background_tasks=N
         "target_email": user.email
     })
 
+    user_id = str(user.id)
     user_email = user.email
     user_name = user.full_name
+
+    await _cleanup_user_data(user_id, user_email)
 
     await user.delete()
 
@@ -275,3 +252,54 @@ async def toggle_user_status(user_id: str, is_active: bool, admin_user=None, bac
         "is_active": is_active,
         "message": f"User {'activated' if is_active else 'deactivated'} successfully"
     }
+
+async def _cleanup_user_data(user_id: str, user_email: str):
+    from models.document_model import DocumentModel
+    from models.question_model import QuestionModel
+    from models.exam_model import ExamModel
+    from models.classroom_model import ClassroomModel
+    from models.notification_model import NotificationModel
+    from models.log_model import LogModel
+    from models.otp_model import OTPModel
+    from models.message_model import MessageModel
+    from models.result_model import ResultModel
+    from beanie import PydanticObjectId
+    
+    try:
+        obj_id = PydanticObjectId(user_id)
+        
+        # Xóa tài liệu của người dùng (creator)
+        await DocumentModel.find(DocumentModel.creator.id == obj_id).delete()
+        
+        # Xóa câu hỏi của người dùng (creator_id)
+        await QuestionModel.find(QuestionModel.creator_id.id == obj_id).delete()
+        
+        # Xóa bài thi của người dùng (creator_id)
+        await ExamModel.find(ExamModel.creator_id.id == obj_id).delete()
+        
+        # Xóa lớp học do người dùng tạo
+        await ClassroomModel.find(ClassroomModel.creator.id == obj_id).delete()
+        
+        # Xóa người dùng khỏi danh sách thành viên các lớp khác
+        await ClassroomModel.get_motor_collection().update_many(
+            {"members.$id": obj_id},
+            {"$pull": {"members": {"$id": obj_id}}}
+        )
+        
+        # Xóa tin nhắn của người dùng
+        await MessageModel.find(MessageModel.sender.id == obj_id).delete()
+        
+        # Xóa kết quả làm bài của người dùng
+        await ResultModel.find(ResultModel.user_id.id == obj_id).delete()
+        
+        # Xóa thông báo của người dùng
+        await NotificationModel.find(NotificationModel.user_id.id == obj_id).delete()
+        
+        # Xóa log của người dùng
+        await LogModel.find(LogModel.user_id == user_id).delete()
+        
+        # Xóa OTP của người dùng
+        await OTPModel.find(OTPModel.email == user_email).delete()
+        
+    except Exception as e:
+        print(f"Error during user data cleanup for {user_id}: {e}")

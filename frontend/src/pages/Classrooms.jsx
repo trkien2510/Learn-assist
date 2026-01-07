@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, ROLES } from '../contexts/AuthContext';
+import { useModal } from '../hooks';
 import { classroomService } from '../services/apiServices';
 import { BookIcon, UsersIcon, PlusIcon, CloseIcon, CheckIcon, XIcon, TrashIcon, LogoutIcon, CopyIcon } from '../components/icons/Icons';
 
@@ -12,10 +13,10 @@ const Classrooms = () => {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
-    const [showCreateModal, setShowCreateModal] = useState(false);
-    const [showJoinModal, setShowJoinModal] = useState(false);
-    const [showMembersModal, setShowMembersModal] = useState(false);
-    const [selectedClassroom, setSelectedClassroom] = useState(null);
+    const createModal = useModal(false);
+    const joinModal = useModal(false);
+    const membersModal = useModal(false);
+
     const [copiedCode, setCopiedCode] = useState('');
 
     const [createForm, setCreateForm] = useState({
@@ -53,7 +54,7 @@ const Classrooms = () => {
             setError('');
             await classroomService.create(createForm);
             setSuccess('Tạo lớp học thành công!');
-            setShowCreateModal(false);
+            createModal.close();
             setCreateForm({ name: '', subject: '', description: '' });
             fetchClassrooms();
             setTimeout(() => setSuccess(''), 3000);
@@ -68,7 +69,7 @@ const Classrooms = () => {
             setError('');
             await classroomService.sendJoinRequest(joinCode);
             setSuccess('Đã gửi yêu cầu tham gia! Đợi giáo viên phê duyệt.');
-            setShowJoinModal(false);
+            joinModal.close();
             setJoinCode('');
             setTimeout(() => setSuccess(''), 3000);
         } catch (err) {
@@ -78,9 +79,8 @@ const Classrooms = () => {
 
     const handleViewMembers = async (classroom) => {
         try {
-            setSelectedClassroom(classroom);
+            membersModal.open(classroom);
             setLoadingMembers(true);
-            setShowMembersModal(true);
 
             const response = await classroomService.getMembers(classroom.class_code);
             const data = response.data || response;
@@ -95,9 +95,9 @@ const Classrooms = () => {
 
     const handleAcceptRequest = async (requestId) => {
         try {
-            await classroomService.acceptRequest(selectedClassroom.class_code, requestId);
+            await classroomService.acceptRequest(membersModal.data.class_code, requestId);
             setSuccess('Đã chấp nhận yêu cầu!');
-            handleViewMembers(selectedClassroom);
+            handleViewMembers(membersModal.data);
             setTimeout(() => setSuccess(''), 2000);
         } catch (err) {
             setError(err.message || 'Không thể chấp nhận yêu cầu');
@@ -106,9 +106,9 @@ const Classrooms = () => {
 
     const handleRejectRequest = async (requestId) => {
         try {
-            await classroomService.rejectRequest(selectedClassroom.class_code, requestId);
+            await classroomService.rejectRequest(membersModal.data.class_code, requestId);
             setSuccess('Đã từ chối yêu cầu!');
-            handleViewMembers(selectedClassroom);
+            handleViewMembers(membersModal.data);
             setTimeout(() => setSuccess(''), 2000);
         } catch (err) {
             setError(err.message || 'Không thể từ chối yêu cầu');
@@ -119,9 +119,9 @@ const Classrooms = () => {
         if (!confirm('Bạn có chắc muốn xóa thành viên này?')) return;
 
         try {
-            await classroomService.removeMember(selectedClassroom.class_code, memberId);
+            await classroomService.removeMember(membersModal.data.class_code, memberId);
             setSuccess('Đã xóa thành viên!');
-            handleViewMembers(selectedClassroom);
+            handleViewMembers(membersModal.data);
             setTimeout(() => setSuccess(''), 2000);
         } catch (err) {
             setError(err.message || 'Không thể xóa thành viên');
@@ -177,13 +177,13 @@ const Classrooms = () => {
                 </div>
 
                 {isTeacher && (
-                    <button onClick={() => setShowCreateModal(true)} className="btn-primary flex items-center gap-2">
+                    <button onClick={() => createModal.open()} className="btn-primary flex items-center gap-2">
                         <PlusIcon className="w-5 h-5" />
                         Tạo lớp học
                     </button>
                 )}
                 {isStudent && (
-                    <button onClick={() => setShowJoinModal(true)} className="btn-primary flex items-center gap-2">
+                    <button onClick={() => joinModal.open()} className="btn-primary flex items-center gap-2">
                         <PlusIcon className="w-5 h-5" />
                         Tham gia lớp
                     </button>
@@ -223,7 +223,7 @@ const Classrooms = () => {
                     </p>
                     {isTeacher && (
                         <button
-                            onClick={() => setShowCreateModal(true)}
+                            onClick={() => createModal.open()}
                             className="btn-primary"
                         >
                             Tạo lớp học
@@ -231,7 +231,7 @@ const Classrooms = () => {
                     )}
                     {isStudent && (
                         <button
-                            onClick={() => setShowJoinModal(true)}
+                            onClick={() => joinModal.open()}
                             className="btn-primary"
                         >
                             Tham gia lớp
@@ -320,13 +320,13 @@ const Classrooms = () => {
                 </div>
             )}
 
-            {showCreateModal && (
+            {createModal.isOpen && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-100 p-4">
                     <div className="card-glass p-8 max-w-md w-full animate-fadeIn">
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-2xl font-bold gradient-text">Tạo lớp học mới</h2>
                             <button
-                                onClick={() => setShowCreateModal(false)}
+                                onClick={() => createModal.close()}
                                 className="p-2 hover:bg-white/5 rounded-lg transition-colors"
                             >
                                 <CloseIcon className="w-5 h-5 text-gray-500" />
@@ -374,7 +374,7 @@ const Classrooms = () => {
                             </div>
 
                             <div className="flex gap-3 pt-4">
-                                <button type="button" onClick={() => setShowCreateModal(false)} className="flex-1 btn-secondary">
+                                <button type="button" onClick={() => createModal.close()} className="flex-1 btn-secondary">
                                     Hủy
                                 </button>
                                 <button type="submit" className="flex-1 btn-primary">
@@ -386,13 +386,13 @@ const Classrooms = () => {
                 </div>
             )}
 
-            {showJoinModal && (
+            {joinModal.isOpen && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-100 p-4">
                     <div className="card-glass p-8 max-w-md w-full animate-fadeIn">
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-2xl font-bold gradient-text">Tham gia lớp học</h2>
                             <button
-                                onClick={() => setShowJoinModal(false)}
+                                onClick={() => joinModal.close()}
                                 className="p-2 hover:bg-white/5 rounded-lg transition-colors"
                             >
                                 <CloseIcon className="w-5 h-5 text-gray-500" />
@@ -419,7 +419,7 @@ const Classrooms = () => {
                             </div>
 
                             <div className="flex gap-3 pt-4">
-                                <button type="button" onClick={() => setShowJoinModal(false)} className="flex-1 btn-secondary">
+                                <button type="button" onClick={() => joinModal.close()} className="flex-1 btn-secondary">
                                     Hủy
                                 </button>
                                 <button type="submit" className="flex-1 btn-primary">
@@ -431,16 +431,16 @@ const Classrooms = () => {
                 </div>
             )}
 
-            {showMembersModal && selectedClassroom && (
+            {membersModal.isOpen && membersModal.data && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-100 p-4">
                     <div className="card-glass p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto animate-fadeIn">
                         <div className="flex items-center justify-between mb-6">
                             <div>
-                                <h2 className="text-2xl font-bold gradient-text">{selectedClassroom.name}</h2>
+                                <h2 className="text-2xl font-bold gradient-text">{membersModal.data.name}</h2>
                                 <p className="text-gray-500 text-sm mt-1">Quản lý thành viên</p>
                             </div>
                             <button
-                                onClick={() => setShowMembersModal(false)}
+                                onClick={() => membersModal.close()}
                                 className="p-2 hover:bg-white/5 rounded-lg transition-colors"
                             >
                                 <CloseIcon className="w-5 h-5 text-gray-500" />

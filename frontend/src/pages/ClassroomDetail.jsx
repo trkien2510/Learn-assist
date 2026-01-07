@@ -57,7 +57,7 @@ const ClassroomDetail = () => {
     const fetchClassroomStats = async (classId) => {
         try {
             setLoadingStats(true);
-            const response = await statisticsService.getClassroomDetailed(classId);
+            const response = await statisticsService.getClassDetailed(classId);
             setStats(response.data || response);
         } catch (err) {
             console.error('Không thể tải thống kê lớp học:', err);

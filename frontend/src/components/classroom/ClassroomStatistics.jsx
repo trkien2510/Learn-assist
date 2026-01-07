@@ -67,7 +67,8 @@ const ClassroomStatistics = ({ classCode, classroom }) => {
             range, count
         }));
 
-        return { gradeDistribution, scoreDistribution, trends: stats.trends || [] };
+        return { gradeDistribution, scoreDistribution };
+
     }, [stats]);
 
     if (loading) {
@@ -125,21 +126,6 @@ const ClassroomStatistics = ({ classCode, classroom }) => {
                                 <Tooltip content={<CustomTooltip />} />
                                 <Bar dataKey="count" name="Số học sinh" fill="#3b82f6" radius={[4, 4, 0, 0]} />
                             </BarChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
-
-                <div className="card-glass p-6">
-                    <h3 className="text-lg font-bold text-gray-900 mb-6">Xu hướng học tập</h3>
-                    <div className="w-full">
-                        <ResponsiveContainer width="100%" height={300}>
-                            <LineChart data={chartData.trends}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff0a" />
-                                <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#64748b' }} />
-                                <YAxis domain={[0, 10]} axisLine={false} tickLine={false} tick={{ fill: '#64748b' }} />
-                                <Tooltip content={<CustomTooltip />} />
-                                <Line type="monotone" dataKey="average_score" name="Điểm TB" stroke="#10b981" strokeWidth={3} dot={{ r: 4, fill: '#10b981' }} />
-                            </LineChart>
                         </ResponsiveContainer>
                     </div>
                 </div>

@@ -49,32 +49,32 @@ async def get_classroom_messages(class_code: str, page: int, page_size: int, cur
     if not is_admin and not is_creator and not is_member:
         raise AppException(StatusCode.FORBIDDEN)
     
-    all_messages = await MessageModel.find_all().sort(-MessageModel.created_at).to_list()
+    query = MessageModel.find(MessageModel.classroom.id == classroom.id)
+    total = await query.count()
     
-    classroom_messages = [msg for msg in all_messages if msg.classroom.ref.id == classroom.id]
-    total = len(classroom_messages)
-
     skip = (page - 1) * page_size
-    messages = classroom_messages[skip:skip + page_size]
-
-    for message in messages:
-        sender = await UserModel.get(message.sender.ref.id)
-        message._sender_data = sender
+    messages = await query.sort(-MessageModel.created_at).skip(skip).limit(page_size).to_list()
     
-    message_list = [
-        {
+    sender_ids = list(set([msg.sender.ref.id for msg in messages if msg.sender]))
+    senders = await UserModel.find({"_id": {"$in": sender_ids}}).to_list()
+    sender_map = {str(s.id): s for s in senders}
+    
+    message_list = []
+    for msg in messages:
+        sender_id_str = str(msg.sender.ref.id) if msg.sender else None
+        sender = sender_map.get(sender_id_str) if sender_id_str else None
+        
+        message_list.append({
             "id": str(msg.id),
             "classroom_id": str(classroom.id),
-            "sender_id": str(msg._sender_data.id),
-            "sender_name": msg._sender_data.full_name,
-            "sender_email": msg._sender_data.email,
+            "sender_id": sender_id_str or "deleted_user",
+            "sender_name": sender.full_name if sender else "Người dùng đã xóa",
+            "sender_email": sender.email if sender else "N/A",
             "content": msg.content,
             "created_at": msg.created_at
-        }
-        for msg in messages
-    ]
+        })
     
-    total_pages = (total + page_size - 1) // page_size
+    total_pages = (total + page_size - 1) // page_size if page_size > 0 else 1
     
     return {
         "items": message_list,
@@ -88,17 +88,3 @@ async def get_classroom_messages(class_code: str, page: int, page_size: int, cur
 
 
 
-async def delete_message(message_id: str, current_user: UserModel):
-    message = await MessageModel.get(PydanticObjectId(message_id))
-    if not message:
-        raise AppException(StatusCode.MESSAGE_NOT_FOUND)
-    
-    await message.fetch_all_links()
-    
-    is_sender = str(message.sender.id) == str(current_user.id)
-    is_creator = str(message.classroom.creator.ref.id) == str(current_user.id)
-    
-    if not is_sender and not is_creator:
-        raise AppException(StatusCode.FORBIDDEN)
-    
-    await message.delete()

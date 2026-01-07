@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { adminService } from '../services/otherServices';
+import { useDateFormat, usePagination, useModal } from '../hooks';
 import {
     LogIcon,
     SearchIcon,
@@ -11,29 +12,12 @@ import {
     ClockIcon,
     DownloadIcon
 } from '../components/icons/Icons';
-import { formatDistanceToNow } from 'date-fns';
-import { vi } from 'date-fns/locale';
 
-const parseUTCDate = (dateString) => {
-    if (!dateString) return new Date();
-    let dateStr = dateString;
-    if (!/Z|[+-]\d{2}:\d{2}$/.test(dateString)) {
-        dateStr = dateString + 'Z';
-    }
-    return new Date(dateStr);
-};
-
-const formatDateVN = (dateString) => {
-    const date = parseUTCDate(dateString);
-    return date.toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
-};
 const AdminLogs = () => {
     const [logs, setLogs] = useState([]);
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [selectedLog, setSelectedLog] = useState(null);
-    const [showLogModal, setShowLogModal] = useState(false);
 
     const [filters, setFilters] = useState({
         resource_type: '',
@@ -42,8 +26,9 @@ const AdminLogs = () => {
         user_id: ''
     });
 
-    const [page, setPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
+    const { formatDateTime, formatRelative } = useDateFormat();
+    const { page, totalPages, setPage, updateFromResponse } = usePagination(1, 20);
+    const logModal = useModal();
 
     useEffect(() => {
         fetchLogs();
@@ -56,7 +41,7 @@ const AdminLogs = () => {
             const response = await adminService.logs.getAll(page, 20, filters);
             const data = response.data || response;
             setLogs(data.items || data || []);
-            setTotalPages(data.total_pages || 1);
+            updateFromResponse(data);
         } catch (err) {
             setError(err.message || 'Không thể tải nhật ký');
         } finally {
@@ -75,8 +60,7 @@ const AdminLogs = () => {
     };
 
     const handleViewDetail = async (log) => {
-        setSelectedLog(log);
-        setShowLogModal(true);
+        logModal.open(log);
     };
 
     const handleExport = () => {
@@ -92,7 +76,7 @@ const AdminLogs = () => {
         };
 
         const rows = logs.map(log => [
-            escapeCSV(formatDateVN(log.created_at)),
+            escapeCSV(formatDateTime(log.created_at)),
             escapeCSV(log.user_id || 'N/A'),
             escapeCSV(log.action),
             escapeCSV(log.resource_type || 'N/A'),
@@ -348,11 +332,11 @@ const AdminLogs = () => {
                                             <div className="flex items-center gap-2">
                                                 <ClockIcon className="w-4 h-4 text-gray-400" />
                                                 <span className="text-sm text-gray-600">
-                                                    {formatDistanceToNow(parseUTCDate(log.created_at), { addSuffix: true, locale: vi })}
+                                                    {formatRelative(log.created_at)}
                                                 </span>
                                             </div>
                                             <p className="text-xs text-gray-400 mt-1">
-                                                {formatDateVN(log.created_at)}
+                                                {formatDateTime(log.created_at)}
                                             </p>
                                         </td>
                                         <td className="p-4">
@@ -393,7 +377,7 @@ const AdminLogs = () => {
                     {totalPages > 1 && (
                         <div className="flex items-center justify-center gap-2 p-4 border-t border-gray-200">
                             <button
-                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                                onClick={() => setPage(page - 1)}
                                 disabled={page === 1}
                                 className="btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
                             >
@@ -403,7 +387,7 @@ const AdminLogs = () => {
                                 Trang {page} / {totalPages}
                             </span>
                             <button
-                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                                onClick={() => setPage(page + 1)}
                                 disabled={page === totalPages}
                                 className="btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
                             >
@@ -414,14 +398,14 @@ const AdminLogs = () => {
                 </div>
             )}
 
-            {showLogModal && selectedLog && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-100" onClick={() => setShowLogModal(false)}>
+            {logModal.isOpen && logModal.data && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-100" onClick={() => logModal.close()}>
                     <div className="card-glass max-w-2xl w-full max-h-[80vh] overflow-y-auto m-4" onClick={(e) => e.stopPropagation()}>
                         <div className="p-6 border-b border-gray-200">
                             <div className="flex items-center justify-between">
                                 <h3 className="text-xl font-bold text-gray-900">Chi tiết nhật ký</h3>
                                 <button
-                                    onClick={() => setShowLogModal(false)}
+                                    onClick={() => logModal.close()}
                                     className="text-gray-500 hover:text-gray-700"
                                 >
                                     ✕
@@ -431,33 +415,33 @@ const AdminLogs = () => {
                         <div className="p-6 space-y-4">
                             <div>
                                 <label className="text-sm font-medium text-gray-700">Hành động</label>
-                                <p className="mt-1 text-gray-900">{selectedLog.action}</p>
+                                <p className="mt-1 text-gray-900">{logModal.data.action}</p>
                             </div>
 
                             <div>
                                 <label className="text-sm font-medium text-gray-700">Trạng thái</label>
-                                <div className="mt-1">{getStatusBadge(selectedLog.status)}</div>
+                                <div className="mt-1">{getStatusBadge(logModal.data.status)}</div>
                             </div>
 
                             <div>
                                 <label className="text-sm font-medium text-gray-700">User ID</label>
                                 <p className="mt-1 text-sm font-mono bg-gray-100 px-3 py-2 rounded">
-                                    {selectedLog.user_id || 'N/A'}
+                                    {logModal.data.user_id || 'N/A'}
                                 </p>
                             </div>
 
-                            {selectedLog.resource_type && (
+                            {logModal.data.resource_type && (
                                 <div>
                                     <label className="text-sm font-medium text-gray-700">Loại tài nguyên</label>
-                                    <p className="mt-1 text-gray-900 capitalize">{selectedLog.resource_type}</p>
+                                    <p className="mt-1 text-gray-900 capitalize">{logModal.data.resource_type}</p>
                                 </div>
                             )}
 
-                            {selectedLog.resource_id && (
+                            {logModal.data.resource_id && (
                                 <div>
                                     <label className="text-sm font-medium text-gray-700">Resource ID</label>
                                     <p className="mt-1 text-sm font-mono bg-gray-100 px-3 py-2 rounded">
-                                        {selectedLog.resource_id}
+                                        {logModal.data.resource_id}
                                     </p>
                                 </div>
                             )}
@@ -465,15 +449,15 @@ const AdminLogs = () => {
                             <div>
                                 <label className="text-sm font-medium text-gray-700">Thời gian</label>
                                 <p className="mt-1 text-gray-900">
-                                    {formatDateVN(selectedLog.created_at)}
+                                    {formatDateTime(logModal.data.created_at)}
                                 </p>
                             </div>
 
-                            {selectedLog.details && Object.keys(selectedLog.details).length > 0 && (
+                            {logModal.data.details && Object.keys(logModal.data.details).length > 0 && (
                                 <div>
                                     <label className="text-sm font-medium text-gray-700">Chi tiết bổ sung</label>
                                     <pre className="mt-1 text-xs bg-gray-100 p-3 rounded overflow-x-auto">
-                                        {JSON.stringify(selectedLog.details, null, 2)}
+                                        {JSON.stringify(logModal.data.details, null, 2)}
                                     </pre>
                                 </div>
                             )}

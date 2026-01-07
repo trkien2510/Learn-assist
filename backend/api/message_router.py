@@ -19,8 +19,3 @@ async def get_messages(class_code: str, page: int = 1, page_size: int = 50, curr
     data = await message_service.get_classroom_messages(class_code, page, page_size, current_user)
     return BaseResponse(data=data)
 
-
-@router.delete("/{message_id}", response_model=BaseResponse)
-async def delete_message(message_id: str, current_user: UserModel = Depends(get_current_user)):
-    await message_service.delete_message(message_id, current_user)
-    return BaseResponse()

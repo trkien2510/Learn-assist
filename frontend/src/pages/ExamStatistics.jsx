@@ -7,10 +7,12 @@ import {
 } from 'recharts';
 import { statisticsService } from '../services/otherServices';
 import { useAuth, ROLES } from '../contexts/AuthContext';
+import { useApi, useDateFormat } from '../hooks';
 import {
     ChartIcon, UsersIcon, ClockIcon, BookIcon,
     ArrowLeftIcon, DownloadIcon, HelpCircleIcon,
-    CheckIcon, XIcon, TrendingUpIcon, TargetIcon
+    CheckIcon, XIcon, TrendingUpIcon, TargetIcon,
+    ExamIcon
 } from '../components/icons/Icons';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'];
@@ -42,27 +44,18 @@ const CustomTooltip = ({ active, payload, label }) => {
 const ExamStatistics = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { user, hasRole } = useAuth();
-    const [stats, setStats] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
     const [activeTab, setActiveTab] = useState('overview');
 
+    const { formatDateTime } = useDateFormat();
+    const examApi = useApi(() => statisticsService.getExamDetailed(id));
+
     useEffect(() => {
-        fetchExamStats();
+        examApi.execute();
     }, [id]);
 
-    const fetchExamStats = async () => {
-        try {
-            setLoading(true);
-            const response = await statisticsService.getExamDetailed(id);
-            setStats(response.data || response);
-        } catch (err) {
-            setError(err.message || 'Không thể tải thống kê bài kiểm tra');
-        } finally {
-            setLoading(false);
-        }
-    };
+    const stats = examApi.data;
+    const loading = examApi.loading;
+    const error = examApi.error;
 
     const chartData = useMemo(() => {
         if (!stats) return {};
@@ -274,10 +267,10 @@ const ExamStatistics = () => {
                             </h3>
                             <div className="space-y-4">
                                 {[
-                                    { label: 'Nhanh nhất', value: `${time_analysis.fastest_time.toFixed(1)} phút`, sub: 'Chiếm ưu thế tốc độ' },
-                                    { label: 'Chậm nhất', value: `${time_analysis.slowest_time.toFixed(1)} phút`, sub: 'Thời gian tối đa sử dụng' },
-                                    { label: 'Trung bình', value: `${time_analysis.average_time_minutes.toFixed(1)} phút`, sub: 'Thời gian hoàn thành tiêu chuẩn' },
-                                    { label: 'Median', value: `${time_analysis.median_time.toFixed(1)} phút`, sub: 'Mốc thời gian cân bằng' }
+                                    { label: 'Nhanh nhất', value: `${(time_analysis?.fastest_time ?? 0).toFixed(1)} phút`, sub: 'Chiếm ưu thế tốc độ' },
+                                    { label: 'Chậm nhất', value: `${(time_analysis?.slowest_time ?? 0).toFixed(1)} phút`, sub: 'Thời gian tối đa sử dụng' },
+                                    { label: 'Trung bình', value: `${(time_analysis?.average_time_minutes ?? 0).toFixed(1)} phút`, sub: 'Thời gian hoàn thành tiêu chuẩn' },
+                                    { label: 'Median', value: `${(time_analysis?.median_time ?? 0).toFixed(1)} phút`, sub: 'Mốc thời gian cân bằng' }
                                 ].map((item, i) => (
                                     <div key={i} className="flex items-center justify-between p-4 bg-slate-800/5 rounded-2xl border border-white/5 hover:translate-x-1 transition-transform">
                                         <div>
