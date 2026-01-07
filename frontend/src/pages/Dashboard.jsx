@@ -12,8 +12,11 @@ import {
     DocumentIcon,
     ChartIcon,
     ClockIcon,
-    ArrowRightIcon
+    ArrowRightIcon,
+    XIcon,
+    SparklesIcon
 } from '../components/icons/Icons';
+
 
 const Dashboard = () => {
     const { user } = useAuth();
@@ -31,7 +34,7 @@ const Dashboard = () => {
                 const data = response.data || response;
                 setDashboardData(data);
             } catch (err) {
-                console.error('Failed to fetch dashboard:', err);
+                
                 setError(err.message);
             } finally {
                 setLoading(false);
@@ -185,7 +188,7 @@ const Dashboard = () => {
             <div className="flex items-center justify-center min-h-[400px]">
                 <div className="text-center">
                     <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-4">
-                        <span className="text-3xl">❌</span>
+                        <XIcon className="w-8 h-8 text-red-500" />
                     </div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">Không thể tải dữ liệu</h3>
                     <p className="text-gray-500 mb-4">{error}</p>
@@ -208,9 +211,11 @@ const Dashboard = () => {
         <div className="space-y-6 animate-fadeIn">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-                        {getGreeting()}, <span className="gradient-text">{user?.full_name || 'User'}</span> 👋
+                    <h1 className="text-2xl md:text-3xl font-bold text-gray-900 flex items-center gap-2">
+                        {getGreeting()}, <span className="gradient-text">{user?.full_name || 'User'}</span>
+                        <SparklesIcon className="w-7 h-7 inline-block text-amber-500" />
                     </h1>
+
                     <p className="text-gray-500 mt-1">Chào mừng bạn trở lại! Đây là tổng quan hoạt động của bạn.</p>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-500">

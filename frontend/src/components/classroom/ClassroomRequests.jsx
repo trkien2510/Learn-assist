@@ -133,7 +133,7 @@ const ClassroomRequests = ({ classCode, onUpdate }) => {
                         <div key={request.request_id || request._id} className="card-glass p-4">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-linear-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-gray-900 font-semibold">
+                                    <div className="w-10 h-10 rounded-full bg-linear-to-br/srgb from-yellow-400 to-orange-500 flex items-center justify-center text-gray-900 font-semibold">
                                         {request.full_name?.charAt(0).toUpperCase() || request.email?.charAt(0).toUpperCase()}
                                     </div>
                                     <div>

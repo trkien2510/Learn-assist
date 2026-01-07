@@ -60,7 +60,7 @@ const ClassroomDetail = () => {
             const response = await statisticsService.getClassDetailed(classId);
             setStats(response.data || response);
         } catch (err) {
-            console.error('Không thể tải thống kê lớp học:', err);
+            
         } finally {
             setLoadingStats(false);
         }
@@ -175,7 +175,7 @@ const ClassroomDetail = () => {
                     {activeTab === 'messages' && <ClassroomMessages classCode={classCode} classroom={classroom} />}
                     {activeTab === 'exams' && <ClassroomExams classCode={classCode} classroom={classroom} onRefresh={fetchClassroomDetail} />}
                     {activeTab === 'members' && <ClassroomMembers classCode={classCode} classroom={classroom} isCreator={classroom.is_creator} />}
-                    {activeTab === 'statistics' && <ClassroomStatistics classCode={classCode} classroom={classroom} />}
+                    {activeTab === 'statistics' && <ClassroomStatistics classCode={classCode} classroom={classroom} stats={stats} loading={loadingStats} />}
                     {activeTab === 'requests' && classroom.is_creator && <ClassroomRequests classCode={classCode} onUpdate={fetchClassroomDetail} />}
                 </div>
             </div>

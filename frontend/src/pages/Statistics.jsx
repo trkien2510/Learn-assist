@@ -439,9 +439,12 @@ const Statistics = () => {
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden min-w-[60px]">
+                                            <div className="flex-1 h-1.5 bg-gray-500 rounded-full overflow-hidden min-w-[60px]">
                                                 <div
-                                                    className="h-full bg-linear-to-r from-blue-500 to-indigo-500"
+                                                    className={`h-full transition-all duration-500 ${cls.pass_rate >= 70 ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)]' :
+                                                        cls.pass_rate >= 40 ? 'bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.3)]' :
+                                                            'bg-rose-500 shadow-[0_0_10px_rgba(239,68,68,0.3)]'
+                                                        }`}
                                                     style={{ width: `${cls.pass_rate}%` }}
                                                 ></div>
                                             </div>

@@ -46,7 +46,6 @@ def call_openai_for_questions(prompt: str) -> Optional[dict]:
         return parsed_response.model_dump()
 
     except Exception as e:
-        print(f"Error calling OpenAI or parsing response: {e}")
         return None
 
 

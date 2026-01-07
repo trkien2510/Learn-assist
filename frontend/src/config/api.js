@@ -1,8 +1,8 @@
-// API Configuration
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
 export const API_ENDPOINTS = {
-  // Auth
+
   REGISTER: '/auth/register',
   LOGIN: '/auth/login',
   REFRESH_TOKEN: '/auth/refresh-token',
@@ -11,16 +11,13 @@ export const API_ENDPOINTS = {
   FORGOT_PASSWORD: '/auth/forgot-password',
   RESET_PASSWORD: '/auth/reset-password',
 
-  // User
   GET_ME: '/user/me',
   UPDATE_PROFILE: '/user/profile',
   CHANGE_PASSWORD: '/user/change-password',
   DELETE_ACCOUNT: '/user/delete',
 
-  // Dashboard
   DASHBOARD: '/dashboard',
 
-  // Classroom
   CLASSROOM_CREATE: '/classroom/create',
   CLASSROOM_ALL: '/classroom/all',
   CLASSROOM_MEMBERS: (classCode) => `/classroom/${classCode}/members`,
@@ -35,19 +32,15 @@ export const API_ENDPOINTS = {
   CLASSROOM_PENDING_REQUESTS: '/classroom/pending-requests',
   CLASSROOM_DETAIL: (classCode) => `/classroom/${classCode}`,
 
-  // Messages
   MESSAGE_SEND: (classCode) => `/message/${classCode}/send`,
   MESSAGE_GET: (classCode) => `/message/${classCode}/messages`,
   MESSAGE_DELETE: (messageId) => `/message/${messageId}`,
 
-
-  // Document
   DOCUMENT_ALL: '/document/all',
   DOCUMENT_UPLOAD: (numQuestions) => `/document/upload/${numQuestions}`,
   DOCUMENT_SAVE_QUESTIONS: (documentId) => `/document/save-questions/${documentId}`,
   DOCUMENT_DELETE: (documentId) => `/document/${documentId}`,
 
-  // Question
   QUESTION_CREATE: '/question/create',
   QUESTION_ALL: '/question/all',
   QUESTION_SUBJECTS: '/question/subject/list',
@@ -55,7 +48,6 @@ export const API_ENDPOINTS = {
   QUESTION_UPDATE: (questionId) => `/question/${questionId}`,
   QUESTION_DELETE: (questionId) => `/question/${questionId}`,
 
-  // Exam
   EXAM_CREATE: '/exam/create',
   EXAM_ALL: '/exam/all',
   EXAM_BY_CLASS: (classId) => `/exam/class/${classId}`,
@@ -66,14 +58,11 @@ export const API_ENDPOINTS = {
   EXAM_PREVIEW: '/exam/preview',
   EXAM_REPLACE_QUESTION: '/exam/replace-question',
 
-
-  // Result
   RESULT_ALL: '/result/all',
   RESULT_BY_EXAM: (examId) => `/result/exam/${examId}`,
   RESULT_BY_CLASS: (classId) => `/result/class/${classId}`,
   RESULT_DELETE: (resultId) => `/result/${resultId}`,
 
-  // Statistics
   STATS_BY_EXAM: (examId) => `/statistics/exam/${examId}`,
   STATS_BY_CLASS: (classId) => `/statistics/class/${classId}`,
   STATS_PERSONAL: '/statistics/personal',
@@ -85,14 +74,12 @@ export const API_ENDPOINTS = {
   STATS_CLASS_DETAILED: (classId) => `/statistics/class/${classId}/detailed`,
   STATS_PLATFORM: '/statistics/platform',
 
-  // Notifications
   NOTIFICATIONS_GET: '/notifications/',
   NOTIFICATIONS_UNREAD_COUNT: '/notifications/unread-count',
   NOTIFICATIONS_MARK_READ: '/notifications/mark-read',
   NOTIFICATIONS_DELETE: (notificationId) => `/notifications/${notificationId}`,
   NOTIFICATIONS_DELETE_ALL: '/notifications/',
 
-  // Practice
   PRACTICE_CREATE: '/practice/exam/create',
   PRACTICE_GET_EXAMS: '/practice/exams',
   PRACTICE_START: (examId) => `/practice/exam/${examId}/start`,
@@ -103,7 +90,6 @@ export const API_ENDPOINTS = {
   PRACTICE_EXAM_STATS: (examId) => `/practice/exam/${examId}/statistics`,
   PRACTICE_DOCUMENT_STATS: '/practice/documents/statistics',
 
-  // Admin
   ADMIN_USERS: '/admin/users/',
   ADMIN_USER_GET: (userId) => `/admin/users/${userId}`,
   ADMIN_USER_UPDATE: (userId) => `/admin/users/${userId}`,
@@ -121,7 +107,6 @@ export const API_ENDPOINTS = {
   ADMIN_CLEANUP_NOTIFICATIONS: '/admin/notifications/cleanup-notifications',
   ADMIN_TEST_NOTIFICATION: '/admin/notifications/test-notification',
 
-  // Admin Statistics & Analytics
   ADMIN_STATISTICS: '/admin/stats/statistics',
   ADMIN_USER_ACTIVITY: (userId) => `/admin/stats/users/${userId}/activity`,
   ADMIN_USER_GROWTH: '/admin/stats/analytics/user-growth',

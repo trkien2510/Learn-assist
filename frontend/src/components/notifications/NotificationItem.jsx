@@ -1,36 +1,52 @@
 import React from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
+import {
+    EditIcon,
+    PlayIcon,
+    StopIcon,
+    ChartIcon,
+    CheckIcon,
+    XIcon,
+    SparklesIcon,
+    TrendingUpIcon,
+    AlertIcon,
+    BoltIcon,
+    SirenIcon,
+    CircleIcon,
+    BellIcon
+} from '../icons/Icons';
 
 const NotificationItem = ({ notification, onMarkAsRead, onDelete, onClick }) => {
     const getIcon = (type) => {
+        const iconClass = "w-5 h-5";
         switch (type) {
             case 'exam_created':
-                return '📝';
+                return <EditIcon className={iconClass} />;
             case 'exam_started':
-                return '▶️';
+                return <PlayIcon className={iconClass} />;
             case 'exam_ended':
-                return '⏹️';
+                return <StopIcon className={iconClass} />;
             case 'exam_result':
-                return '📊';
+                return <ChartIcon className={iconClass} />;
             case 'document_upload_success':
-                return '✅';
+                return <CheckIcon className={iconClass} />;
             case 'document_upload_failed':
-                return '❌';
+                return <XIcon className={iconClass} />;
             case 'exam_creation_success':
-                return '✨';
+                return <SparklesIcon className={iconClass} />;
             case 'exam_statistics_available':
-                return '📈';
+                return <TrendingUpIcon className={iconClass} />;
             case 'system_error':
-                return '⚠️';
+                return <AlertIcon className={iconClass} />;
             case 'system_warning':
-                return '⚡';
+                return <BoltIcon className={iconClass} />;
             case 'user_anomaly':
-                return '🚨';
+                return <SirenIcon className={iconClass} />;
             case 'high_error_rate':
-                return '🔴';
+                return <CircleIcon className={iconClass} />;
             default:
-                return '🔔';
+                return <BellIcon className={iconClass} />;
         }
     };
 
@@ -74,8 +90,8 @@ const NotificationItem = ({ notification, onMarkAsRead, onDelete, onClick }) => 
                 }`}
         >
             <div className="flex items-start gap-3">
-                <div className={`w-10 h-10 rounded-xl bg-linear-to-br/srgb ${getTypeColor(notification.notification_type)} flex items-center justify-center shrink-0`}>
-                    <span className="text-lg">{getIcon(notification.notification_type)}</span>
+                <div className={`w-10 h-10 rounded-xl bg-linear-to-br/srgb ${getTypeColor(notification.notification_type)} flex items-center justify-center shrink-0 text-white`}>
+                    {getIcon(notification.notification_type)}
                 </div>
 
                 <div className="flex-1 min-w-0">

@@ -32,29 +32,8 @@ const CustomTooltip = ({ active, payload, label }) => {
     return null;
 };
 
-const ClassroomStatistics = ({ classCode, classroom }) => {
-    const [stats, setStats] = useState(null);
-    const [loading, setLoading] = useState(true);
+const ClassroomStatistics = ({ classCode, classroom, stats, loading }) => {
     const [error, setError] = useState('');
-
-    useEffect(() => {
-        if (classroom?._id || classroom?.id) {
-            fetchClassStats();
-        }
-    }, [classroom]);
-
-    const fetchClassStats = async () => {
-        try {
-            setLoading(true);
-            const classId = classroom._id || classroom.id;
-            const response = await statisticsService.getClassDetailed(classId);
-            setStats(response.data || response);
-        } catch (err) {
-            setError(err.message || 'Không thể tải thống kê lớp học');
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const chartData = useMemo(() => {
         if (!stats) return {};
@@ -114,20 +93,18 @@ const ClassroomStatistics = ({ classCode, classroom }) => {
                 ))}
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="card-glass p-6">
-                    <h3 className="text-lg font-bold text-gray-900 mb-6">Phân phổ điểm toàn lớp</h3>
-                    <div className="w-full">
-                        <ResponsiveContainer width="100%" height={300}>
-                            <BarChart data={chartData.scoreDistribution}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff0a" />
-                                <XAxis dataKey="range" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
-                                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b' }} />
-                                <Tooltip content={<CustomTooltip />} />
-                                <Bar dataKey="count" name="Số học sinh" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
+            <div className="card-glass p-6">
+                <h3 className="text-lg font-bold text-gray-900 mb-6">Phân phổ điểm toàn lớp</h3>
+                <div className="w-full">
+                    <ResponsiveContainer width="100%" height={300}>
+                        <BarChart data={chartData.scoreDistribution}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff0a" />
+                            <XAxis dataKey="range" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
+                            <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b' }} />
+                            <Tooltip content={<CustomTooltip />} />
+                            <Bar dataKey="count" name="Số học sinh" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                    </ResponsiveContainer>
                 </div>
             </div>
 
@@ -162,7 +139,6 @@ const ClassroomStatistics = ({ classCode, classroom }) => {
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="font-bold text-gray-900">{student.full_name}</div>
-                                        <div className="text-xs text-gray-400">{student.email}</div>
                                     </td>
                                     <td className="px-6 py-4 text-center text-gray-600 font-medium">
                                         {student.exams_taken}/{student.exams_available}

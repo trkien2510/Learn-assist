@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { documentService } from '../services/apiServices';
-import { UploadIcon, FileIcon, TrashIcon, CheckIcon, XIcon, EditIcon, CloseIcon } from '../components/icons/Icons';
+import { UploadIcon, FileIcon, TrashIcon, CheckIcon, XIcon, EditIcon, CloseIcon, CalendarIcon, SaveIcon } from '../components/icons/Icons';
 
 const Documents = () => {
     const [documents, setDocuments] = useState([]);
@@ -81,15 +81,15 @@ const Documents = () => {
             setError('');
 
             const uploadResponse = await documentService.upload(selectedFile, numQuestions);
-            console.log('Upload response (raw):', uploadResponse);
+
 
             const responseData = uploadResponse.data;
-            console.log('Response data:', responseData);
+
 
             setCurrentDocumentId(responseData.document_id);
 
             const questionsData = responseData.questions;
-            console.log('Questions data (raw):', questionsData);
+
 
             let questions = [];
             if (Array.isArray(questionsData)) {
@@ -98,8 +98,7 @@ const Documents = () => {
                 questions = questionsData.questions;
             }
 
-            console.log('Extracted questions:', questions);
-            console.log('Questions count:', questions.length);
+
 
             setGeneratedQuestions(questions);
 
@@ -269,15 +268,26 @@ const Documents = () => {
                         <div key={doc._id || doc.id} className="card-glass p-6 hover-scale">
                             <div className="flex items-start justify-between">
                                 <div className="flex items-start gap-4 flex-1">
-                                    <div className="w-12 h-12 rounded-xl bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center shrink-0">
+                                    <div className="w-12 h-12 rounded-xl bg-linear-to-br/srgb from-blue-500 to-indigo-600 flex items-center justify-center shrink-0">
                                         <FileIcon className="w-6 h-6 text-gray-900" />
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <h3 className="font-semibold text-gray-900 text-lg mb-1 truncate">{doc.name}</h3>
                                         <div className="flex flex-wrap gap-4 text-sm text-gray-500">
-                                            <span>📄 {doc.file_type?.split('/').pop()?.toUpperCase() || 'DOCUMENT'}</span>
-                                            <span>📅 {formatDate(doc.upload_date)}</span>
-                                            {doc.file_path && <span>💾 {doc.file_name}</span>}
+                                            <span className="flex items-center gap-1.5">
+                                                <FileIcon className="w-4 h-4" />
+                                                {doc.file_type?.split('/').pop()?.toUpperCase() || 'DOCUMENT'}
+                                            </span>
+                                            <span className="flex items-center gap-1.5">
+                                                <CalendarIcon className="w-4 h-4" />
+                                                {formatDate(doc.upload_date)}
+                                            </span>
+                                            {doc.file_path && (
+                                                <span className="flex items-center gap-1.5">
+                                                    <SaveIcon className="w-4 h-4" />
+                                                    {doc.file_name}
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
                                 </div>

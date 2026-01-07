@@ -44,18 +44,12 @@ const TakeExam = () => {
             setLoading(true);
             const response = await examService.start(id);
 
-            console.log('🔍 Start exam response:', response);
-            console.log('🔍 Response.data:', response.data);
-
             const data = response.data || response;
             const examData = data.exam;
 
             if (!examData) {
                 throw new Error('Exam data not found in response');
             }
-
-            console.log('🔍 Exam data:', examData);
-            console.log('🔍 Exam questions:', examData.questions);
 
             setExam(examData);
             setQuestions(examData.questions || []);
@@ -166,7 +160,7 @@ const TakeExam = () => {
         return (
             <div className="max-w-4xl mx-auto space-y-6">
                 <div className="card-glass p-8 text-center">
-                    <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-linear-to-br from-green-500 to-emerald-500 flex items-center justify-center">
+                    <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-linear-to-br/srgb from-green-500 to-emerald-500 flex items-center justify-center">
                         <CheckIcon className="w-12 h-12 text-gray-900" />
                     </div>
                     <h2 className="text-3xl font-bold gradient-text mb-4">Hoàn thành bài kiểm tra!</h2>

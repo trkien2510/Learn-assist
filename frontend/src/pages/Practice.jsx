@@ -53,7 +53,7 @@ const Practice = () => {
             const questionsData = questionsRes.data || questionsRes;
             setQuestions(questionsData.items || []);
         } catch (err) {
-            console.error('Failed to fetch practice data:', err);
+            
             setError(err.message);
         } finally {
             setLoading(false);

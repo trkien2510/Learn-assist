@@ -20,6 +20,9 @@ async def get_question_by_id(question_id: str):
 
 
 async def create_question(question_data, current_user):
+    if current_user.role.value == "admin":
+        raise AppException(StatusCode.FORBIDDEN, "Admin cannot create questions")
+    
     doc_link = None
     if question_data.document_id:
         try:

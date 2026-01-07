@@ -7,6 +7,12 @@ from models.classroom_model import ClassroomModel
 from services import log_service
 
 
+def get_id_from_other(obj) -> PydanticObjectId:
+    if hasattr(obj, "ref"):
+        return obj.ref.id
+    return obj.id
+
+
 async def get_results_by_exam_id(exam_id: str, page: int, page_size: int, current_user):
     try:
         obj_id = PydanticObjectId(exam_id)
@@ -30,32 +36,32 @@ async def get_results_by_exam_id(exam_id: str, page: int, page_size: int, curren
     is_personal_exam = exam.is_personal if hasattr(exam, 'is_personal') else False
 
     if current_user.role == "admin":
-        query = ResultModel.find({"exam_id.$id": obj_id})
+        query = ResultModel.find({"exam_id.$id": obj_id}, fetch_links=True)
         total = await query.count()
         items = await query.skip(skip).limit(page_size).to_list()
 
     elif is_personal_exam:
-        if exam.creator_id.ref.id != current_user.id:
+        if get_id_from_other(exam.creator_id) != current_user.id:
             raise AppException(StatusCode.FORBIDDEN, "You can only view your own personal exam results")
         
         query = ResultModel.find({
             "exam_id.$id": obj_id,
             "user_id.$id": current_user.id
-        })
+        }, fetch_links=True)
         total = await query.count()
         items = await query.skip(skip).limit(page_size).to_list()
 
     elif current_user.role == "teacher":
         if exam.class_id:
-            classroom = await ClassroomModel.get(exam.class_id.ref.id)
+            classroom = await ClassroomModel.get(get_id_from_other(exam.class_id))
             if classroom:
-                is_creator = classroom.creator.ref.id == current_user.id
-                is_member = any(m.ref.id == current_user.id for m in classroom.members)
+                is_creator = get_id_from_other(classroom.creator) == current_user.id
+                is_member = any(get_id_from_other(m) == current_user.id for m in classroom.members)
 
                 if not is_creator and not is_member:
                     raise AppException(StatusCode.FORBIDDEN, "You do not have permission to view results of this exam")
 
-        query = ResultModel.find({"exam_id.$id": obj_id})
+        query = ResultModel.find({"exam_id.$id": obj_id}, fetch_links=True)
         total = await query.count()
         items = await query.skip(skip).limit(page_size).to_list()
 
@@ -119,23 +125,23 @@ async def get_results_by_class_id(class_id: str, page: int, page_size: int, curr
         }
 
     if current_user.role == "admin":
-        query = ResultModel.find({"exam_id.$id": {"$in": exam_ids}})
+        query = ResultModel.find({"exam_id.$id": {"$in": exam_ids}}, fetch_links=True)
         total = await query.count()
         items = await query.skip(skip).limit(page_size).to_list()
 
     elif current_user.role == "teacher":
-        is_creator = classroom.creator.ref.id == current_user.id
-        is_member = any(m.ref.id == current_user.id for m in classroom.members)
+        is_creator = get_id_from_other(classroom.creator) == current_user.id
+        is_member = any(get_id_from_other(m) == current_user.id for m in classroom.members)
 
         if not is_creator and not is_member:
             raise AppException(StatusCode.FORBIDDEN, "You do not have permission to view results of this class")
 
-        query = ResultModel.find({"exam_id.$id": {"$in": exam_ids}})
+        query = ResultModel.find({"exam_id.$id": {"$in": exam_ids}}, fetch_links=True)
         total = await query.count()
         items = await query.skip(skip).limit(page_size).to_list()
 
     elif current_user.role == "student":
-        is_member = any(m.ref.id == current_user.id for m in classroom.members)
+        is_member = any(get_id_from_other(m) == current_user.id for m in classroom.members)
 
         if not is_member:
             raise AppException(StatusCode.FORBIDDEN, "You are not a member of this class")
@@ -202,10 +208,33 @@ async def get_my_results(page: int, page_size: int, current_user):
         total = await query.count()
         items = await query.skip(skip).limit(page_size).to_list()
 
+    enriched_items = []
+    for item in items:
+        item_dict = item.model_dump(mode='json')
+        
+        try:
+            exam_id = get_id_from_other(item.exam_id)
+            if exam_id:
+                exam = await ExamModel.get(exam_id)
+                if exam:
+                    item_dict['exam_title'] = exam.title
+                    item_dict['question_count'] = len(exam.questions) if exam.questions else 0
+                    item_dict['duration'] = exam.duration
+                else:
+                    item_dict['exam_title'] = "Bài kiểm tra"
+                    item_dict['question_count'] = 0
+                    item_dict['duration'] = 0
+        except Exception:
+            item_dict['exam_title'] = "Bài kiểm tra"
+            item_dict['question_count'] = 0
+            item_dict['duration'] = 0
+        
+        enriched_items.append(item_dict)
+
     total_pages = (total + page_size - 1) // page_size
 
     return {
-        "items": items,
+        "items": enriched_items,
         "total": total,
         "page": page,
         "page_size": page_size,
@@ -294,7 +323,7 @@ async def get_user_overall_statistics(current_user):
     classroom_results = []
 
     for r in all_results:
-        exam_id_str = str(r.exam_id.ref.id)
+        exam_id_str = str(get_id_from_other(r.exam_id))
         if exam_id_str in personal_exam_ids:
             personal_results.append(r)
         else:

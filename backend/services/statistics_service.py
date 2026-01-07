@@ -13,6 +13,13 @@ from core.exception_handler import AppException
 from core.status_code import StatusCode
 
 
+def get_id_from_other(obj) -> PydanticObjectId:
+    """Helper to get ID from either a Link or a Document object."""
+    if hasattr(obj, "ref"):
+        return obj.ref.id
+    return obj.id
+
+
 def calculate_score_distribution(scores: List[float]) -> Dict[str, int]:
     distribution = {
         "0-2": 0,
@@ -108,7 +115,7 @@ async def get_student_comprehensive_statistics(current_user) -> Dict[str, Any]:
     classroom_results = []
     
     for r in all_results:
-        exam_id_str = str(r.exam_id.ref.id)
+        exam_id_str = str(get_id_from_other(r.exam_id))
         if exam_id_str in personal_exam_ids:
             personal_results.append(r)
         else:
@@ -161,17 +168,17 @@ async def get_student_comprehensive_statistics(current_user) -> Dict[str, Any]:
     classroom_ids = set()
     
     for r in classroom_results:
-        exam = await ExamModel.get(r.exam_id.ref.id)
+        exam = await ExamModel.get(get_id_from_other(r.exam_id))
         if exam and exam.class_id:
-            classroom_ids.add(exam.class_id.ref.id)
+            classroom_ids.add(get_id_from_other(exam.class_id))
     
     for class_id in classroom_ids:
         classroom = await ClassroomModel.get(class_id)
         if classroom:
             class_results = []
             for r in classroom_results:
-                exam = await ExamModel.get(r.exam_id.ref.id)
-                if exam and exam.class_id and exam.class_id.ref.id == class_id:
+                exam = await ExamModel.get(get_id_from_other(r.exam_id))
+                if exam and exam.class_id and get_id_from_other(exam.class_id) == class_id:
                     class_results.append(r)
             
             if class_results:
@@ -289,13 +296,13 @@ async def get_teacher_comprehensive_statistics(current_user) -> Dict[str, Any]:
     }).to_list() if exam_ids else []
     
     if all_results:
-        unique_user_ids = list(set(r.user_id.ref.id for r in all_results))
+        unique_user_ids = list(set(get_id_from_other(r.user_id) for r in all_results))
         students = await UserModel.find({
             "_id": {"$in": unique_user_ids},
             "role": UserRole.STUDENT
         }).to_list()
         student_ids = {s.id for s in students}
-        all_results = [r for r in all_results if r.user_id.ref.id in student_ids]
+        all_results = [r for r in all_results if get_id_from_other(r.user_id) in student_ids]
 
     documents = await DocumentModel.find({
         "creator.$id": current_user.id
@@ -308,7 +315,7 @@ async def get_teacher_comprehensive_statistics(current_user) -> Dict[str, Any]:
     unique_member_ids = set()
     for c in classrooms:
         for member in c.members:
-            unique_member_ids.add(member.ref.id)
+            unique_member_ids.add(get_id_from_other(member))
     
     total_students = 0
     if unique_member_ids:
@@ -319,7 +326,7 @@ async def get_teacher_comprehensive_statistics(current_user) -> Dict[str, Any]:
     
     classroom_stats = []
     for classroom in classrooms:
-        class_member_ids = [m.ref.id for m in classroom.members]
+        class_member_ids = [get_id_from_other(m) for m in classroom.members]
         class_students = await UserModel.find({
             "_id": {"$in": class_member_ids},
             "role": UserRole.STUDENT
@@ -327,9 +334,9 @@ async def get_teacher_comprehensive_statistics(current_user) -> Dict[str, Any]:
         class_student_count = len(class_students)
         class_student_ids = {s.id for s in class_students}
 
-        class_exams = [e for e in exams if e.class_id and e.class_id.ref.id == classroom.id]
+        class_exams = [e for e in exams if e.class_id and get_id_from_other(e.class_id) == classroom.id]
         class_exam_ids = [e.id for e in class_exams]
-        class_results = [r for r in all_results if r.exam_id.ref.id in class_exam_ids]
+        class_results = [r for r in all_results if get_id_from_other(r.exam_id) in class_exam_ids]
         
         class_scores = [r.score for r in class_results if r.submitted]
         
@@ -347,7 +354,7 @@ async def get_teacher_comprehensive_statistics(current_user) -> Dict[str, Any]:
     
     exam_analytics = []
     for exam in exams:
-        exam_results = [r for r in all_results if r.exam_id.ref.id == exam.id and r.submitted]
+        exam_results = [r for r in all_results if get_id_from_other(r.exam_id) == exam.id and r.submitted]
         exam_scores = [r.score for r in exam_results]
         
         if exam_scores:
@@ -388,9 +395,9 @@ async def get_teacher_comprehensive_statistics(current_user) -> Dict[str, Any]:
         total_answered = 0
         
         for exam in exams:
-            if any(q.ref.id == question.id for q in exam.questions):
+            if any(get_id_from_other(q) == question.id for q in exam.questions):
                 for result in all_results:
-                    if result.exam_id.ref.id == exam.id and str(question.id) in result.answer_map:
+                    if get_id_from_other(result.exam_id) == exam.id and str(question.id) in result.answer_map:
                         total_answered += 1
                         if result.answer_map[str(question.id)] == question.answers:
                             correct_count += 1
@@ -442,12 +449,12 @@ async def get_exam_detailed_statistics(exam_id: str, current_user) -> Dict[str, 
     is_personal = exam.is_personal if hasattr(exam, 'is_personal') else False
     
     if is_personal:
-        if exam.creator_id.ref.id != current_user.id:
+        if get_id_from_other(exam.creator_id) != current_user.id:
             raise AppException(StatusCode.FORBIDDEN, "Access denied")
     else:
         if exam.class_id:
-            classroom = await ClassroomModel.get(exam.class_id.ref.id)
-            if classroom and classroom.creator.ref.id != current_user.id and current_user.role != "admin":
+            classroom = await ClassroomModel.get(get_id_from_other(exam.class_id))
+            if classroom and get_id_from_other(classroom.creator) != current_user.id and current_user.role != "admin":
                 raise AppException(StatusCode.FORBIDDEN, "Access denied")
     
     results = await ResultModel.find({
@@ -456,13 +463,13 @@ async def get_exam_detailed_statistics(exam_id: str, current_user) -> Dict[str, 
     }).to_list()
     
     if results:
-        unique_user_ids = list(set(r.user_id.ref.id for r in results))
+        unique_user_ids = list(set(get_id_from_other(r.user_id) for r in results))
         students = await UserModel.find({
             "_id": {"$in": unique_user_ids},
             "role": UserRole.STUDENT
         }).to_list()
         student_ids = {s.id for s in students}
-        results = [r for r in results if r.user_id.ref.id in student_ids]
+        results = [r for r in results if get_id_from_other(r.user_id) in student_ids]
 
     if not results:
         return {
@@ -497,6 +504,13 @@ async def get_exam_detailed_statistics(exam_id: str, current_user) -> Dict[str, 
             "participants": []
         }
     
+    best_results_map = {}
+    for r in results:
+        uid = get_id_from_other(r.user_id)
+        if uid not in best_results_map or r.score > best_results_map[uid].score:
+            best_results_map[uid] = r
+    results = list(best_results_map.values())
+    
     scores = [r.score for r in results]
     
     completion_times = []
@@ -507,7 +521,7 @@ async def get_exam_detailed_statistics(exam_id: str, current_user) -> Dict[str, 
     
     question_stats = []
     for q_link in exam.questions:
-        question = await QuestionModel.get(q_link.ref.id)
+        question = await QuestionModel.get(get_id_from_other(q_link))
         if question:
             correct_count = 0
             answered_count = 0
@@ -518,15 +532,30 @@ async def get_exam_detailed_statistics(exam_id: str, current_user) -> Dict[str, 
                 if q_id_str in r.answer_map:
                     answered_count += 1
                     user_answer = r.answer_map[q_id_str]
-                    answer_distribution[user_answer] += 1
+                    
+                    answer_letter = None
+                    for idx, option in enumerate(question.options):
+                        if option == user_answer:
+                            answer_letter = chr(65 + idx)
+                            break
+                    
+                    if answer_letter:
+                        answer_distribution[answer_letter] += 1
+                    
                     if user_answer == question.answers:
                         correct_count += 1
+            
+            correct_answer_letter = None
+            for idx, option in enumerate(question.options):
+                if option == question.answers:
+                    correct_answer_letter = chr(65 + idx)
+                    break
             
             question_stats.append({
                 "question_id": str(question.id),
                 "content": question.content,
                 "options": question.options,
-                "correct_answer": question.answers,
+                "correct_answer": correct_answer_letter or question.answers,
                 "difficulty": question.difficulty.value if hasattr(question.difficulty, 'value') else str(question.difficulty),
                 "answered_count": answered_count,
                 "correct_count": correct_count,
@@ -537,7 +566,7 @@ async def get_exam_detailed_statistics(exam_id: str, current_user) -> Dict[str, 
     
     participants = []
     for r in results:
-        user = await UserModel.get(r.user_id.ref.id)
+        user = await UserModel.get(get_id_from_other(r.user_id))
         if user:
             time_taken = 0
             if r.ended_at and r.started_at:
@@ -545,9 +574,9 @@ async def get_exam_detailed_statistics(exam_id: str, current_user) -> Dict[str, 
             
             correct_answers = 0
             for q_link in exam.questions:
-                q_id_str = str(q_link.ref.id)
+                q_id_str = str(get_id_from_other(q_link))
                 if q_id_str in r.answer_map:
-                    question = await QuestionModel.get(q_link.ref.id)
+                    question = await QuestionModel.get(get_id_from_other(q_link))
                     if question and r.answer_map[q_id_str] == question.answers:
                         correct_answers += 1
             
@@ -616,8 +645,8 @@ async def get_classroom_detailed_statistics(class_id: str, current_user) -> Dict
     if not classroom:
         raise AppException(StatusCode.NOT_FOUND, "Classroom not found")
     
-    if classroom.creator.ref.id != current_user.id and current_user.role != "admin":
-        is_member = any(m.ref.id == current_user.id for m in classroom.members)
+    if get_id_from_other(classroom.creator) != current_user.id and current_user.role != "admin":
+        is_member = any(get_id_from_other(m) == current_user.id for m in classroom.members)
         if not is_member:
             raise AppException(StatusCode.FORBIDDEN, "Access denied")
     
@@ -634,27 +663,38 @@ async def get_classroom_detailed_statistics(class_id: str, current_user) -> Dict
     
     submitted_results = []
     if results:
-        unique_user_ids = list(set(r.user_id.ref.id for r in results))
+        unique_user_ids = list(set(get_id_from_other(r.user_id) for r in results))
         students = await UserModel.find({
             "_id": {"$in": unique_user_ids},
             "role": UserRole.STUDENT
         }).to_list()
         student_ids = {s.id for s in students}
-        submitted_results = [r for r in results if r.submitted and r.user_id.ref.id in student_ids]
+        
+
+        best_results_map = {}
+        for r in results:
+            if not r.submitted: continue
+            uid = get_id_from_other(r.user_id)
+            if uid not in student_ids: continue
+            
+            eid = get_id_from_other(r.exam_id)
+            key = (uid, eid)
+            if key not in best_results_map or r.score > best_results_map[key].score:
+                best_results_map[key] = r
+        submitted_results = list(best_results_map.values())
 
     scores = [r.score for r in submitted_results]
 
-    member_ids = [m.ref.id for m in classroom.members]
+    member_ids = [get_id_from_other(m) for m in classroom.members]
     student_members = await UserModel.find({
         "_id": {"$in": member_ids},
         "role": UserRole.STUDENT
     }).to_list()
-    student_member_ids = {s.id for s in student_members}
     student_count = len(student_members)
 
     student_stats = []
     for member in student_members:
-        student_results = [r for r in submitted_results if r.user_id.ref.id == member.id]
+        student_results = [r for r in submitted_results if get_id_from_other(r.user_id) == member.id]
         student_scores = [r.score for r in student_results]
         
         if student_scores:

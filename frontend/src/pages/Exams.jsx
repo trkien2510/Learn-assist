@@ -66,7 +66,7 @@ const Exams = () => {
             const data = response.data || response;
             setClassrooms(data.items || data || []);
         } catch (err) {
-            console.error('Error fetching classrooms:', err);
+            
         }
     };
 
@@ -380,14 +380,8 @@ const Exams = () => {
                                                 Làm bài
                                             </button>
                                         )
-                                    ) : (isTeacher || isAdmin) ? (
+                                    ) : (isTeacher) ? (
                                         <>
-                                            <button
-                                                onClick={() => handleViewResults(exam)}
-                                                className="flex-1 btn-secondary text-sm py-2"
-                                            >
-                                                Kết quả
-                                            </button>
                                             <button
                                                 onClick={() => navigate(`/app/exams/${exam._id || exam.id}/statistics`)}
                                                 className="flex-1 btn-primary text-sm py-2"

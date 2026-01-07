@@ -495,6 +495,9 @@ async def get_my_exams(page: int, page_size: int, current_user):
 
 
 async def create_personal_exam(exam_data, current_user):
+    if current_user.role.value == "admin":
+        raise AppException(StatusCode.FORBIDDEN, "Admin cannot create personal exams")
+    
     from datetime import timedelta
     
     question_links = []

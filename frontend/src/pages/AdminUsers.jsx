@@ -9,7 +9,9 @@ import {
     ShieldCheckIcon,
     ClockIcon,
     TrendingUpIcon,
-    FilterIcon
+    FilterIcon,
+    AlertIcon,
+    CheckIcon
 } from '../components/icons/Icons';
 
 const AdminUsers = () => {
@@ -60,7 +62,7 @@ const AdminUsers = () => {
             const data = response.data || response;
             setStats(data);
         } catch (err) {
-            console.error('Error fetching stats:', err);
+            
         } finally {
             setStatsLoading(false);
         }
@@ -238,14 +240,14 @@ const AdminUsers = () => {
 
             {error && (
                 <div className="p-4 bg-red-500/10 border border-red-500/50 rounded-xl text-red-400 flex items-center gap-2">
-                    <span>⚠️</span>
+                    <AlertIcon className="w-5 h-5" />
                     {error}
                 </div>
             )}
 
             {success && (
                 <div className="p-4 bg-green-500/10 border border-green-500/50 rounded-xl text-green-400 flex items-center gap-2">
-                    <span>✓</span>
+                    <CheckIcon className="w-5 h-5" />
                     {success}
                 </div>
             )}

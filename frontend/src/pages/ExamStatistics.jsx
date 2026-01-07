@@ -174,7 +174,7 @@ const ExamStatistics = () => {
                         onClick={() => setActiveTab(tab.id)}
                         className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === tab.id
                             ? 'bg-white text-blue-600 shadow-lg shadow-blue-500/10'
-                            : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'
+                            : 'text-gray-500 hover:text-gray-500 hover:bg-white/20'
                             }`}
                     >
                         <tab.icon className="w-4 h-4" />
@@ -371,9 +371,6 @@ const ExamStatistics = () => {
                             <h3 className="text-xl font-bold text-gray-900">Chi tiết bảng điểm</h3>
                             <p className="text-sm text-gray-500">Danh sách tất cả học sinh đã nộp bài</p>
                         </div>
-                        <button className="btn-secondary flex items-center gap-2 text-sm py-2">
-                            <DownloadIcon className="w-4 h-4" /> Xuất Excel
-                        </button>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
@@ -401,7 +398,6 @@ const ExamStatistics = () => {
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors">{p.full_name}</div>
-                                            <div className="text-xs text-slate-400 italic font-medium">{p.email}</div>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2 text-gray-600 font-medium">

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { examService } from '../../services/apiServices';
-import { CloseIcon, RefreshIcon, CheckIcon } from '../icons/Icons';
+import { CloseIcon, RefreshIcon, CheckIcon, AlertIcon } from '../icons/Icons';
 import Portal from '../common/Portal';
 
 const ExamCreationModal = ({ isOpen, onClose, classCode, onSuccess }) => {
@@ -316,8 +316,9 @@ const ExamCreationModal = ({ isOpen, onClose, classCode, onSuccess }) => {
                             <div className="space-y-4">
                                 {previewQuestions.length < config.total_questions ? (
                                     <div className="p-4 bg-yellow-500/10 border border-yellow-500/50 rounded-xl">
-                                        <p className="text-yellow-400 font-medium mb-2">
-                                            ⚠️ Ngân hàng câu hỏi của bạn không đủ!
+                                        <p className="text-yellow-400 font-medium mb-2 flex items-center gap-2">
+                                            <AlertIcon className="w-5 h-5" />
+                                            Ngân hàng câu hỏi của bạn không đủ!
                                         </p>
                                         <p className="text-yellow-400/80 text-sm">
                                             Yêu cầu: {config.total_questions} câu hỏi | Hiện có: {previewQuestions.length} câu hỏi

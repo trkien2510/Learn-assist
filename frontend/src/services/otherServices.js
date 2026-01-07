@@ -69,7 +69,7 @@ export const notificationService = {
     },
 
     async markAsRead(notificationIds = null) {
-        // Ensure notification_ids is an array if provided
+
         let ids = notificationIds;
         if (notificationIds && !Array.isArray(notificationIds)) {
             ids = [notificationIds];

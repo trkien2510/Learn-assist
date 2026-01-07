@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, ROLES } from '../../contexts/AuthContext';
 import { examService } from '../../services/apiServices';
-import { PlusIcon, ClockIcon, TrashIcon, RefreshIcon } from '../icons/Icons';
+import { PlusIcon, ClockIcon, TrashIcon, RefreshIcon, EditIcon } from '../icons/Icons';
 import ExamCreationModal from './ExamCreationModal';
 
 const ClassroomExams = ({ classCode, classroom, onRefresh }) => {
@@ -32,13 +32,7 @@ const ClassroomExams = ({ classCode, classroom, onRefresh }) => {
             const examsData = data.items || [];
 
             if (examsData.length > 0) {
-                console.log('🔍 ClassroomExams - Datetime from backend:', {
-                    raw_start_at: examsData[0].start_at,
-                    raw_end_at: examsData[0].end_at,
-                    parsed_start: new Date(examsData[0].start_at),
-                    parsed_end: new Date(examsData[0].end_at),
-                    current: new Date()
-                });
+
             }
 
             setExams(examsData);
@@ -185,7 +179,7 @@ const ClassroomExams = ({ classCode, classroom, onRefresh }) => {
                                         <span>{exam.duration} phút</span>
                                     </div>
                                     <div className="flex items-center gap-2 text-gray-600">
-                                        <span className="text-gray-500">📝</span>
+                                        <EditIcon className="w-4 h-4" />
                                         <span>{exam.questions?.length || 0} câu hỏi</span>
                                     </div>
                                     <div className="pt-2 border-t border-gray-200/10">
@@ -197,14 +191,8 @@ const ClassroomExams = ({ classCode, classroom, onRefresh }) => {
                                         </p>
                                     </div>
 
-                                    {(isTeacher || isAdmin) && (
+                                    {(isTeacher) && (
                                         <div className="flex gap-2 pt-3 border-t border-gray-200/10">
-                                            <button
-                                                onClick={() => navigate(`/app/results?exam_id=${exam._id || exam.id}`)}
-                                                className="flex-1 btn-secondary text-sm py-2"
-                                            >
-                                                Kết quả
-                                            </button>
                                             <button
                                                 onClick={() => navigate(`/app/exams/${exam._id || exam.id}/statistics`)}
                                                 className="flex-1 btn-primary text-sm py-2"
@@ -214,7 +202,7 @@ const ClassroomExams = ({ classCode, classroom, onRefresh }) => {
                                         </div>
                                     )}
 
-                                    {!isTeacher && status.color === 'green' && (
+                                    {!isTeacher && !isAdmin && status.color === 'green' && (
                                         <div className="pt-3 border-t border-gray-200/10">
                                             <button
                                                 onClick={() => navigate(`/app/take-exam/${exam._id || exam.id}`)}

@@ -102,21 +102,21 @@ async def get_all_classrooms_admin(page: int = 1, page_size: int = 20):
 
 async def request_join_classroom(class_code: str, current_user):
     if current_user.role != UserRole.STUDENT and current_user.role != UserRole.TEACHER:
-        raise AppException(StatusCode.FORBIDDEN, "Only students and teachers can send join requests")
+        raise AppException(StatusCode.FORBIDDEN, "Chỉ học sinh và giáo viên mới có thể gửi yêu cầu tham gia")
 
     classroom = await ClassroomModel.find_one(ClassroomModel.class_code == class_code)
     if not classroom:
-        raise AppException(StatusCode.NOT_FOUND, "Classroom not found")
+        raise AppException(StatusCode.NOT_FOUND, "Không tìm thấy lớp học")
 
-    if any(member.ref.id == current_user.id for member in classroom.members):
-        raise AppException(StatusCode.ALREADY_MEMBER, "You are already a member of this class")
+    if any(m.ref.id == current_user.id for m in classroom.members):
+        raise AppException(StatusCode.ALREADY_MEMBER, "Bạn đã là thành viên của lớp này")
 
     existing_request = await JoinRequestModel.find_one({
         "user_id.$id": current_user.id,
         "class_id.$id": classroom.id
     })
     if existing_request:
-        raise AppException(StatusCode.JOIN_REQUEST_EXISTS, "You have already sent a join request")
+        raise AppException(StatusCode.JOIN_REQUEST_EXISTS, "Bạn đã gửi yêu cầu tham gia trước đó và đang chờ duyệt")
 
     new_request = JoinRequestModel(
         user_id=current_user.id,
@@ -134,11 +134,11 @@ async def request_join_classroom(class_code: str, current_user):
 
 async def accept_join_request(class_code: str, request_id: str, current_user):
     if current_user.role != UserRole.TEACHER:
-        raise AppException(StatusCode.FORBIDDEN, "Only teachers can approve requests")
+        raise AppException(StatusCode.FORBIDDEN, "Chỉ giáo viên mới có quyền duyệt yêu cầu")
 
     classroom = await ClassroomModel.find_one(ClassroomModel.class_code == class_code)
     if not classroom:
-        raise AppException(StatusCode.NOT_FOUND, "Classroom not found")
+        raise AppException(StatusCode.NOT_FOUND, "Không tìm thấy lớp học")
 
     try:
         request_obj_id = PydanticObjectId(request_id)
@@ -275,15 +275,21 @@ async def accept_all_join_requests(class_code: str, current_user):
     join_requests = await JoinRequestModel.find({"class_id.$id": classroom.id}).to_list()
 
     accepted_count = 0
+    member_ids = {m.ref.id for m in classroom.members}
+    
     for jr in join_requests:
-        if not any(m.ref.id == jr.user_id.ref.id for m in classroom.members):
-            user = await UserModel.get(jr.user_id.ref.id)
+        user_id = jr.user_id.ref.id
+        if user_id not in member_ids:
+            user = await UserModel.get(user_id)
             if user:
-                classroom.members.append(user)
+                classroom.members.append(jr.user_id)
+                member_ids.add(user_id)
                 accepted_count += 1
         await jr.delete()
 
-    await classroom.save()
+    if accepted_count > 0:
+        await classroom.save()
+    
     return {"accepted_count": accepted_count}
 
 
@@ -299,6 +305,7 @@ async def reject_all_join_requests(class_code: str, current_user):
     result = await JoinRequestModel.find({"class_id.$id": classroom.id}).delete()
 
     return {"rejected_count": result.deleted_count if result else 0}
+
 
 
 async def leave_classroom(class_code: str, current_user):

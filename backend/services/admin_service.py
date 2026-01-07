@@ -66,7 +66,6 @@ async def get_admin_statistics():
             }
         }
     except Exception as e:
-        print(f"Error in get_admin_statistics: {str(e)}")
         return {
             "users": {"total": 0, "active": 0, "inactive": 0, "students": 0, "teachers": 0, "admins": 0, "new_30d": 0},
             "classrooms": {"total": 0, "active": 0, "inactive": 0},

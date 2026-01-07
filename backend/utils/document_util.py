@@ -21,7 +21,6 @@ def extract_text_from_pdf_pypdf(file_content: bytes) -> str:
         return full_text
 
     except Exception as e:
-        print(f"Lỗi khi trích xuất PDF bằng pypdf: {e}")
         return ""
 
 
@@ -33,7 +32,6 @@ def extract_text_from_docx_python_docx(file_content: bytes) -> str:
         return full_text
 
     except Exception as e:
-        print(f"Lỗi khi trích xuất DOCX bằng python-docx: {e}")
         return ""
 
 
@@ -60,7 +58,6 @@ async def read_and_clean_uploaded_file(file: UploadFile) -> str | None:
         return extracted_text
 
     except Exception as e:
-        print(f"Lỗi trong quá trình đọc và trích xuất file: {e}")
         return None
 
     finally:

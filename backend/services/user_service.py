@@ -268,37 +268,27 @@ async def _cleanup_user_data(user_id: str, user_email: str):
     try:
         obj_id = PydanticObjectId(user_id)
         
-        # Xóa tài liệu của người dùng (creator)
         await DocumentModel.find(DocumentModel.creator.id == obj_id).delete()
         
-        # Xóa câu hỏi của người dùng (creator_id)
         await QuestionModel.find(QuestionModel.creator_id.id == obj_id).delete()
         
-        # Xóa bài thi của người dùng (creator_id)
         await ExamModel.find(ExamModel.creator_id.id == obj_id).delete()
         
-        # Xóa lớp học do người dùng tạo
         await ClassroomModel.find(ClassroomModel.creator.id == obj_id).delete()
         
-        # Xóa người dùng khỏi danh sách thành viên các lớp khác
         await ClassroomModel.get_motor_collection().update_many(
             {"members.$id": obj_id},
             {"$pull": {"members": {"$id": obj_id}}}
         )
         
-        # Xóa tin nhắn của người dùng
         await MessageModel.find(MessageModel.sender.id == obj_id).delete()
         
-        # Xóa kết quả làm bài của người dùng
         await ResultModel.find(ResultModel.user_id.id == obj_id).delete()
         
-        # Xóa thông báo của người dùng
         await NotificationModel.find(NotificationModel.user_id.id == obj_id).delete()
         
-        # Xóa log của người dùng
         await LogModel.find(LogModel.user_id == user_id).delete()
         
-        # Xóa OTP của người dùng
         await OTPModel.find(OTPModel.email == user_email).delete()
         
     except Exception as e:

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { resultService, examService } from '../services/apiServices';
-import { CheckIcon, XIcon, SearchIcon, ArrowLeftIcon } from '../components/icons/Icons';
+import { CheckIcon, XIcon, SearchIcon, ArrowLeftIcon, CalendarIcon, EditIcon, ClockIcon } from '../components/icons/Icons';
 
 const Results = () => {
     const [searchParams] = useSearchParams();
@@ -34,7 +34,7 @@ const Results = () => {
             const items = data?.items || data || [];
             setResults(Array.isArray(items) ? items : []);
         } catch (err) {
-            console.error('Error fetching results:', err);
+            
             setError(err.message || 'Không thể tải kết quả');
             setResults([]);
         } finally {
@@ -58,8 +58,7 @@ const Results = () => {
                 (examIdObj?.$oid || examIdObj?.toString()) :
                 examIdObj;
 
-            console.log('Viewing detail for result:', result);
-            console.log('Extracted examId:', examId);
+
 
             if (examId && (!result.exam?.questions || result.exam.questions.length === 0)) {
                 const examResponse = await examService.getById(examId);
@@ -69,7 +68,7 @@ const Results = () => {
 
             setSelectedResult(result);
         } catch (err) {
-            console.error('Error fetching exam details:', err);
+            
             setError(err.message || 'Không thể tải chi tiết bài kiểm tra');
         } finally {
             setLoading(false);
@@ -236,12 +235,21 @@ const Results = () => {
                             <div className="flex items-center justify-between">
                                 <div className="flex-1">
                                     <h3 className="font-semibold text-gray-900 mb-2">
-                                        {result.exam?.title || 'Bài kiểm tra'}
+                                        {result.exam_title || result.exam?.title || 'Bài kiểm tra'}
                                     </h3>
                                     <div className="flex gap-6 text-sm text-gray-500">
-                                        <span>📅 {formatDate(result.submit_at || result.created_at)}</span>
-                                        <span>📝 {result.exam?.questions?.length || 0} câu hỏi</span>
-                                        <span>⏱️ {result.exam?.duration || 0} phút</span>
+                                        <span className="flex items-center gap-1.5">
+                                            <CalendarIcon className="w-4 h-4" />
+                                            {formatDate(result.submit_at || result.created_at)}
+                                        </span>
+                                        <span className="flex items-center gap-1.5">
+                                            <EditIcon className="w-4 h-4" />
+                                            {result.question_count ?? result.exam?.questions?.length ?? 0} câu hỏi
+                                        </span>
+                                        <span className="flex items-center gap-1.5">
+                                            <ClockIcon className="w-4 h-4" />
+                                            {result.duration ?? result.exam?.duration ?? 0} phút
+                                        </span>
                                     </div>
                                 </div>
                                 <div className={`text-4xl font-bold ${getGradeColor(result.score)}`}>

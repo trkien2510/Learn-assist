@@ -4,8 +4,7 @@ import cookieUtils from '../utils/cookies';
 
 export const authService = {
     async register(userData) {
-        console.log('Registering with URL:', `${API_BASE_URL}${API_ENDPOINTS.REGISTER}`);
-        console.log('User data:', userData);
+
         return httpClient.post(API_ENDPOINTS.REGISTER, userData, { skipAuth: true });
     },
 
@@ -15,14 +14,14 @@ export const authService = {
             password
         }, { skipAuth: true });
 
-        console.log('Login response:', response);
+
 
         const tokenData = response.data || response;
 
         if (tokenData.access_token) {
             cookieUtils.set('access_token', tokenData.access_token, 7);
             cookieUtils.set('refresh_token', tokenData.refresh_token, 7);
-            console.log('Token saved to cookie:', cookieUtils.get('access_token')?.substring(0, 20) + '...');
+
         } else {
             console.error('No access_token in response:', response);
         }

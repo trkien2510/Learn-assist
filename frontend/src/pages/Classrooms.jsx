@@ -169,10 +169,16 @@ const Classrooms = () => {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold gradient-text">
-                        {isTeacher ? 'Quản lý lớp học' : 'Lớp học của tôi'}
+                        Quản lý lớp học
                     </h1>
                     <p className="text-gray-500 mt-2">
-                        {isTeacher ? 'Tạo và quản lý lớp học của bạn' : 'Các lớp học bạn đã tham gia'}
+                        {
+                            isAdmin
+                                ? 'Các lớp học có trong hệ thống'
+                                : isTeacher
+                                    ? 'Tạo và quản lý lớp học của bạn'
+                                    : 'Các lớp học bạn đã tham gia'
+                        }
                     </p>
                 </div>
 
@@ -248,7 +254,7 @@ const Classrooms = () => {
                         >
                             <div className="flex items-start justify-between mb-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 rounded-xl bg-linear-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+                                    <div className="w-12 h-12 rounded-xl bg-linear-to-br/srgb from-blue-500 to-cyan-500 flex items-center justify-center">
                                         <BookIcon className="w-6 h-6 text-gray-900" />
                                     </div>
                                     <div>
@@ -497,7 +503,7 @@ const Classrooms = () => {
                                             {members.map((member) => (
                                                 <div key={member._id || member.id} className="flex items-center justify-between p-4 bg-white/5 rounded-xl">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 rounded-full bg-linear-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-gray-900 font-semibold">
+                                                        <div className="w-10 h-10 rounded-full bg-linear-to-br/srgb from-cyan-400 to-blue-500 flex items-center justify-center text-gray-900 font-semibold">
                                                             {member.full_name?.charAt(0).toUpperCase() || member.email?.charAt(0).toUpperCase()}
                                                         </div>
                                                         <div>

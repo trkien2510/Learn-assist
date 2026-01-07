@@ -11,6 +11,9 @@ import os
 
 
 async def process_upload(number_question: int, file: UploadFile, current_user):
+    if current_user.role.value == "admin":
+        raise AppException(StatusCode.FORBIDDEN, "Admin cannot upload documents")
+    
     try:
         document_content = await read_and_clean_uploaded_file(file)
 
@@ -167,6 +170,9 @@ async def delete_document(document_id: str, current_user):
 
 
 async def save_questions(list_question_data, document_id: str, current_user):
+    if current_user.role.value == "admin":
+        raise AppException(StatusCode.FORBIDDEN, "Admin cannot save questions")
+    
     from models.question_model import QuestionModel
     from beanie import PydanticObjectId
 

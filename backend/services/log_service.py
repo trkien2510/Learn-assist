@@ -49,28 +49,26 @@ async def get_logs(
 
     skip = (page - 1) * page_size
 
-    query_conditions = {}
+    query = LogModel.find_all()
 
-    if action:
-        query_conditions["action"] = action
-    if user_id:
-        query_conditions["user_id"] = user_id
-    if resource_type:
-        query_conditions["resource_type"] = resource_type
-    if status:
-        query_conditions["status"] = status
+    if action and action.strip():
+        query = query.find({"action": {"$regex": action.strip(), "$options": "i"}})
+    
+    if user_id and user_id.strip():
+        query = query.find(LogModel.user_id == user_id.strip())
+        
+    if resource_type and resource_type.strip():
+        query = query.find(LogModel.resource_type == resource_type.strip())
+        
+    if status and status.strip():
+        query = query.find(LogModel.status == status.strip())
+
     if from_date:
-        query_conditions["created_at"] = {"$gte": from_date}
+        query = query.find(LogModel.created_at >= from_date)
+    
     if to_date:
-        if "created_at" in query_conditions:
-            query_conditions["created_at"]["$lte"] = to_date
-        else:
-            query_conditions["created_at"] = {"$lte": to_date}
+        query = query.find(LogModel.created_at <= to_date)
 
-    if query_conditions:
-        query = LogModel.find(query_conditions)
-    else:
-        query = LogModel.find_all()
 
     query = query.sort([("created_at", -1)])
 

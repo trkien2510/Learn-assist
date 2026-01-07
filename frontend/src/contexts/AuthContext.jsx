@@ -25,7 +25,7 @@ export const AuthProvider = ({ children }) => {
           setUser(userData);
           localStorage.setItem('user', JSON.stringify(userData));
         } catch (error) {
-          console.error('Auth init error:', error);
+          
           cookieUtils.remove('access_token');
           cookieUtils.remove('refresh_token');
           localStorage.removeItem('user');
@@ -48,7 +48,7 @@ export const AuthProvider = ({ children }) => {
 
       return userData;
     } catch (error) {
-      console.error('Login error:', error);
+      
       throw error;
     }
   };
@@ -58,7 +58,7 @@ export const AuthProvider = ({ children }) => {
       await authService.register(userData);
       return { success: true, needsVerification: true };
     } catch (error) {
-      console.error('Registration error:', error);
+      
       throw error;
     }
   };
@@ -82,7 +82,7 @@ export const AuthProvider = ({ children }) => {
 
       return response;
     } catch (error) {
-      console.error('OTP verification error:', error);
+      
       throw error;
     }
   };
@@ -91,7 +91,7 @@ export const AuthProvider = ({ children }) => {
     try {
       return await authService.requestOTP(email, purpose);
     } catch (error) {
-      console.error('Request OTP error:', error);
+      
       throw error;
     }
   };
@@ -117,7 +117,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('user', JSON.stringify(userData));
       return userData;
     } catch (error) {
-      console.error('Update user error:', error);
+      
       throw error;
     }
   };

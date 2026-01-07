@@ -13,7 +13,7 @@ const Portal = ({ children, containerId = 'portal-root' }) => {
         const el = elRef.current;
 
         if (!portalRoot) {
-            console.error(`Portal container with id "${containerId}" not found`);
+            
             return;
         }
 

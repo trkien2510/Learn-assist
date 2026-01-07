@@ -10,7 +10,15 @@ import {
     CheckCircleIcon,
     XCircleIcon,
     ClockIcon,
-    DownloadIcon
+    DownloadIcon,
+    UsersIcon,
+    BookIcon,
+    EditIcon,
+    QuestionIcon,
+    DocumentIcon,
+    ChartIcon,
+    LockIcon,
+    ListIcon
 } from '../components/icons/Icons';
 
 const AdminLogs = () => {
@@ -30,10 +38,26 @@ const AdminLogs = () => {
     const { page, totalPages, setPage, updateFromResponse } = usePagination(1, 20);
     const logModal = useModal();
 
+    const handleFilterChange = (key, value) => {
+        setFilters(prev => ({ ...prev, [key]: value }));
+        setPage(1);
+    };
+
     useEffect(() => {
         fetchLogs();
+    }, [page, filters.resource_type, filters.status]);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            fetchLogs();
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [filters.action, filters.user_id]);
+
+    useEffect(() => {
         fetchStats();
-    }, [page, filters]);
+    }, []);
+
 
     const fetchLogs = async () => {
         try {
@@ -55,7 +79,7 @@ const AdminLogs = () => {
             const data = response.data || response;
             setStats(data);
         } catch (err) {
-            console.error('Error fetching stats:', err);
+            
         }
     };
 
@@ -114,16 +138,17 @@ const AdminLogs = () => {
     };
 
     const getResourceIcon = (type) => {
+        const iconClass = "w-4 h-4";
         const icons = {
-            user: '👤',
-            classroom: '📚',
-            exam: '📝',
-            question: '❓',
-            document: '📄',
-            result: '📊',
-            auth: '🔐'
+            user: <UsersIcon className={iconClass} />,
+            classroom: <BookIcon className={iconClass} />,
+            exam: <EditIcon className={iconClass} />,
+            question: <QuestionIcon className={iconClass} />,
+            document: <DocumentIcon className={iconClass} />,
+            result: <ChartIcon className={iconClass} />,
+            auth: <LockIcon className={iconClass} />
         };
-        return icons[type] || '📋';
+        return icons[type] || <ListIcon className={iconClass} />;
     };
 
     const getResourceColor = (type) => {
@@ -256,15 +281,15 @@ const AdminLogs = () => {
                         <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                         <input
                             type="text"
-                            placeholder="Tìm theo action..."
+                            placeholder="Tên hành động..."
                             value={filters.action}
-                            onChange={(e) => setFilters({ ...filters, action: e.target.value })}
+                            onChange={(e) => handleFilterChange('action', e.target.value)}
                             className="input-glass pl-10 w-full"
                         />
                     </div>
                     <select
                         value={filters.resource_type}
-                        onChange={(e) => setFilters({ ...filters, resource_type: e.target.value })}
+                        onChange={(e) => handleFilterChange('resource_type', e.target.value)}
                         className="input-glass"
                     >
                         <option value="">Tất cả tài nguyên</option>
@@ -277,7 +302,7 @@ const AdminLogs = () => {
                     </select>
                     <select
                         value={filters.status}
-                        onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+                        onChange={(e) => handleFilterChange('status', e.target.value)}
                         className="input-glass"
                     >
                         <option value="">Tất cả trạng thái</option>
@@ -288,7 +313,7 @@ const AdminLogs = () => {
                         type="text"
                         placeholder="User ID..."
                         value={filters.user_id}
-                        onChange={(e) => setFilters({ ...filters, user_id: e.target.value })}
+                        onChange={(e) => handleFilterChange('user_id', e.target.value)}
                         className="input-glass"
                     />
                 </div>

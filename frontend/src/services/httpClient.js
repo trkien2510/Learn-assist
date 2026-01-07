@@ -16,9 +16,6 @@ class HttpClient {
 
         if (token && !options.skipAuth) {
             headers['Authorization'] = `Bearer ${token}`;
-            console.log(`Request ${endpoint} with token:`, token.substring(0, 20) + '...');
-        } else {
-            console.log(`Request ${endpoint} WITHOUT token (skipAuth: ${options.skipAuth})`);
         }
 
         const config = {
@@ -27,7 +24,6 @@ class HttpClient {
         };
 
         const fullUrl = `${this.baseURL}${endpoint}`;
-        console.log(`[HttpClient] ${config.method || 'GET'} ${fullUrl}`);
 
         try {
             const response = await fetch(fullUrl, config);
@@ -82,7 +78,6 @@ class HttpClient {
             }
             return false;
         } catch (error) {
-            console.error('Refresh token error:', error);
             return false;
         }
     }

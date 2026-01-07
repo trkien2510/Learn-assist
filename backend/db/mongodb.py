@@ -59,7 +59,6 @@ async def init_db():
     except Exception:
         pass
 
-    # TTL index for auto-deleting unverified users after 5 minutes
     try:
         await db.users.create_index(
             "verification_expires_at",
