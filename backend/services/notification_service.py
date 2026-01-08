@@ -160,8 +160,8 @@ async def notify_students_exam_created(exam: ExamModel, classroom: ClassroomMode
         await create_bulk_notifications(
             users=students,
             notification_type=NotificationType.EXAM_CREATED,
-            title=f"New exam: {exam.title}",
-            message=f"Teacher {creator_name} has created a new exam '{exam.title}' in class '{classroom.name}'. The exam starts at {exam.start_at.strftime('%Y-%m-%d %H:%M')} and ends at {exam.end_at.strftime('%Y-%m-%d %H:%M')}.",
+            title=f"Bài thi mới: {exam.title}",
+            message=f"Giáo viên {creator_name} đã tạo bài thi mới '{exam.title}' trong lớp '{classroom.name}'. Bài thi bắt đầu lúc {exam.start_at.strftime('%Y-%m-%d %H:%M')} và kết thúc lúc {exam.end_at.strftime('%Y-%m-%d %H:%M')}.",
             related_id=str(exam.id),
             related_type="exam"
         )
@@ -173,8 +173,8 @@ async def notify_student_exam_started(user: UserModel, exam: ExamModel, classroo
     await create_notification(
         user=user,
         notification_type=NotificationType.EXAM_STARTED,
-        title=f"Exam started: {exam.title}",
-        message=f"You have started the exam '{exam.title}' in class '{classroom_name}'. You have {exam.duration} minutes to complete it. Good luck!",
+        title=f"Bắt đầu làm bài: {exam.title}",
+        message=f"Bạn đã bắt đầu làm bài thi '{exam.title}' trong lớp '{classroom_name}'. Bạn có {exam.duration} phút để hoàn thành. Chúc bạn làm bài tốt!",
         related_id=str(exam.id),
         related_type="exam"
     )
@@ -184,8 +184,19 @@ async def notify_student_exam_submitted(user: UserModel, exam: ExamModel, score:
     await create_notification(
         user=user,
         notification_type=NotificationType.EXAM_RESULT,
-        title=f"Exam result: {exam.title}",
-        message=f"You have completed the exam '{exam.title}'. Your score: {score}/10 ({correct_count}/{total_questions} correct answers).",
+        title=f"Kết quả bài thi: {exam.title}",
+        message=f"Bạn đã hoàn thành bài thi '{exam.title}'. Điểm số: {score}/10 ({correct_count}/{total_questions} câu đúng).",
+        related_id=str(exam.id),
+        related_type="exam"
+    )
+
+
+async def notify_student_exam_auto_submitted(user: UserModel, exam: ExamModel, score: float, correct_count: int, total_questions: int):
+    await create_notification(
+        user=user,
+        notification_type=NotificationType.EXAM_RESULT,
+        title=f"Bài thi tự động nộp: {exam.title}",
+        message=f"Bài thi '{exam.title}' của bạn đã được tự động nộp do vượt quá thời gian làm bài. Điểm số: {score}/10 ({correct_count}/{total_questions} câu đúng).",
         related_id=str(exam.id),
         related_type="exam"
     )
@@ -194,8 +205,8 @@ async def notify_teacher_document_upload_success(user: UserModel, document_name:
     await create_notification(
         user=user,
         notification_type=NotificationType.DOCUMENT_UPLOAD_SUCCESS,
-        title=f"Document uploaded: {document_name}",
-        message=f"Your document '{document_name}' has been uploaded and processed successfully. {question_count} questions have been generated.",
+        title=f"Tải tài liệu thành công: {document_name}",
+        message=f"Tài liệu '{document_name}' của bạn đã được tải lên và xử lý thành công. {question_count} câu hỏi đã được tạo.",
         related_id=document_id,
         related_type="document"
     )
@@ -205,8 +216,8 @@ async def notify_teacher_document_upload_failed(user: UserModel, document_name: 
     await create_notification(
         user=user,
         notification_type=NotificationType.DOCUMENT_UPLOAD_FAILED,
-        title=f"Document upload failed: {document_name}",
-        message=f"Failed to upload or process document '{document_name}'. Error: {error_message}",
+        title=f"Tải tài liệu thất bại: {document_name}",
+        message=f"Không thể tải lên hoặc xử lý tài liệu '{document_name}'. Lỗi: {error_message}",
         related_id=None,
         related_type="document"
     )
@@ -216,8 +227,8 @@ async def notify_document_upload_success(user: UserModel, document_name: str, do
     await create_notification(
         user=user,
         notification_type=NotificationType.DOCUMENT_UPLOAD_SUCCESS,
-        title=f"Document uploaded: {document_name}",
-        message=f"Your document '{document_name}' has been uploaded and processed successfully. {question_count} questions have been generated.",
+        title=f"Tải tài liệu thành công: {document_name}",
+        message=f"Tài liệu '{document_name}' của bạn đã được tải lên và xử lý thành công. {question_count} câu hỏi đã được tạo.",
         related_id=document_id,
         related_type="document"
     )
@@ -227,8 +238,8 @@ async def notify_document_upload_failed(user: UserModel, document_name: str, err
     await create_notification(
         user=user,
         notification_type=NotificationType.DOCUMENT_UPLOAD_FAILED,
-        title=f"Document upload failed: {document_name}",
-        message=f"Failed to upload or process document '{document_name}'. Error: {error_message}",
+        title=f"Tải tài liệu thất bại: {document_name}",
+        message=f"Không thể tải lên hoặc xử lý tài liệu '{document_name}'. Lỗi: {error_message}",
         related_id=None,
         related_type="document"
     )
@@ -238,8 +249,8 @@ async def notify_teacher_exam_created(user: UserModel, exam: ExamModel, classroo
     await create_notification(
         user=user,
         notification_type=NotificationType.EXAM_CREATION_SUCCESS,
-        title=f"Exam created: {exam.title}",
-        message=f"Your exam '{exam.title}' has been created successfully in class '{classroom_name}' with {question_count} questions. It will start at {exam.start_at.strftime('%Y-%m-%d %H:%M')}.",
+        title=f"Tạo bài thi thành công: {exam.title}",
+        message=f"Bài thi '{exam.title}' của bạn đã được tạo thành công trong lớp '{classroom_name}' với {question_count} câu hỏi. Bài thi sẽ bắt đầu lúc {exam.start_at.strftime('%Y-%m-%d %H:%M')}.",
         related_id=str(exam.id),
         related_type="exam"
     )
@@ -249,8 +260,8 @@ async def notify_teacher_exam_ended(user: UserModel, exam: ExamModel, classroom_
     await create_notification(
         user=user,
         notification_type=NotificationType.EXAM_STATISTICS_AVAILABLE,
-        title=f"Exam ended: {exam.title}",
-        message=f"The exam '{exam.title}' in class '{classroom_name}' has ended. {participant_count} students participated. You can now view the statistics.",
+        title=f"Bài thi đã kết thúc: {exam.title}",
+        message=f"Bài thi '{exam.title}' trong lớp '{classroom_name}' đã kết thúc. Có {participant_count} học sinh tham gia. Bạn có thể xem thống kê ngay bây giờ.",
         related_id=str(exam.id),
         related_type="exam"
     )
@@ -259,8 +270,8 @@ async def notify_personal_exam_created(user: UserModel, exam: ExamModel, questio
     await create_notification(
         user=user,
         notification_type=NotificationType.EXAM_CREATION_SUCCESS,
-        title=f"Personal exam created: {exam.title}",
-        message=f"Your personal practice exam '{exam.title}' has been created with {question_count} questions. Duration: {exam.duration} minutes. You can start practicing anytime!",
+        title=f"Tạo bài thi cá nhân thành công: {exam.title}",
+        message=f"Bài thi thực hành cá nhân '{exam.title}' của bạn đã được tạo với {question_count} câu hỏi. Thời gian: {exam.duration} phút. Bạn có thể bắt đầu luyện tập bất cứ lúc nào!",
         related_id=str(exam.id),
         related_type="exam"
     )
@@ -272,13 +283,13 @@ async def notify_admins_system_error(error_type: str, error_message: str, detail
     if admins:
         detail_str = ""
         if details:
-            detail_str = " Details: " + str(details)
+            detail_str = " Chi tiết: " + str(details)
         
         await create_bulk_notifications(
             users=admins,
             notification_type=NotificationType.SYSTEM_ERROR,
-            title=f"System Error: {error_type}",
-            message=f"A system error has occurred: {error_message}.{detail_str}",
+            title=f"Lỗi hệ thống: {error_type}",
+            message=f"Đã xảy ra lỗi hệ thống: {error_message}.{detail_str}",
             related_id=None,
             related_type="system"
         )
@@ -292,13 +303,13 @@ async def notify_admins_system_warning(warning_type: str, warning_message: str, 
     if admins:
         detail_str = ""
         if details:
-            detail_str = " Details: " + str(details)
+            detail_str = " Chi tiết: " + str(details)
         
         await create_bulk_notifications(
             users=admins,
             notification_type=NotificationType.SYSTEM_WARNING,
-            title=f"System Warning: {warning_type}",
-            message=f"Warning: {warning_message}.{detail_str}",
+            title=f"Cảnh báo hệ thống: {warning_type}",
+            message=f"Cảnh báo: {warning_message}.{detail_str}",
             related_id=None,
             related_type="system"
         )
@@ -313,8 +324,8 @@ async def notify_admins_user_anomaly(user_id: str, anomaly_type: str, descriptio
         await create_bulk_notifications(
             users=admins,
             notification_type=NotificationType.USER_ANOMALY,
-            title=f"User Anomaly Detected: {anomaly_type}",
-            message=f"Suspicious activity detected for user {user_id}: {description}",
+            title=f"Phát hiện bất thường từ người dùng: {anomaly_type}",
+            message=f"Phát hiện hoạt động đáng ngờ từ người dùng {user_id}: {description}",
             related_id=user_id,
             related_type="user"
         )
@@ -326,13 +337,13 @@ async def notify_admins_high_error_rate(error_count: int, time_period: str, affe
     admins = await UserModel.find(UserModel.role == UserRole.ADMIN).to_list()
     
     if admins:
-        service_str = f" in {affected_service}" if affected_service else ""
+        service_str = f" trong {affected_service}" if affected_service else ""
         
         await create_bulk_notifications(
             users=admins,
             notification_type=NotificationType.HIGH_ERROR_RATE,
-            title=f"High Error Rate Alert",
-            message=f"High error rate detected{service_str}: {error_count} errors in the last {time_period}. Please investigate.",
+            title=f"Cảnh báo tỷ lệ lỗi cao",
+            message=f"Phát hiện tỷ lệ lỗi cao{service_str}: {error_count} lỗi trong {time_period} vừa qua. Vui lòng kiểm tra.",
             related_id=None,
             related_type="system"
         )

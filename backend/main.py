@@ -1,18 +1,30 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import asyncio
 
 from api.admin import admin_router
 from core.config import settings
 from db.mongodb import init_db
 from api import user_router, classroom_router, auth_router, document_router, exam_router, question_router, \
     statistical_router, result_router, dashboard_router, notification_router, practice_router, message_router
+from services import auto_submit_service
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
+    
+    auto_submit_task = asyncio.create_task(auto_submit_service.start_auto_submit_scheduler())
+    
     yield
+    
+    auto_submit_task.cancel()
+    try:
+        await auto_submit_task
+    except asyncio.CancelledError:
+        pass
+
 
 
 from core.exception_handler import AppException, app_exception_handler

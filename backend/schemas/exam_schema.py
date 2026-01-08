@@ -33,6 +33,11 @@ class SubmitExamSchema(BaseModel):
     answers: Dict[str, str] = Field(default_factory=dict)
 
 
+class SaveAnswersSchema(BaseModel):
+    """Schema for saving answers during exam (before final submission)"""
+    answers: Dict[str, str] = Field(default_factory=dict)
+
+
 class PreviewExamSchema(BaseModel):
     """Schema for previewing exam with difficulty distribution"""
     class_code: str

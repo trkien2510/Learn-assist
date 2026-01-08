@@ -358,7 +358,51 @@ async def submit_exam(exam_id: str, submit_data, current_user):
     }
 
 
+async def save_answers(exam_id: str, answer_data, current_user):
+    try:
+        obj_id = PydanticObjectId(exam_id)
+    except:
+        raise AppException(StatusCode.BAD_REQUEST, "Invalid exam ID")
+
+    exam = await ExamModel.get(obj_id)
+    if not exam:
+        raise AppException(StatusCode.NOT_FOUND, "Exam not found")
+
+    result = await ResultModel.find_one({
+        "exam_id.$id": obj_id,
+        "user_id.$id": PydanticObjectId(current_user.id)
+    })
+
+    if not result:
+        raise AppException(StatusCode.BAD_REQUEST, "You have not started this exam")
+
+    if result.submitted:
+        raise AppException(StatusCode.BAD_REQUEST, "Exam already submitted")
+
+    now = datetime.now(timezone.utc)
+    started_at = result.started_at
+    if started_at.tzinfo is None:
+        started_at = started_at.replace(tzinfo=timezone.utc)
+    else:
+        started_at = started_at.astimezone(timezone.utc)
+
+    time_elapsed = (now - started_at).total_seconds() / 60
+    if time_elapsed > exam.duration + 1:
+        raise AppException(StatusCode.BAD_REQUEST, "Time limit exceeded")
+
+    answers = answer_data.answers if hasattr(answer_data, 'answers') else answer_data
+    result.answer_map = answers
+    await result.save()
+
+    return {
+        "message": "Lưu câu trả lời thành công",
+        "saved_count": len(answers)
+    }
+
+
+
 async def get_exams_by_class(class_id: str, page: int, page_size: int, current_user):
+
     try:
         obj_id = PydanticObjectId(class_id)
     except:

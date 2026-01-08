@@ -2,13 +2,12 @@ import React, { useState, useEffect, useMemo } from 'react';
 import {
     LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
     XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-    Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis
 } from 'recharts';
 import { statisticsService } from '../services/otherServices';
 import { useAuth, ROLES } from '../contexts/AuthContext';
 import {
     ChartIcon, UsersIcon, BookIcon, ExamIcon,
-    TrendingUpIcon, AwardIcon, TargetIcon,
+    AwardIcon, TargetIcon,
     ArrowRightIcon, CalendarIcon
 } from '../components/icons/Icons';
 import { useNavigate } from 'react-router-dom';
@@ -83,8 +82,6 @@ const Statistics = () => {
         if (!stats) return {};
 
         if (!isTeacher && !isAdmin) {
-            const trends = stats.trends?.[timeRange] || [];
-
             const scoreDistribution = Object.entries(stats.performance?.score_distribution || {}).map(([range, count]) => ({
                 range, count
             }));
@@ -99,7 +96,7 @@ const Statistics = () => {
                 fullMark: 10
             })) || [];
 
-            return { trends, scoreDistribution, gradeDistribution, classroomRadar };
+            return { scoreDistribution, gradeDistribution, classroomRadar };
         } else if (isTeacher) {
             const classPerformance = stats.classrooms?.map(c => ({
                 name: c.name,
@@ -275,75 +272,6 @@ const Statistics = () => {
                     </div>
                 </div>
             </div>
-
-            {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="card-glass p-6">
-                    <h3 className="text-lg font-bold text-gray-900 mb-6">Hiệu suất theo môn học</h3>
-                    <div className="w-full">
-                        <ResponsiveContainer width="100%" height={350}>
-                            <RadarChart cx="50%" cy="50%" outerRadius="80%" data={chartData.classroomRadar}>
-                                <PolarGrid stroke="#ffffff10" />
-                                <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 11 }} />
-                                <PolarRadiusAxis angle={30} domain={[0, 10]} axisLine={false} tick={false} />
-                                <Radar
-                                    name="Điểm số"
-                                    dataKey="score"
-                                    stroke="#3b82f6"
-                                    fill="#3b82f6"
-                                    fillOpacity={0.5}
-                                />
-                                <Tooltip content={<CustomTooltip />} />
-                            </RadarChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
-
-                <div className="card-glass p-6">
-                    <h3 className="text-lg font-bold text-gray-900 mb-6">Phổ điểm chi tiết</h3>
-                    <div className="w-full">
-                        <ResponsiveContainer width="100%" height={350}>
-                            <BarChart data={chartData.scoreDistribution} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff0a" />
-                                <XAxis dataKey="range" axisLine={false} tickLine={false} tick={{ fill: '#64748b' }} />
-                                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b' }} />
-                                <Tooltip content={<CustomTooltip />} />
-                                <Bar dataKey="count" name="Số bài" fill="#3b82f6" radius={[6, 6, 0, 0]} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
-            </div>
-
-            <div className="card-glass p-8">
-                <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
-                        <TargetIcon className="w-6 h-6" />
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-900">Gợi ý học tập</h3>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {stats.recommendations?.map((item, i) => (
-                        <div key={i} className={`p-6 rounded-2xl border ${item.type === 'critical' ? 'bg-red-500/5 border-red-500/20' :
-                            item.type === 'excellent' ? 'bg-green-500/5 border-green-500/20' :
-                                'bg-blue-500/5 border-blue-500/20'
-                            }`}>
-                            <div className="flex items-start justify-between mb-4">
-                                <span className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${item.type === 'critical' ? 'bg-red-500/10 text-red-500' :
-                                    item.type === 'excellent' ? 'bg-green-500/10 text-green-500' :
-                                        'bg-blue-500/10 text-blue-500'
-                                    }`}>
-                                    {item.type}
-                                </span>
-                            </div>
-                            <p className="text-gray-900 font-semibold mb-2">{item.message}</p>
-                            <p className="text-sm text-gray-500">{item.action}</p>
-                        </div>
-                    ))}
-                    {(!stats.recommendations || stats.recommendations.length === 0) && (
-                        <p className="text-gray-500 italic">Chưa có đủ dữ liệu để đưa ra gợi ý...</p>
-                    )}
-                </div>
-            </div> */}
         </div>
     );
 

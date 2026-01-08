@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from core.dependencies import get_current_user
 from models.user_model import UserModel
 from schemas.base_schema import BaseResponse
-from schemas.exam_schema import CreateExamSchema, SubmitExamSchema
+from schemas.exam_schema import CreateExamSchema, SubmitExamSchema, SaveAnswersSchema
 import schemas.exam_schema
 from services import exam_service
 
@@ -48,6 +48,12 @@ async def start_exam(exam_id: str, current_user: UserModel = Depends(get_current
 @router.post("/{exam_id}/submit", response_model=BaseResponse)
 async def submit_exam(exam_id: str, submit_data: SubmitExamSchema, current_user: UserModel = Depends(get_current_user)):
     data = await exam_service.submit_exam(exam_id, submit_data, current_user)
+    return BaseResponse(data=data)
+
+
+@router.post("/{exam_id}/save-answers", response_model=BaseResponse)
+async def save_answers(exam_id: str, answer_data: SaveAnswersSchema, current_user: UserModel = Depends(get_current_user)):
+    data = await exam_service.save_answers(exam_id, answer_data, current_user)
     return BaseResponse(data=data)
 
 
