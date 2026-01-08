@@ -96,6 +96,8 @@ async def delete_exam(exam_id: str, current_user):
         "title": exam.title
     })
 
+    await ResultModel.find({"exam_id.$id": obj_id}).delete()
+
     await exam.delete()
     return {}
 
@@ -178,10 +180,11 @@ async def start_exam(exam_id: str, current_user):
     if now > exam_end:
         raise AppException(StatusCode.BAD_REQUEST, "Exam has ended")
 
-    existing_result = await ResultModel.find_one({
-        "exam_id.$id": obj_id,
-        "user_id.$id": current_user.id
-    })
+    existing_result = await ResultModel.find_one(
+        ResultModel.exam_id.ref.id == obj_id,
+        ResultModel.user_id.ref.id == current_user.id
+    )
+    print(existing_result)
 
     if existing_result:
         if existing_result.submitted:
@@ -238,10 +241,11 @@ async def start_exam(exam_id: str, current_user):
         await new_result.insert()
     except Exception as e:
         if "duplicate key error" in str(e).lower() or "E11000" in str(e):
-            existing_result = await ResultModel.find_one({
-                "exam_id.$id": obj_id,
-                "user_id.$id": current_user.id
-            })
+            existing_result = await ResultModel.find_one(
+                ResultModel.exam_id.ref.id == obj_id,
+                ResultModel.user_id.ref.id == current_user.id
+            )
+
             
             if existing_result:
                 if existing_result.submitted:
