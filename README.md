@@ -13,8 +13,6 @@
 | **[SRS](documents/FUNCTIONALITY_SPEC.md)** | **Software Requirements Spec** | **Đặc tả Yêu cầu Phần mềm:** Danh sách Actors, Use Cases chi tiết, và các yêu cầu chức năng (Functional Requirements). | PM, Developers, QA |
 | **[DOG](documents/CONFIGURATION.md)** | **Deployment & Operations Guide** | **Hướng dẫn Triển khai & Vận hành:** Yêu cầu phần cứng, quy trình cài đặt, cấu hình Docker/Nginx và checklist bảo mật. | DevOps, SysAdmin |
 | **[API](documents/ENDPOINTS_SUMMARY.md)** | **API Endpoints Summary** | **Danh sách API Endpoints:** Tổng hợp các endpoints, phương thức HTTP, và chức năng chi tiết của hệ thống. | Developers, Frontend Dev |
-| **[ACT](documents/ACTIVITY_DIAGRAMS.md)** | **Activity Diagrams** | **Sơ đồ Hoạt động:** Các sơ đồ Mermaid mô tả luồng xử lý chi tiết: xác thực, quản lý lớp, thi cử, AI, thông báo. | PM, Developers, QA |
-| **[UCS](documents/USE_CASE_SPECIFICATION.md)** | **Use Case Specification** | **Đặc tả Use Case:** Chi tiết 32 use case với chuỗi sự kiện chính, ngoại lệ và điều kiện tiên quyết. | PM, Developers, QA |
 
 ---
 

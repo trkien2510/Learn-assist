@@ -21,7 +21,7 @@
 *   **UC-02:** Đăng nhập hệ thống (Login).
 *   **UC-03:** Quản lý thông tin cá nhân (Profile Management).
 *   **UC-04:** Đổi mật khẩu (Change Password).
-*   **UC-05:** Vô hiệu hóa/Xóa tài khoản (Delete Account).
+*   **UC-05:** Xóa tài khoản (Khi xóa tài khoản sẽ xóa toàn bộ dữ liệu liên quan: tin nhắn, lớp học, bài thi, kết quả...).
 *   **UC-06:** Quên mật khẩu với OTP (Forgot Password).
 *   **UC-07:** Đặt lại mật khẩu (Reset Password).
 *   **UC-08:** Kích hoạt lại tài khoản (Reactivate Account).
@@ -67,7 +67,6 @@
 *   **UC-36:** Xem Dashboard thống kê (View Dashboard).
 *   **UC-37:** Xem thống kê theo bài thi (Exam Statistics).
 *   **UC-38:** Xem thống kê theo lớp học (Class Statistics).
-*   **UC-39:** Xem thống kê tổng hợp (Comprehensive Statistics).
 *   **UC-40:** Xem thống kê nền tảng (Platform Statistics) - *Admin*.
 
 ### 2.8 Nhóm Chức Năng Thông Báo (UC-Notification)
@@ -78,8 +77,7 @@
 
 ### 2.9 Nhóm Chức Năng Tin Nhắn (UC-Message)
 *   **UC-45:** Gửi tin nhắn trong lớp học (Send Message).
-*   **UC-46:** Xem tin nhắn lớp học (View Messages).
-*   **UC-47:** Xóa tin nhắn (Delete Message).
+*   **UC-46:** Xem tin nhắn lớp học (View Messages). (Lưu ý: Chức năng xóa tin nhắn đã bị loại bỏ để đảm bảo tính minh bạch).
 
 ### 2.10 Nhóm Chức Năng Quản Trị (UC-Admin)
 *   **UC-48:** Quản lý người dùng hệ thống (User Management).
@@ -178,8 +176,7 @@
 **Mô tả:** Cho phép thành viên lớp học giao tiếp.
 *   **Luồng xử lý:**
     1.  Thành viên gửi tin nhắn.
-    2.  Tất cả thành viên trong lớp có thể xem.
-    3.  Người gửi hoặc giáo viên có thể xóa.
+    2.  Tất cả thành viên trong lớp có thể xem. (Lưu ý: Không thể xóa tin nhắn sau khi đã gửi để đảm bảo tính minh bạch và lưu vết).
 
 ---
 
@@ -213,6 +210,6 @@
 | Luyện tập | 4 |
 | Báo cáo & Thống kê | 5 |
 | Thông báo | 4 |
-| Tin nhắn | 3 |
+| Tin nhắn | 2 |
 | Quản trị | 7 |
-| **Tổng** | **54** |
+| **Tổng** | **52** |

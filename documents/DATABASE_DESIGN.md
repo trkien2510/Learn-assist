@@ -8,6 +8,15 @@
 
 ## 1. Mô Hình Thực Thể Liên Kết (Conceptual Data Model)
 
+> **📊 Xem Sơ Đồ ERD Chi Tiết:** Các sơ đồ mối quan hệ cơ sở dữ liệu (Entity Relationship Diagrams) được vẽ bằng PlantUML trong file [`UML_DIAGRAMS.md`](./UML_DIAGRAMS.md#4-sơ-đồ-mối-quan-hệ-cơ-sở-dữ-liệu), bao gồm:
+> - ERD Tổng Quan Hệ Thống (Section 4.1)
+> - ERD Module Xác Thực & Người Dùng (Section 4.2)
+> - ERD Module Lớp Học & Giao Tiếp (Section 4.3)
+> - ERD Module Tài Liệu & Câu Hỏi (Section 4.4)
+> - ERD Module Thi Cử & Đánh Giá (Section 4.5)
+> - Sơ Đồ Cardinality (Section 4.6)
+> - Sơ Đồ Index Strategy (Section 4.7)
+
 Hệ thống được thiết kế dựa trên các thực thể chính sau:
 - **Actor:** User (Admin, Teacher, Student)
 - **Academic:** Classroom, Support (JoinRequest)
@@ -46,6 +55,7 @@ Hệ thống được thiết kế dựa trên các thực thể chính sau:
 ### Quan hệ tin nhắn (Message Relationships)
 - **User** (1) ---- (n) **Message** (Sender - người gửi)
 - **Classroom** (1) ---- (n) **Message** (Messages trong lớp học)
+
 
 ---
 
@@ -258,7 +268,7 @@ MongoDB không hỗ trợ Foreign Key cứng như SQL, nhưng thiết kế sử 
 
 ## 4. Chính Sách Dữ Liệu
 
-*   **Tính Vẹn Toàn:** Khi xóa `User`, các `Result` của user đó sẽ được giữ lại (không xóa cascade).
+*   **Tính Vẹn Toàn:** Khi xóa `User`, toàn bộ dữ liệu liên quan sẽ bị xóa sạch (cascade manual): tin nhắn, tài liệu, câu hỏi, đề thi (nếu là người tạo), kết quả làm bài, thông báo, nhật ký hoạt động và mã OTP.
 *   **Vòng Đời Dữ Liệu:** Logs sẽ tự động bị xóa sau 30 ngày nhờ TTL Index.
 *   **OTP Expiry:** OTP sẽ tự động hết hạn sau 5 phút.
 *   **Định Dạng Thời Gian:** Tất cả `DateTime` đều được lưu dưới dạng UTC.

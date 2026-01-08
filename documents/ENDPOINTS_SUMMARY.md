@@ -170,7 +170,6 @@
 |--------|----------|----------|
 | POST | `/{class_code}/send` | Send message to classroom |
 | GET | `/{class_code}/messages` | Get classroom messages |
-| DELETE | `/{message_id}` | Delete message |
 
 ---
 
