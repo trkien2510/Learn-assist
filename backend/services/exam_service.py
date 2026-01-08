@@ -148,31 +148,20 @@ async def start_exam(exam_id: str, current_user):
     if not exam:
         raise AppException(StatusCode.NOT_FOUND, "Exam not found")
 
+    if current_user.role != "student":
+        raise AppException(StatusCode.FORBIDDEN, "Only student can do the exam")
+
     classroom = await ClassroomModel.get(exam.class_id.ref.id)
     if not classroom:
         raise AppException(StatusCode.NOT_FOUND, "Classroom not found")
 
-    is_member = any(m.ref.id == current_user.id for m in classroom.members)
-    if not is_member:
+    if not any(m.ref.id == current_user.id for m in classroom.members):
         raise AppException(StatusCode.FORBIDDEN, "You are not a member of this class")
 
-    if current_user.role != "student":
-        raise AppException(StatusCode.FORBIDDEN, "Chỉ sinh viên mới có thể làm bài kiểm tra")
-
     now = datetime.now(timezone.utc)
-    
-    exam_start = exam.start_at
-    exam_end = exam.end_at
-    
-    if exam_start.tzinfo is None:
-        exam_start = exam_start.replace(tzinfo=timezone.utc)
-    else:
-        exam_start = exam_start.astimezone(timezone.utc)
-        
-    if exam_end.tzinfo is None:
-        exam_end = exam_end.replace(tzinfo=timezone.utc)
-    else:
-        exam_end = exam_end.astimezone(timezone.utc)
+
+    exam_start = exam.start_at.astimezone(timezone.utc) if exam.start_at.tzinfo else exam.start_at.replace(tzinfo=timezone.utc)
+    exam_end = exam.end_at.astimezone(timezone.utc) if exam.end_at.tzinfo else exam.end_at.replace(tzinfo=timezone.utc)
 
     if now < exam_start:
         raise AppException(StatusCode.BAD_REQUEST, "Exam has not started yet")
@@ -180,134 +169,42 @@ async def start_exam(exam_id: str, current_user):
     if now > exam_end:
         raise AppException(StatusCode.BAD_REQUEST, "Exam has ended")
 
-    existing_result = await ResultModel.find_one(
-        ResultModel.exam_id.ref.id == obj_id,
-        ResultModel.user_id.ref.id == current_user.id
-    )
-    print(existing_result)
+    result = await ResultModel.find_one({
+        "exam_id.$id": obj_id,
+        "user_id.$id": current_user.id
+    })
 
-    if existing_result:
-        if existing_result.submitted:
-            raise AppException(StatusCode.BAD_REQUEST, "You have already submitted this exam")
-
-        started_at = existing_result.started_at
-        if started_at.tzinfo is None:
-            started_at = started_at.replace(tzinfo=timezone.utc)
-        else:
-            started_at = started_at.astimezone(timezone.utc)
-
-        time_elapsed = (now - started_at).total_seconds() / 60
-        if time_elapsed > exam.duration:
-            raise AppException(StatusCode.BAD_REQUEST, "Time limit exceeded")
-
-        questions_data = []
-        for q_link in exam.questions:
-            question = await QuestionModel.get(q_link.ref.id)
-            if question:
-                questions_data.append({
-                    "id": str(question.id),
-                    "_id": str(question.id),
-                    "content": question.content,
-                    "options": question.options,
-                    "answers": question.answers,
-                    "difficulty": question.difficulty
-                })
-
-        time_remaining_minutes = max(0, exam.duration - time_elapsed)
-        
-        return {
-            "exam": {
-                "id": str(exam.id),
-                "_id": str(exam.id),
-                "title": exam.title,
-                "duration": exam.duration,
-                "start_at": exam.start_at,
-                "end_at": exam.end_at,
-                "questions": questions_data
-            },
-            "result_id": str(existing_result.id),
-            "started_at": existing_result.started_at,
-            "time_remaining": time_remaining_minutes * 60,
-            "is_continuing": True
-        }
-
-    new_result = ResultModel(
-        exam_id=exam,
-        user_id=current_user,
-        started_at=now
-    )
-    
-    try:
-        await new_result.insert()
-    except Exception as e:
-        if "duplicate key error" in str(e).lower() or "E11000" in str(e):
-            existing_result = await ResultModel.find_one(
-                ResultModel.exam_id.ref.id == obj_id,
-                ResultModel.user_id.ref.id == current_user.id
-            )
-
-            
-            if existing_result:
-                if existing_result.submitted:
-                    raise AppException(StatusCode.BAD_REQUEST, "You have already submitted this exam")
-                
-                started_at = existing_result.started_at
-                if started_at.tzinfo is None:
-                    started_at = started_at.replace(tzinfo=timezone.utc)
-                else:
-                    started_at = started_at.astimezone(timezone.utc)
-
-                time_elapsed = (now - started_at).total_seconds() / 60
-                if time_elapsed > exam.duration:
-                    raise AppException(StatusCode.BAD_REQUEST, "Time limit exceeded")
-
-                questions_data = []
-                for q_link in exam.questions:
-                    question = await QuestionModel.get(q_link.ref.id)
-                    if question:
-                        questions_data.append({
-                            "id": str(question.id),
-                            "_id": str(question.id),
-                            "content": question.content,
-                            "options": question.options,
-                            "answers": question.answers,
-                            "difficulty": question.difficulty
-                        })
-
-                time_remaining_minutes = max(0, exam.duration - time_elapsed)
-                
-                return {
-                    "exam": {
-                        "id": str(exam.id),
-                        "_id": str(exam.id),
-                        "title": exam.title,
-                        "duration": exam.duration,
-                        "start_at": exam.start_at,
-                        "end_at": exam.end_at,
-                        "questions": questions_data
-                    },
-                    "result_id": str(existing_result.id),
-                    "started_at": existing_result.started_at,
-                    "time_remaining": time_remaining_minutes * 60,
-                    "is_continuing": True
-                }
-        raise
-
-    try:
-        await log_service.log_exam("start_exam", exam_id, current_user, {
-            "title": exam.title
-        })
-    except Exception as e:
-        print(f"Failed to log exam start: {e}")
-
-    try:
-        await notification_service.notify_student_exam_started(
-            user=current_user,
-            exam=exam,
-            classroom_name=classroom.name if classroom else "Unknown"
+    if not result:
+        result = ResultModel(
+            exam_id=exam,
+            user_id=current_user,
+            started_at=now,
+            submitted=False
         )
-    except Exception as e:
-        print(f"Failed to send notification: {e}")
+        try:
+            await result.insert()
+        except Exception as e:
+            if "duplicate key" in str(e).lower() or "E11000" in str(e):
+                result = await ResultModel.find_one({
+                    "exam_id.$id": obj_id,
+                    "user_id.$id": current_user.id
+                })
+            else:
+                raise e
+
+
+    if result.submitted:
+        raise AppException(StatusCode.BAD_REQUEST, "You have already submitted this exam")
+
+    started_at = result.started_at.astimezone(timezone.utc) if result.started_at.tzinfo else result.started_at.replace(tzinfo=timezone.utc)
+    time_elapsed_minutes = (now - started_at).total_seconds() / 60
+
+    if time_elapsed_minutes > exam.duration:
+        raise AppException(StatusCode.BAD_REQUEST, "Time limit exceeded")
+
+    time_remaining_seconds = max(0, int((exam.duration - time_elapsed_minutes) * 60))
+
+    is_continuing = result.started_at != now
 
     questions_data = []
     for q_link in exam.questions:
@@ -322,6 +219,23 @@ async def start_exam(exam_id: str, current_user):
                 "difficulty": question.difficulty
             })
 
+    if not is_continuing:
+        try:
+            await log_service.log_exam("start_exam", exam_id, current_user, {
+                "title": exam.title
+            })
+        except Exception as e:
+            print(f"Failed to log exam start: {e}")
+
+        try:
+            await notification_service.notify_student_exam_started(
+                user=current_user,
+                exam=exam,
+                classroom_name=classroom.name
+            )
+        except Exception as e:
+            print(f"Failed to send notification: {e}")
+
     return {
         "exam": {
             "id": str(exam.id),
@@ -332,10 +246,10 @@ async def start_exam(exam_id: str, current_user):
             "end_at": exam.end_at,
             "questions": questions_data
         },
-        "result_id": str(new_result.id),
-        "started_at": new_result.started_at,
-        "time_remaining": exam.duration * 60,
-        "is_continuing": False
+        "result_id": str(result.id),
+        "started_at": result.started_at,
+        "time_remaining": time_remaining_seconds,
+        "is_continuing": is_continuing
     }
 
 
