@@ -15,7 +15,10 @@ class CreateExamSchema(BaseModel):
 class CreatePersonalExamSchema(BaseModel):
     title: str
     duration: int
-    question_ids: List[str] = []
+    question_ids: Optional[List[str]] = []
+    num_questions: Optional[int] = None
+    difficulty: Optional[str] = None
+    subject: Optional[str] = None
 
 
 class ExamResponseSchema(BaseModel):

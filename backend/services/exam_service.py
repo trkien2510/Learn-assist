@@ -6,6 +6,7 @@ from models.exam_model import ExamModel
 from models.classroom_model import ClassroomModel
 from models.question_model import QuestionModel
 from models.result_model import ResultModel
+from models.document_model import DocumentModel
 from services import log_service, notification_service
 
 
@@ -629,17 +630,70 @@ async def create_personal_exam(exam_data, current_user):
         raise AppException(StatusCode.FORBIDDEN, "Admin cannot create personal exams")
     
     from datetime import timedelta
+    import random
     
     question_links = []
-    if exam_data.question_ids:
+    
+    if exam_data.question_ids and len(exam_data.question_ids) > 0:
         for qid in exam_data.question_ids:
             try:
                 q = await QuestionModel.get(PydanticObjectId(qid))
                 if q:
                     if q.creator_id.ref.id == current_user.id:
                         question_links.append(q)
-            except:
+                    elif q.document_id:
+                        document = await q.document_id.fetch()
+                        if document and document.creator.ref.id == current_user.id:
+                            question_links.append(q)
+            except Exception as e:
+                print(f"Error processing question {qid}: {e}")
                 pass
+    
+    elif exam_data.num_questions and exam_data.num_questions > 0:
+        query_filter = {
+            "$or": [
+                {"creator_id.$id": current_user.id}
+            ]
+        }
+        
+        if exam_data.difficulty:
+            query_filter["difficulty"] = exam_data.difficulty.upper()
+        
+        available_questions = await QuestionModel.find(query_filter).to_list()
+        
+        if not exam_data.difficulty:
+            user_docs = await DocumentModel.find({"creator.$id": current_user.id}).to_list()
+            doc_ids = [doc.id for doc in user_docs]
+            
+            if doc_ids:
+                doc_questions = await QuestionModel.find({
+                    "document_id.$id": {"$in": doc_ids}
+                }).to_list()
+                existing_ids = {q.id for q in available_questions}
+                for dq in doc_questions:
+                    if dq.id not in existing_ids:
+                        available_questions.append(dq)
+        else:
+            user_docs = await DocumentModel.find({"creator.$id": current_user.id}).to_list()
+            doc_ids = [doc.id for doc in user_docs]
+            
+            if doc_ids:
+                doc_questions = await QuestionModel.find({
+                    "document_id.$id": {"$in": doc_ids},
+                    "difficulty": exam_data.difficulty.upper()
+                }).to_list()
+                existing_ids = {q.id for q in available_questions}
+                for dq in doc_questions:
+                    if dq.id not in existing_ids:
+                        available_questions.append(dq)
+        
+        if len(available_questions) < exam_data.num_questions:
+            raise AppException(
+                StatusCode.BAD_REQUEST, 
+                f"Not enough questions available. You have {len(available_questions)} questions but requested {exam_data.num_questions}"
+            )
+        
+        question_links = random.sample(available_questions, exam_data.num_questions)
 
     if not question_links:
         raise AppException(StatusCode.BAD_REQUEST, "No valid questions provided")
@@ -696,7 +750,13 @@ async def start_personal_exam(exam_id: str, current_user):
 
     now = datetime.now(timezone.utc)
 
-    if now > exam.end_at:
+    exam_end = exam.end_at
+    if exam_end.tzinfo is None:
+        exam_end = exam_end.replace(tzinfo=timezone.utc)
+    else:
+        exam_end = exam_end.astimezone(timezone.utc)
+
+    if now > exam_end:
         raise AppException(StatusCode.BAD_REQUEST, "Exam has expired")
 
     existing_result = await ResultModel.find_one({
@@ -708,17 +768,43 @@ async def start_personal_exam(exam_id: str, current_user):
         if existing_result.submitted:
             pass
         else:
-            time_elapsed = (now - existing_result.started_at).total_seconds() / 60
+            started_at = existing_result.started_at
+            if started_at.tzinfo is None:
+                started_at = started_at.replace(tzinfo=timezone.utc)
+            time_elapsed = (now - started_at).total_seconds() / 60
             if time_elapsed > exam.duration:
                 existing_result.submitted = True
                 existing_result.ended_at = now
                 await existing_result.save()
             else:
+                questions_data = []
+                for q_link in exam.questions:
+                    question = await QuestionModel.get(q_link.ref.id)
+                    if question:
+                        questions_data.append({
+                            "id": str(question.id),
+                            "_id": str(question.id),
+                            "content": question.content,
+                            "options": question.options,
+                            "answers": question.answers,
+                            "difficulty": question.difficulty
+                        })
+                
+                time_remaining_minutes = max(0, exam.duration - time_elapsed)
+                
                 return {
-                    "exam": exam,
+                    "exam": {
+                        "id": str(exam.id),
+                        "_id": str(exam.id),
+                        "title": exam.title,
+                        "duration": exam.duration,
+                        "start_at": exam.start_at,
+                        "end_at": exam.end_at,
+                        "questions": questions_data
+                    },
                     "result_id": str(existing_result.id),
                     "started_at": existing_result.started_at,
-                    "time_remaining": max(0, exam.duration - time_elapsed),
+                    "time_remaining": time_remaining_minutes * 60,
                     "is_continuing": True
                 }
 
@@ -741,17 +827,43 @@ async def start_personal_exam(exam_id: str, current_user):
                 if existing_result.submitted:
                     pass
                 else:
-                    time_elapsed = (now - existing_result.started_at).total_seconds() / 60
+                    started_at = existing_result.started_at
+                    if started_at.tzinfo is None:
+                        started_at = started_at.replace(tzinfo=timezone.utc)
+                    time_elapsed = (now - started_at).total_seconds() / 60
                     if time_elapsed > exam.duration:
                         existing_result.submitted = True
                         existing_result.ended_at = now
                         await existing_result.save()
                     else:
+                        questions_data = []
+                        for q_link in exam.questions:
+                            question = await QuestionModel.get(q_link.ref.id)
+                            if question:
+                                questions_data.append({
+                                    "id": str(question.id),
+                                    "_id": str(question.id),
+                                    "content": question.content,
+                                    "options": question.options,
+                                    "answers": question.answers,
+                                    "difficulty": question.difficulty
+                                })
+                        
+                        time_remaining_minutes = max(0, exam.duration - time_elapsed)
+                        
                         return {
-                            "exam": exam,
+                            "exam": {
+                                "id": str(exam.id),
+                                "_id": str(exam.id),
+                                "title": exam.title,
+                                "duration": exam.duration,
+                                "start_at": exam.start_at,
+                                "end_at": exam.end_at,
+                                "questions": questions_data
+                            },
                             "result_id": str(existing_result.id),
                             "started_at": existing_result.started_at,
-                            "time_remaining": max(0, exam.duration - time_elapsed),
+                            "time_remaining": time_remaining_minutes * 60,
                             "is_continuing": True
                         }
         raise
@@ -760,11 +872,32 @@ async def start_personal_exam(exam_id: str, current_user):
         "title": exam.title
     })
 
+    questions_data = []
+    for q_link in exam.questions:
+        question = await QuestionModel.get(q_link.ref.id)
+        if question:
+            questions_data.append({
+                "id": str(question.id),
+                "_id": str(question.id),
+                "content": question.content,
+                "options": question.options,
+                "answers": question.answers,
+                "difficulty": question.difficulty
+            })
+
     return {
-        "exam": exam,
+        "exam": {
+            "id": str(exam.id),
+            "_id": str(exam.id),
+            "title": exam.title,
+            "duration": exam.duration,
+            "start_at": exam.start_at,
+            "end_at": exam.end_at,
+            "questions": questions_data
+        },
         "result_id": str(new_result.id),
         "started_at": new_result.started_at,
-        "time_remaining": exam.duration,
+        "time_remaining": exam.duration * 60,
         "is_continuing": False
     }
 
@@ -789,8 +922,47 @@ async def get_my_personal_exams(page: int, page_size: int, current_user):
 
     total_pages = (total + page_size - 1) // page_size
 
+    exam_ids = [e.id for e in exams]
+    results = await ResultModel.find({
+        "exam_id.$id": {"$in": exam_ids},
+        "user_id.$id": current_user.id
+    }).to_list()
+
+    result_map = {}
+    for r in results:
+        try:
+            exam_ref_id = r.exam_id.ref.id if hasattr(r.exam_id, 'ref') else r.exam_id.id
+            result_map[str(exam_ref_id)] = r
+        except:
+            pass
+
+    exam_list = []
+    for exam in exams:
+        exam_data = {
+            "id": str(exam.id),
+            "_id": str(exam.id),
+            "title": exam.title,
+            "duration": exam.duration,
+            "start_at": exam.start_at,
+            "end_at": exam.end_at,
+            "num_questions": len(exam.questions) if exam.questions else 0,
+            "is_personal": True
+        }
+        
+        result = result_map.get(str(exam.id))
+        if result:
+            if result.submitted:
+                exam_data["status"] = "completed"
+                exam_data["score"] = result.score
+            else:
+                exam_data["status"] = "in_progress"
+        else:
+            exam_data["status"] = "not_started"
+        
+        exam_list.append(exam_data)
+
     return {
-        "items": exams,
+        "items": exam_list,
         "total": total,
         "page": page,
         "page_size": page_size,

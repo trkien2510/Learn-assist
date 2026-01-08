@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { examService } from '../services/apiServices';
+import { practiceService } from '../services/otherServices';
 import { ClockIcon, CheckIcon, ArrowLeftIcon, ArrowRightIcon } from '../components/icons/Icons';
 
 const TakeExam = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
+    const isPersonal = location.state?.isPersonal || false;
 
     const [exam, setExam] = useState(null);
     const [questions, setQuestions] = useState([]);
@@ -40,15 +43,32 @@ const TakeExam = () => {
     }, [examStarted, timeRemaining]);
 
     const startExam = async () => {
+
         try {
             setLoading(true);
-            const response = await examService.start(id);
+            setError('');
+
+            let response;
+            try {
+                const service = isPersonal ? practiceService : examService;
+                response = await service.start(id);
+            } catch (err) {
+                const errorMsg = err.message || '';
+                const detailMsg = err.response?.data?.detail || '';
+
+                if (!isPersonal && (errorMsg.includes('personal') || detailMsg.includes('personal'))) {
+                    console.log('Detected personal exam after refresh, falling back to practiceService');
+                    response = await practiceService.start(id);
+                } else {
+                    throw err;
+                }
+            }
 
             const data = response.data || response;
             const examData = data.exam;
 
             if (!examData) {
-                throw new Error('Exam data not found in response');
+                throw new Error('Không tìm thấy dữ liệu bài thi');
             }
 
             setExam(examData);
@@ -64,7 +84,7 @@ const TakeExam = () => {
             setAnswers(initialAnswers);
         } catch (err) {
             setError(err.message || 'Không thể bắt đầu bài kiểm tra');
-            setTimeout(() => navigate('/app/exams'), 3000);
+            setTimeout(() => navigate(isPersonal ? '/app/practice' : '/app/exams'), 3000);
         } finally {
             setLoading(false);
         }
@@ -77,7 +97,8 @@ const TakeExam = () => {
 
         try {
             setSubmitting(true);
-            const response = await examService.submit(id, answers);
+            const service = isPersonal ? practiceService : examService;
+            const response = await service.submit(id, answers);
             const data = response.data || response;
             setResult(data);
             setExamStarted(false);
@@ -182,8 +203,8 @@ const TakeExam = () => {
                         <button onClick={() => navigate('/app/results')} className="btn-primary">
                             Xem chi tiết kết quả
                         </button>
-                        <button onClick={() => navigate('/app/exams')} className="btn-secondary">
-                            Về danh sách đề kiểm tra
+                        <button onClick={() => navigate(isPersonal ? '/app/practice' : '/app/exams')} className="btn-secondary">
+                            {isPersonal ? 'Về trang tự luyện' : 'Về danh sách đề kiểm tra'}
                         </button>
                     </div>
                 </div>

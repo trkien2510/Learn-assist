@@ -53,7 +53,6 @@ const Practice = () => {
             const questionsData = questionsRes.data || questionsRes;
             setQuestions(questionsData.items || []);
         } catch (err) {
-            
             setError(err.message);
         } finally {
             setLoading(false);
@@ -89,7 +88,9 @@ const Practice = () => {
             await fetchData();
 
             if (data.exam_id || data.id) {
-                navigate(`/app/take-exam/${data.exam_id || data.id}`);
+                navigate(`/app/take-exam/${data.exam_id || data.id}`, {
+                    state: { isPersonal: true }
+                });
             }
         } catch (err) {
             setError(err.message || 'Không thể tạo bài tự luyện. Hãy đảm bảo bạn có đủ câu hỏi trong ngân hàng.');
@@ -100,8 +101,9 @@ const Practice = () => {
 
     const handleStartExam = async (examId) => {
         try {
-            await practiceService.start(examId);
-            navigate(`/app/take-exam/${examId}`);
+            navigate(`/app/take-exam/${examId}`, {
+                state: { isPersonal: true }
+            });
         } catch (err) {
             setError(err.message);
         }
@@ -326,7 +328,7 @@ const Practice = () => {
                                                     )}
                                                     <button
                                                         onClick={() => handleDeleteExam(exam.id || exam._id)}
-                                                        className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                                                        className="w-12 h-12 flex items-center justify-center text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                                                     >
                                                         <TrashIcon className="w-4 h-4" />
                                                     </button>
