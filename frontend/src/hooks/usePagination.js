@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo } from 'react';
 
 const usePagination = (initialPage = 1, initialPageSize = 10) => {
-    const [page, setPage] = useState(initialPage);
+    const [page, _setPage] = useState(initialPage);
     const [pageSize, setPageSize] = useState(initialPageSize);
     const [total, setTotal] = useState(0);
 
@@ -14,25 +14,25 @@ const usePagination = (initialPage = 1, initialPageSize = 10) => {
 
     const goToPage = useCallback((newPage) => {
         if (newPage >= 1 && newPage <= totalPages) {
-            setPage(newPage);
+            _setPage(newPage);
         }
     }, [totalPages]);
 
     const nextPage = useCallback(() => {
-        if (hasNext) setPage(p => p + 1);
+        if (hasNext) _setPage(p => p + 1);
     }, [hasNext]);
 
     const previousPage = useCallback(() => {
-        if (hasPrevious) setPage(p => p - 1);
+        if (hasPrevious) _setPage(p => p - 1);
     }, [hasPrevious]);
 
     const reset = useCallback(() => {
-        setPage(initialPage);
+        _setPage(initialPage);
     }, [initialPage]);
 
     const updateFromResponse = useCallback((response) => {
         if (response.total !== undefined) setTotal(response.total);
-        if (response.page !== undefined) setPage(response.page);
+        if (response.page !== undefined) _setPage(response.page);
         if (response.page_size !== undefined) setPageSize(response.page_size);
     }, []);
 

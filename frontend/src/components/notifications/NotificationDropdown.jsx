@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth, ROLES } from '../../contexts/AuthContext';
 import NotificationItem from './NotificationItem';
 import { ArrowRightIcon } from '../icons/Icons';
 
@@ -12,25 +13,53 @@ const NotificationDropdown = ({
     onClose
 }) => {
     const navigate = useNavigate();
+    const { hasRole } = useAuth();
 
     const handleNotificationClick = (notification) => {
-        if (notification.related_type && notification.related_id) {
-            switch (notification.related_type) {
+        if (notification.related_id) {
+            const type = notification.related_type;
+            const nid = notification.notification_type;
+
+            switch (type) {
                 case 'exam':
-                    navigate(`/app/exams/${notification.related_id}`);
+                    if (nid === 'exam_result') {
+                        if (hasRole(ROLES.STUDENT)) {
+                            navigate(notification.related_id ? `/app/results/${notification.related_id}` : '/app/results');
+                        } else {
+                            navigate(`/app/exams/${notification.related_id}/statistics`);
+                        }
+                    } else if (nid === 'exam_statistics_available' || nid === 'exam_ended') {
+                        navigate(`/app/exams/${notification.related_id}/statistics`);
+                    } else if (nid === 'exam_creation_success' && notification.title?.toLowerCase().includes('cá nhân')) {
+                        navigate('/app/practice');
+                    } else if (nid === 'exam_created' || nid === 'exam_started') {
+                        navigate(`/app/take-exam/${notification.related_id}`);
+                    } else {
+                        navigate('/app/exams');
+                    }
                     break;
                 case 'document':
-                    navigate(`/app/documents/${notification.related_id}`);
+                    navigate('/app/documents');
                     break;
                 case 'class':
-                    navigate(`/app/classrooms/${notification.related_id}`);
+                    navigate(`/app/classroom/${notification.related_id}`);
                     break;
                 case 'user':
-                    navigate(`/app/users/${notification.related_id}`);
+                    if (notification.notification_type === 'user_anomaly') {
+                        navigate(`/app/users`);
+                    } else {
+                        navigate('/app/profile');
+                    }
+                    break;
+                case 'system':
+                    navigate('/app/logs');
                     break;
                 default:
                     break;
             }
+            onClose();
+        } else {
+            navigate('/app/notifications');
             onClose();
         }
     };

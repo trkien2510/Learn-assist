@@ -104,9 +104,7 @@ const NotificationItem = ({ notification, onMarkAsRead, onDelete, onClick }) => 
                         )}
                     </div>
 
-                    <p className="text-xs text-gray-500 mt-1 line-clamp-2">
-                        {notification.message}
-                    </p>
+
 
                     <div className="flex items-center justify-between mt-2">
                         <span className="text-xs text-gray-400">

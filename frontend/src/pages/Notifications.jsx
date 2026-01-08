@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth, ROLES } from '../contexts/AuthContext';
 import { notificationService } from '../services/otherServices';
 import { useNotifications } from '../contexts/NotificationContext';
 import { useDateFormat, usePagination, useFetch } from '../hooks';
@@ -12,9 +14,19 @@ const Notifications = () => {
         markAllAsRead: contextMarkAllAsRead,
         deleteNotification: contextDeleteNotification
     } = useNotifications();
+    const { user, hasRole } = useAuth();
     const { formatDateTime } = useDateFormat();
-    const { page, totalPages, setPage, updateFromResponse } = usePagination(1, 20);
-
+    const navigate = useNavigate();
+    const {
+        page,
+        totalPages: localTotalPages,
+        setPage,
+        updateFromResponse,
+        hasNext: localHasNext,
+        hasPrevious,
+        nextPage,
+        previousPage
+    } = usePagination(1, 20);
 
     const {
         data: notificationData,
@@ -33,6 +45,58 @@ const Notifications = () => {
     );
 
     const notifications = notificationData?.items || [];
+    const totalPages = notificationData?.total_pages || localTotalPages;
+    const hasNext = notificationData?.has_next !== undefined ? notificationData.has_next : localHasNext;
+
+    const handleNotificationClick = async (notification) => {
+        if (!notification.is_read) {
+            await contextMarkAsRead([notification._id || notification.id]);
+            fetchNotifications();
+        }
+
+        if (notification.related_id) {
+            const type = notification.related_type;
+            const nid = notification.notification_type;
+
+            switch (type) {
+                case 'exam':
+                    if (nid === 'exam_result') {
+                        if (hasRole(ROLES.STUDENT)) {
+                            navigate(notification.related_id ? `/app/results/${notification.related_id}` : '/app/results');
+                        } else {
+                            navigate(`/app/exams/${notification.related_id}/statistics`);
+                        }
+                    } else if (nid === 'exam_statistics_available' || nid === 'exam_ended') {
+                        navigate(`/app/exams/${notification.related_id}/statistics`);
+                    } else if (nid === 'exam_creation_success' && notification.title?.toLowerCase().includes('cá nhân')) {
+                        navigate('/app/practice');
+                    } else if (nid === 'exam_created' || nid === 'exam_started') {
+                        navigate(`/app/take-exam/${notification.related_id}`);
+                    } else {
+                        navigate('/app/exams');
+                    }
+                    break;
+                case 'document':
+                    navigate('/app/documents');
+                    break;
+                case 'class':
+                    navigate(`/app/classroom/${notification.related_id}`);
+                    break;
+                case 'user':
+                    if (notification.notification_type === 'user_anomaly') {
+                        navigate(`/app/users`);
+                    } else {
+                        navigate('/app/profile');
+                    }
+                    break;
+                case 'system':
+                    navigate('/app/logs');
+                    break;
+                default:
+                    break;
+            }
+        }
+    };
 
 
     const markAsRead = async (notificationId) => {
@@ -100,7 +164,7 @@ const Notifications = () => {
                             key={notification._id || notification.id}
                             className={`card-glass p-6 hover-scale cursor-pointer ${!notification.is_read ? 'border-l-4 border-blue-500' : ''
                                 }`}
-                            onClick={() => !notification.is_read && markAsRead(notification._id || notification.id)}
+                            onClick={() => handleNotificationClick(notification)}
                         >
                             <div className="flex items-start justify-between">
                                 <div className="flex-1">
@@ -110,7 +174,7 @@ const Notifications = () => {
                                             <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
                                         )}
                                     </div>
-                                    <p className="text-gray-600 mb-3">{notification.content}</p>
+
                                     <p className="text-sm text-gray-500">
                                         {formatDateTime(notification.created_at)}
                                     </p>
@@ -146,8 +210,8 @@ const Notifications = () => {
                     {totalPages > 1 && (
                         <div className="flex items-center justify-center gap-2 p-4 pt-6">
                             <button
-                                onClick={() => setPage(p => Math.max(1, p - 1))}
-                                disabled={page === 1}
+                                onClick={previousPage}
+                                disabled={!hasPrevious}
                                 className="btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 Trước
@@ -156,8 +220,8 @@ const Notifications = () => {
                                 Trang {page} / {totalPages}
                             </span>
                             <button
-                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                                disabled={page === totalPages}
+                                onClick={nextPage}
+                                disabled={!hasNext}
                                 className="btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 Sau
