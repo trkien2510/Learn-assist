@@ -120,7 +120,7 @@ const Profile = () => {
     const roleBadge = getRoleBadge();
 
     return (
-        <div className="max-w-4xl mx-auto space-y-6">
+        <div className="max-w-full mx-auto space-y-6">
             <div>
                 <h1 className="text-3xl font-bold gradient-text">Hồ sơ cá nhân</h1>
                 <p className="text-gray-500 mt-2">Quản lý thông tin tài khoản của bạn</p>

@@ -89,7 +89,7 @@ const LandingPage = () => {
         <div className="min-h-screen bg-(--bg-color) text-(--text-color)">
             <nav className="fixed top-0 w-full z-50 bg-(--glass-bg) backdrop-blur-lg border-b border-(--glass-border)">
                 <div className="w-full px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-16 mx-auto max-w-7xl">
+                    <div className="flex justify-between items-center h-16 mx-auto max-w-full">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-xl bg-linear-to-br/srgb from-blue-500 to-indigo-600 flex items-center justify-center">
                                 <BookIcon className="w-6 h-6 text-white" />
