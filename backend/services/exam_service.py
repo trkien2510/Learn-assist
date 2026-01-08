@@ -232,17 +232,77 @@ async def start_exam(exam_id: str, current_user):
         user_id=current_user,
         started_at=now
     )
-    await new_result.insert()
+    
+    try:
+        await new_result.insert()
+    except Exception as e:
+        if "duplicate key error" in str(e).lower() or "E11000" in str(e):
+            existing_result = await ResultModel.find_one({
+                "exam_id.$id": obj_id,
+                "user_id.$id": current_user.id
+            })
+            
+            if existing_result:
+                if existing_result.submitted:
+                    raise AppException(StatusCode.BAD_REQUEST, "You have already submitted this exam")
+                
+                started_at = existing_result.started_at
+                if started_at.tzinfo is None:
+                    started_at = started_at.replace(tzinfo=timezone.utc)
+                else:
+                    started_at = started_at.astimezone(timezone.utc)
 
-    await log_service.log_exam("start_exam", exam_id, current_user, {
-        "title": exam.title
-    })
+                time_elapsed = (now - started_at).total_seconds() / 60
+                if time_elapsed > exam.duration:
+                    raise AppException(StatusCode.BAD_REQUEST, "Time limit exceeded")
 
-    await notification_service.notify_student_exam_started(
-        user=current_user,
-        exam=exam,
-        classroom_name=classroom.name if classroom else "Unknown"
-    )
+                questions_data = []
+                for q_link in exam.questions:
+                    question = await QuestionModel.get(q_link.ref.id)
+                    if question:
+                        questions_data.append({
+                            "id": str(question.id),
+                            "_id": str(question.id),
+                            "content": question.content,
+                            "options": question.options,
+                            "answers": question.answers,
+                            "difficulty": question.difficulty
+                        })
+
+                time_remaining_minutes = max(0, exam.duration - time_elapsed)
+                
+                return {
+                    "exam": {
+                        "id": str(exam.id),
+                        "_id": str(exam.id),
+                        "title": exam.title,
+                        "duration": exam.duration,
+                        "start_at": exam.start_at,
+                        "end_at": exam.end_at,
+                        "questions": questions_data
+                    },
+                    "result_id": str(existing_result.id),
+                    "started_at": existing_result.started_at,
+                    "time_remaining": time_remaining_minutes * 60,
+                    "is_continuing": True
+                }
+        raise
+
+    try:
+        await log_service.log_exam("start_exam", exam_id, current_user, {
+            "title": exam.title
+        })
+    except Exception as e:
+        print(f"Failed to log exam start: {e}")
+
+    try:
+        await notification_service.notify_student_exam_started(
+            user=current_user,
+            exam=exam,
+            classroom_name=classroom.name if classroom else "Unknown"
+        )
+    except Exception as e:
+        print(f"Failed to send notification: {e}")
 
     questions_data = []
     for q_link in exam.questions:
@@ -334,20 +394,26 @@ async def submit_exam(exam_id: str, submit_data, current_user):
 
     await result.save()
 
-    await log_service.log_exam("submit_exam", exam_id, current_user, {
-        "title": exam.title,
-        "score": result.score,
-        "correct_count": correct_count,
-        "total_questions": total_questions
-    })
+    try:
+        await log_service.log_exam("submit_exam", exam_id, current_user, {
+            "title": exam.title,
+            "score": result.score,
+            "correct_count": correct_count,
+            "total_questions": total_questions
+        })
+    except Exception as e:
+        print(f"Failed to log exam submission: {e}")
 
-    await notification_service.notify_student_exam_submitted(
-        user=current_user,
-        exam=exam,
-        score=result.score,
-        correct_count=correct_count,
-        total_questions=total_questions
-    )
+    try:
+        await notification_service.notify_student_exam_submitted(
+            user=current_user,
+            exam=exam,
+            score=result.score,
+            correct_count=correct_count,
+            total_questions=total_questions
+        )
+    except Exception as e:
+        print(f"Failed to send submission notification: {e}")
 
     return {
         "result_id": str(result.id),
@@ -661,7 +727,34 @@ async def start_personal_exam(exam_id: str, current_user):
         user_id=current_user,
         started_at=now
     )
-    await new_result.insert()
+    
+    try:
+        await new_result.insert()
+    except Exception as e:
+        if "duplicate key error" in str(e).lower() or "E11000" in str(e):
+            existing_result = await ResultModel.find_one({
+                "exam_id.$id": obj_id,
+                "user_id.$id": current_user.id
+            })
+            
+            if existing_result:
+                if existing_result.submitted:
+                    pass
+                else:
+                    time_elapsed = (now - existing_result.started_at).total_seconds() / 60
+                    if time_elapsed > exam.duration:
+                        existing_result.submitted = True
+                        existing_result.ended_at = now
+                        await existing_result.save()
+                    else:
+                        return {
+                            "exam": exam,
+                            "result_id": str(existing_result.id),
+                            "started_at": existing_result.started_at,
+                            "time_remaining": max(0, exam.duration - time_elapsed),
+                            "is_continuing": True
+                        }
+        raise
 
     await log_service.log_exam("start_personal_exam", exam_id, current_user, {
         "title": exam.title

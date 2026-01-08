@@ -14,6 +14,7 @@ from services import auto_submit_service
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
+    await asyncio.sleep(5)
     
     auto_submit_task = asyncio.create_task(auto_submit_service.start_auto_submit_scheduler())
     
