@@ -433,7 +433,7 @@ const Statistics = () => {
                                     <td className="px-6 py-4 text-gray-600">{cls.student_count}</td>
                                     <td className="px-6 py-4 text-gray-600">{cls.total_submissions}</td>
                                     <td className="px-6 py-4">
-                                        <span className={`font-bold ${cls.average_score >= 8 ? 'text-green-500' : cls.average_score >= 5 ? 'text-blue-500' : 'text-red-500'}`}>
+                                        <span className={`font-bold ${cls.average_score >= 8 ? 'text-green-500' : cls.average_score >= 4 ? 'text-blue-500' : 'text-red-500'}`}>
                                             {cls.average_score.toFixed(2)}
                                         </span>
                                     </td>

@@ -207,7 +207,7 @@ async def get_student_comprehensive_statistics(current_user) -> Dict[str, Any]:
     recommendations = []
     avg_score = sum(all_scores) / len(all_scores)
     
-    if avg_score < 5:
+    if avg_score < 4:
         recommendations.append({
             "type": "critical",
             "message": "Your average score is below passing. Consider reviewing fundamental concepts.",
@@ -252,7 +252,7 @@ async def get_student_comprehensive_statistics(current_user) -> Dict[str, Any]:
                 grade: len([s for s in all_scores if calculate_grade(s) == grade])
                 for grade in ["A+", "A", "B+", "B", "C+", "C", "D+", "D", "F"]
             },
-            "pass_rate": round(len([s for s in all_scores if s >= 5]) / len(all_scores) * 100, 2),
+            "pass_rate": round(len([s for s in all_scores if s >= 4]) / len(all_scores) * 100, 2),
             "excellence_rate": round(len([s for s in all_scores if s >= 8]) / len(all_scores) * 100, 2)
         },
         "trends": trends,
@@ -348,7 +348,7 @@ async def get_teacher_comprehensive_statistics(current_user) -> Dict[str, Any]:
             "exam_count": len(class_exams),
             "total_submissions": len(class_results),
             "average_score": round(sum(class_scores) / len(class_scores), 2) if class_scores else 0,
-            "pass_rate": round(len([s for s in class_scores if s >= 5]) / len(class_scores) * 100, 2) if class_scores else 0,
+            "pass_rate": round(len([s for s in class_scores if s >= 4]) / len(class_scores) * 100, 2) if class_scores else 0,
             "score_distribution": calculate_score_distribution(class_scores)
         })
     
@@ -368,7 +368,7 @@ async def get_teacher_comprehensive_statistics(current_user) -> Dict[str, Any]:
                 "highest_score": max(exam_scores),
                 "lowest_score": min(exam_scores),
                 "median_score": sorted(exam_scores)[len(exam_scores)//2],
-                "pass_rate": round(len([s for s in exam_scores if s >= 5]) / len(exam_scores) * 100, 2),
+                "pass_rate": round(len([s for s in exam_scores if s >= 4]) / len(exam_scores) * 100, 2),
                 "score_distribution": calculate_score_distribution(exam_scores),
                 "start_at": exam.start_at.isoformat() if exam.start_at else None,
                 "end_at": exam.end_at.isoformat() if exam.end_at else None
@@ -380,7 +380,7 @@ async def get_teacher_comprehensive_statistics(current_user) -> Dict[str, Any]:
         student_performance = {
             "total_submissions": len(all_results),
             "average_score": round(sum(all_scores) / len(all_scores), 2),
-            "pass_rate": round(len([s for s in all_scores if s >= 5]) / len(all_scores) * 100, 2),
+            "pass_rate": round(len([s for s in all_scores if s >= 4]) / len(all_scores) * 100, 2),
             "excellence_rate": round(len([s for s in all_scores if s >= 8]) / len(all_scores) * 100, 2),
             "score_distribution": calculate_score_distribution(all_scores),
             "grade_distribution": {
@@ -616,7 +616,7 @@ async def get_exam_detailed_statistics(exam_id: str, current_user) -> Dict[str, 
             "lowest": min(scores),
             "median": sorted(scores)[len(scores)//2],
             "standard_deviation": round((sum((s - sum(scores)/len(scores))**2 for s in scores) / len(scores)) ** 0.5, 2),
-            "pass_rate": round(len([s for s in scores if s >= 5]) / len(scores) * 100, 2),
+            "pass_rate": round(len([s for s in scores if s >= 4]) / len(scores) * 100, 2),
             "excellence_rate": round(len([s for s in scores if s >= 8]) / len(scores) * 100, 2),
             "distribution": calculate_score_distribution(scores),
             "grade_distribution": {
@@ -731,7 +731,7 @@ async def get_classroom_detailed_statistics(class_id: str, current_user) -> Dict
             "participants": len(exam_results),
             "participation_rate": round(len(exam_results) / student_count * 100, 2) if student_count else 0,
             "average_score": round(sum(exam_scores) / len(exam_scores), 2) if exam_scores else 0,
-            "pass_rate": round(len([s for s in exam_scores if s >= 5]) / len(exam_scores) * 100, 2) if exam_scores else 0
+            "pass_rate": round(len([s for s in exam_scores if s >= 4]) / len(exam_scores) * 100, 2) if exam_scores else 0
         })
     
     return {
@@ -746,7 +746,7 @@ async def get_classroom_detailed_statistics(class_id: str, current_user) -> Dict
         "overall_performance": {
             "total_submissions": len(submitted_results),
             "average_score": round(sum(scores) / len(scores), 2) if scores else 0,
-            "pass_rate": round(len([s for s in scores if s >= 5]) / len(scores) * 100, 2) if scores else 0,
+            "pass_rate": round(len([s for s in scores if s >= 4]) / len(scores) * 100, 2) if scores else 0,
             "excellence_rate": round(len([s for s in scores if s >= 8]) / len(scores) * 100, 2) if scores else 0,
             "score_distribution": calculate_score_distribution(scores),
             "grade_distribution": {

@@ -409,6 +409,25 @@ async def get_exams_by_class(class_id: str, page: int, page_size: int, current_u
 
     total_pages = (total + page_size - 1) // page_size
 
+    submitted_exam_ids_list = []
+    if current_user.role == "student" and exams:
+        exam_ids = [e.id for e in exams]
+        
+        submitted_results = await ResultModel.find({
+            "exam_id.$id": {"$in": exam_ids},
+            "user_id.$id": current_user.id,
+            "submitted": True
+        }).to_list()
+        
+        for r in submitted_results:
+            try:
+                if hasattr(r.exam_id, 'ref') and r.exam_id.ref:
+                    submitted_exam_ids_list.append(str(r.exam_id.ref.id))
+                elif hasattr(r.exam_id, 'id'):
+                    submitted_exam_ids_list.append(str(r.exam_id.id))
+            except Exception:
+                pass
+
     return {
         "items": exams,
         "total": total,
@@ -416,7 +435,8 @@ async def get_exams_by_class(class_id: str, page: int, page_size: int, current_u
         "page_size": page_size,
         "total_pages": total_pages,
         "has_next": page < total_pages,
-        "has_previous": page > 1
+        "has_previous": page > 1,
+        "submitted_exam_ids": submitted_exam_ids_list
     }
 
 

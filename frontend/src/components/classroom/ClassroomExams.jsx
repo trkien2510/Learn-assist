@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, ROLES } from '../../contexts/AuthContext';
 import { examService } from '../../services/apiServices';
-import { PlusIcon, ClockIcon, TrashIcon, RefreshIcon, EditIcon } from '../icons/Icons';
+import { PlusIcon, ClockIcon, TrashIcon, RefreshIcon, EditIcon, CheckIcon } from '../icons/Icons';
 import ExamCreationModal from './ExamCreationModal';
 
 const ClassroomExams = ({ classCode, classroom, onRefresh }) => {
     const navigate = useNavigate();
     const { user, hasRole } = useAuth();
     const [exams, setExams] = useState([]);
+    const [submittedExamIds, setSubmittedExamIds] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [showCreateModal, setShowCreateModal] = useState(false);
@@ -36,6 +37,7 @@ const ClassroomExams = ({ classCode, classroom, onRefresh }) => {
             }
 
             setExams(examsData);
+            setSubmittedExamIds(data.submitted_exam_ids || []);
         } catch (err) {
             setError(err.message || 'Không thể tải danh sách bài kiểm tra');
         } finally {
@@ -202,15 +204,27 @@ const ClassroomExams = ({ classCode, classroom, onRefresh }) => {
                                         </div>
                                     )}
 
-                                    {!isTeacher && !isAdmin && status.color === 'green' && (
-                                        <div className="pt-3 border-t border-gray-200/10">
-                                            <button
-                                                onClick={() => navigate(`/app/take-exam/${exam._id || exam.id}`)}
-                                                className="w-full btn-primary text-sm py-2.5"
-                                            >
-                                                Làm bài ngay
-                                            </button>
-                                        </div>
+                                    {!isTeacher && !isAdmin && (
+                                        submittedExamIds.includes(exam._id || exam.id) ? (
+                                            <div className="pt-3 border-t border-gray-200/10">
+                                                <button
+                                                    disabled
+                                                    className="w-full btn-secondary text-sm py-2.5 bg-green-500/20 text-green-600 border-green-500/50 cursor-default flex items-center justify-center gap-2"
+                                                >
+                                                    <CheckIcon className="w-4 h-4" />
+                                                    Đã nộp
+                                                </button>
+                                            </div>
+                                        ) : status.color === 'green' && (
+                                            <div className="pt-3 border-t border-gray-200/10">
+                                                <button
+                                                    onClick={() => navigate(`/app/take-exam/${exam._id || exam.id}`)}
+                                                    className="w-full btn-primary text-sm py-2.5"
+                                                >
+                                                    Làm bài ngay
+                                                </button>
+                                            </div>
+                                        )
                                     )}
                                 </div>
                             </div>
