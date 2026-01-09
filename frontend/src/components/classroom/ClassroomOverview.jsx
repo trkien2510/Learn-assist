@@ -1,5 +1,5 @@
 import React from 'react';
-import { BookIcon, UsersIcon, ClockIcon, ChartIcon } from '../icons/Icons';
+import { UsersIcon, ClockIcon, ChartIcon } from '../icons/Icons';
 
 const ClassroomOverview = ({ classroom, stats, loadingStats }) => {
     return (

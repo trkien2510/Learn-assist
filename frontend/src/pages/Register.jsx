@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth, ROLES } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { EmailIcon, LockIcon, EyeIcon, EyeOffIcon, UserIcon, AdminIcon, TeacherIcon, StudentIcon, UserAddIcon, CalendarIcon, PhoneIcon, SpinnerIcon } from '../components/icons/Icons';
+import { EmailIcon, LockIcon, UserIcon, TeacherIcon, StudentIcon, UserAddIcon, CalendarIcon, PhoneIcon, SpinnerIcon } from '../components/icons/Icons';
 
 const Register = () => {
     const [username, setUsername] = useState('');
@@ -13,8 +13,6 @@ const Register = () => {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [selectedRole, setSelectedRole] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
 

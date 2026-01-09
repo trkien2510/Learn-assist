@@ -1,17 +1,16 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-    BarChart, Bar, PieChart, Pie, Cell,
+    Bar, PieChart, Pie, Cell,
     XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
     AreaChart, Area, ComposedChart
 } from 'recharts';
 import { statisticsService } from '../services/otherServices';
-import { useAuth, ROLES } from '../contexts/AuthContext';
 import { useApi, useDateFormat } from '../hooks';
 import {
     ChartIcon, UsersIcon, ClockIcon, BookIcon,
-    ArrowLeftIcon, DownloadIcon, HelpCircleIcon,
-    CheckIcon, XIcon, TrendingUpIcon, TargetIcon,
+    ArrowLeftIcon, HelpCircleIcon,
+    CheckIcon, TargetIcon,
     ExamIcon
 } from '../components/icons/Icons';
 

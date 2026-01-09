@@ -1,12 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
-    BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
-    XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
+    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
-import { statisticsService } from '../../services/otherServices';
-import { ChartIcon, UsersIcon, ExamIcon, AwardIcon, TrendingUpIcon } from '../icons/Icons';
+import { UsersIcon, ExamIcon, AwardIcon, TrendingUpIcon } from '../icons/Icons';
 
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'];
 const GRADE_COLORS = {
     'A+': '#10b981', 'A': '#10b981',
     'B+': '#3b82f6', 'B': '#3b82f6',

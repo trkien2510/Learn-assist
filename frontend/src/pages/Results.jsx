@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { resultService, examService } from '../services/apiServices';
-import { CheckIcon, XIcon, SearchIcon, ArrowLeftIcon, CalendarIcon, EditIcon, ClockIcon } from '../components/icons/Icons';
+import { CheckIcon, XIcon, ArrowLeftIcon, CalendarIcon, EditIcon, ClockIcon } from '../components/icons/Icons';
 
 const Results = () => {
     const [searchParams] = useSearchParams();

@@ -37,12 +37,10 @@ class SubmitExamSchema(BaseModel):
 
 
 class SaveAnswersSchema(BaseModel):
-    """Schema for saving answers during exam (before final submission)"""
     answers: Dict[str, str] = Field(default_factory=dict)
 
 
 class PreviewExamSchema(BaseModel):
-    """Schema for previewing exam with difficulty distribution"""
     class_code: str
     total_questions: int
     easy_count: int
@@ -51,7 +49,6 @@ class PreviewExamSchema(BaseModel):
 
 
 class ReplaceQuestionSchema(BaseModel):
-    """Schema for replacing a question in preview"""
     question_id: str
-    excluded_ids: List[str] = []  # IDs to exclude from selection
+    excluded_ids: List[str] = []
 

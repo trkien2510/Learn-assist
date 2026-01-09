@@ -1,17 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { practiceService, statisticsService } from '../services/otherServices';
+import { practiceService } from '../services/otherServices';
 import { questionService } from '../services/apiServices';
 import {
     ExamIcon,
     DocumentIcon,
     ChartIcon,
     ClockIcon,
-    CheckIcon,
     PlusIcon,
     TrashIcon,
     PlayIcon,
-    RefreshIcon
 } from '../components/icons/Icons';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
 
@@ -274,7 +272,7 @@ const Practice = () => {
                                             <div key={exam.id || exam._id} className="card-glass p-4 hover-scale">
                                                 <div className="flex items-start justify-between mb-3">
                                                     <div className="flex-1">
-                                                        <h4 className="font-semibold text-gray-900 dark:text-white truncate">
+                                                        <h4 className="font-semibold text-5ray-900 dark:text-gray-900 truncate">
                                                             {exam.title}
                                                         </h4>
                                                         <p className="text-sm text-gray-500">

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth, ROLES } from '../contexts/AuthContext';
-import { classroomService, examService } from '../services/apiServices';
+import { classroomService } from '../services/apiServices';
 import { statisticsService } from '../services/otherServices';
 import {
     ArrowLeftIcon, UsersIcon, MessageIcon, ClipboardIcon,
@@ -29,7 +29,6 @@ const ClassroomDetail = () => {
     const [copied, setCopied] = useState(false);
 
     const isTeacher = hasRole([ROLES.TEACHER]);
-    const isAdmin = hasRole([ROLES.ADMIN]);
     const isCreator = classroom?.is_creator;
 
     useEffect(() => {

@@ -1,7 +1,8 @@
 from datetime import datetime, timezone
 from typing import Dict, Any, Optional
 
-from beanie import Document, Link
+from beanie import Document, Link, Indexed
+from pymongo import IndexModel, ASCENDING
 from pydantic import Field
 
 from models.exam_model import ExamModel
@@ -20,3 +21,10 @@ class ResultModel(Document):
 
     class Settings:
         name = "result"
+        indexes = [
+            IndexModel(
+                [("exam_id.$id", ASCENDING), ("user_id.$id", ASCENDING)],
+                unique=True,
+                name="unique_exam_user"
+            )
+        ]

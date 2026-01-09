@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, ROLES } from '../../contexts/AuthContext';
 import { examService } from '../../services/apiServices';
-import { PlusIcon, ClockIcon, TrashIcon, RefreshIcon, EditIcon, CheckIcon } from '../icons/Icons';
+import { PlusIcon, ClockIcon, TrashIcon, EditIcon, CheckIcon } from '../icons/Icons';
 import ExamCreationModal from './ExamCreationModal';
 
 const ClassroomExams = ({ classCode, classroom, onRefresh }) => {

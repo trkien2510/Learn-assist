@@ -12,7 +12,6 @@ const ForgotPassword = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
-    const [remainingAttempts, setRemainingAttempts] = useState(null);
 
     const navigate = useNavigate();
 

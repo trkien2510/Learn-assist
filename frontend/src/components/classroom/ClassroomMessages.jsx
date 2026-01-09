@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth, ROLES } from '../../contexts/AuthContext';
 import { useDateFormat } from '../../hooks';
 import { classroomService } from '../../services/apiServices';
-import { SendIcon, TrashIcon } from '../icons/Icons';
+import { SendIcon } from '../icons/Icons';
 
 const ClassroomMessages = ({ classCode, classroom }) => {
     const { user, hasRole } = useAuth();

@@ -18,7 +18,6 @@ const AdminUsers = () => {
     const [users, setUsers] = useState([]);
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [statsLoading, setStatsLoading] = useState(true);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { documentService } from '../services/apiServices';
-import { UploadIcon, FileIcon, TrashIcon, CheckIcon, XIcon, EditIcon, CloseIcon, CalendarIcon, SaveIcon } from '../components/icons/Icons';
+import { UploadIcon, FileIcon, TrashIcon, EditIcon, CloseIcon, CalendarIcon, SaveIcon } from '../components/icons/Icons';
 
 const Documents = () => {
     const [documents, setDocuments] = useState([]);

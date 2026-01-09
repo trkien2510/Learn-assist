@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { UserIcon, LockIcon, EyeIcon, EyeOffIcon, BookIcon, AlertTriangleIcon, SpinnerIcon } from '../components/icons/Icons';
+import { UserIcon, LockIcon, BookIcon, AlertTriangleIcon, SpinnerIcon } from '../components/icons/Icons';
 import { translateError } from '../utils/errorMessages';
 
 const Login = () => {
