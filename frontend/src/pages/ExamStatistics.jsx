@@ -5,7 +5,7 @@ import {
     XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
     AreaChart, Area, ComposedChart
 } from 'recharts';
-import { statisticsService } from '../services/otherServices';
+import { statisticsService } from '../services/apiServices';
 import { useApi, useDateFormat } from '../hooks';
 import {
     ChartIcon, UsersIcon, ClockIcon, BookIcon,

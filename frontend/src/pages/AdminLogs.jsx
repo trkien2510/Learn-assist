@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { adminService } from '../services/otherServices';
+import { adminService } from '../services/apiServices';
 import { useDateFormat, usePagination, useModal } from '../hooks';
 import {
     LogIcon,
@@ -79,7 +79,7 @@ const AdminLogs = () => {
             const data = response.data || response;
             setStats(data);
         } catch (err) {
-            
+
         }
     };
 

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { examService } from '../services/apiServices';
-import { practiceService } from '../services/otherServices';
+import { examService, practiceService } from '../services/apiServices';
 import { ClockIcon, CheckIcon, ArrowLeftIcon, ArrowRightIcon } from '../components/icons/Icons';
 
 const TakeExam = () => {

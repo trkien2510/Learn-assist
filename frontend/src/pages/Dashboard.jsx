@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, ROLES } from '../contexts/AuthContext';
-import { dashboardService } from '../services/otherServices';
+import { dashboardService } from '../services/apiServices';
 import StatsCard from '../components/dashboard/StatsCard';
 import QuickActions from '../components/dashboard/QuickActions';
 import RecentActivity from '../components/dashboard/RecentActivity';
@@ -34,7 +34,7 @@ const Dashboard = () => {
                 const data = response.data || response;
                 setDashboardData(data);
             } catch (err) {
-                
+
                 setError(err.message);
             } finally {
                 setLoading(false);

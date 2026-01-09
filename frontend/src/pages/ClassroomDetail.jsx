@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth, ROLES } from '../contexts/AuthContext';
-import { classroomService } from '../services/apiServices';
-import { statisticsService } from '../services/otherServices';
+import { classroomService, statisticsService } from '../services/apiServices';
 import {
     ArrowLeftIcon, UsersIcon, MessageIcon, ClipboardIcon,
     ChartIcon, ClockIcon, RefreshIcon
@@ -59,7 +58,7 @@ const ClassroomDetail = () => {
             const response = await statisticsService.getClassDetailed(classId);
             setStats(response.data || response);
         } catch (err) {
-            
+
         } finally {
             setLoadingStats(false);
         }

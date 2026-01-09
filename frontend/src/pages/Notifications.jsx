@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, ROLES } from '../contexts/AuthContext';
-import { notificationService } from '../services/otherServices';
+import { notificationService } from '../services/apiServices';
 import { useNotifications } from '../contexts/NotificationContext';
 import { useDateFormat, usePagination, useFetch } from '../hooks';
 import { BellIcon, TrashIcon, CheckIcon } from '../components/icons/Icons';

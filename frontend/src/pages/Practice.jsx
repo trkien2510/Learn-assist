@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { practiceService } from '../services/otherServices';
-import { questionService } from '../services/apiServices';
+import { practiceService, questionService } from '../services/apiServices';
 import {
     ExamIcon,
     DocumentIcon,

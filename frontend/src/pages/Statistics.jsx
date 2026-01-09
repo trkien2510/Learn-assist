@@ -3,7 +3,7 @@ import {
     LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
     XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts';
-import { statisticsService } from '../services/otherServices';
+import { statisticsService } from '../services/apiServices';
 import { useAuth, ROLES } from '../contexts/AuthContext';
 import {
     ChartIcon, UsersIcon, BookIcon, ExamIcon,

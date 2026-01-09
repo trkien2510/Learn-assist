@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { notificationService } from '../services/otherServices';
+import { notificationService } from '../services/apiServices';
 import { useAuth } from './AuthContext';
 
 const NotificationContext = createContext(null);
@@ -17,7 +17,7 @@ export const NotificationProvider = ({ children }) => {
             const data = response.data || response;
             setUnreadCount(data.unread_count || 0);
         } catch (err) {
-            
+
         }
     }, [isAuthenticated]);
 
@@ -31,7 +31,7 @@ export const NotificationProvider = ({ children }) => {
             setUnreadCount(data.unread_count || 0);
             return data;
         } catch (err) {
-            
+
         } finally {
             setLoading(false);
         }
@@ -42,7 +42,7 @@ export const NotificationProvider = ({ children }) => {
             await notificationService.markAsRead(notificationIds);
             await fetchUnreadCount();
         } catch (err) {
-            
+
         }
     }, [fetchUnreadCount]);
 
@@ -51,7 +51,7 @@ export const NotificationProvider = ({ children }) => {
             await notificationService.markAsRead(null);
             await fetchUnreadCount();
         } catch (err) {
-            
+
         }
     }, [fetchUnreadCount]);
 
@@ -60,7 +60,7 @@ export const NotificationProvider = ({ children }) => {
             await notificationService.delete(notificationId);
             await fetchUnreadCount();
         } catch (err) {
-            
+
         }
     }, [fetchUnreadCount]);
 
@@ -70,7 +70,7 @@ export const NotificationProvider = ({ children }) => {
             setNotifications([]);
             setUnreadCount(0);
         } catch (err) {
-            
+
         }
     }, []);
 
