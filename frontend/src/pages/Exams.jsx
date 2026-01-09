@@ -66,7 +66,7 @@ const Exams = () => {
             const data = response.data || response;
             setClassrooms(data.items || data || []);
         } catch (err) {
-            
+
         }
     };
 
@@ -283,6 +283,14 @@ const Exams = () => {
         return now >= start && now <= end;
     };
 
+    const isExamNotStarted = (exam) => {
+        const now = new Date();
+        let startStr = exam.start_at;
+        if (!/Z|[+-]\d{2}:\d{2}$/.test(startStr)) startStr += 'Z';
+        const start = new Date(startStr);
+        return now < start;
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -397,9 +405,20 @@ const Exams = () => {
                                             <CheckIcon className="w-4 h-4" />
                                             Đã nộp
                                         </button>
+                                    ) : isStudent && isExamNotStarted(exam) ? (
+                                        <button
+                                            disabled
+                                            className="flex-1 btn-secondary text-sm py-2 bg-blue-500/10 text-blue-400 border-blue-500/30 cursor-not-allowed flex items-center justify-center gap-2"
+                                        >
+                                            <ClockIcon className="w-4 h-4" />
+                                            Chưa đến giờ làm bài
+                                        </button>
                                     ) : (
-                                        <button disabled className="flex-1 btn-secondary text-sm py-2 opacity-50">
-                                            Chưa đến giờ
+                                        <button
+                                            disabled
+                                            className="flex-1 btn-secondary text-sm py-2 bg-gray-500/10 text-gray-400 border-gray-500/30 cursor-not-allowed"
+                                        >
+                                            Đã kết thúc
                                         </button>
                                     )}
                                 </div>

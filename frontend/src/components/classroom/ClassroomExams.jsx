@@ -215,13 +215,32 @@ const ClassroomExams = ({ classCode, classroom, onRefresh }) => {
                                                     Đã nộp
                                                 </button>
                                             </div>
-                                        ) : status.color === 'green' && (
+                                        ) : status.color === 'green' ? (
                                             <div className="pt-3 border-t border-gray-200/10">
                                                 <button
                                                     onClick={() => navigate(`/app/take-exam/${exam._id || exam.id}`)}
                                                     className="w-full btn-primary text-sm py-2.5"
                                                 >
                                                     Làm bài ngay
+                                                </button>
+                                            </div>
+                                        ) : status.color === 'blue' ? (
+                                            <div className="pt-3 border-t border-gray-200/10">
+                                                <button
+                                                    disabled
+                                                    className="w-full btn-secondary text-sm py-2.5 bg-blue-500/10 text-blue-400 border-blue-500/30 cursor-not-allowed flex items-center justify-center gap-2"
+                                                >
+                                                    <ClockIcon className="w-4 h-4" />
+                                                    Chưa đến giờ làm bài
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <div className="pt-3 border-t border-gray-200/10">
+                                                <button
+                                                    disabled
+                                                    className="w-full btn-secondary text-sm py-2.5 bg-gray-500/10 text-gray-400 border-gray-500/30 cursor-not-allowed"
+                                                >
+                                                    Đã kết thúc
                                                 </button>
                                             </div>
                                         )
