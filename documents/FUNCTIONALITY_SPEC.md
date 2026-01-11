@@ -56,17 +56,18 @@
 *   **UC-29:** Nộp bài & Chấm điểm tự động (Submit & Auto-grade).
 *   **UC-30:** Xem kết quả thi (View Result).
 *   **UC-31:** Tiếp tục làm bài (Resume Exam) - *Nếu còn thời gian*.
+*   **UC-32:** Tự động nộp bài khi hết giờ (Auto-Submit Expired Exams) - *System*.
 
 ### 2.6 Nhóm Chức Năng Luyện Tập (UC-Practice)
-*   **UC-32:** Tạo bài kiểm tra cá nhân (Create Personal Exam).
-*   **UC-33:** Làm bài luyện tập (Take Practice Exam).
-*   **UC-34:** Xem thống kê luyện tập (View Practice Statistics).
-*   **UC-35:** Xóa bài kiểm tra cá nhân (Delete Personal Exam).
+*   **UC-33:** Tạo bài kiểm tra cá nhân (Create Personal Exam).
+*   **UC-34:** Làm bài luyện tập (Take Practice Exam).
+*   **UC-35:** Xem thống kê luyện tập (View Practice Statistics).
+*   **UC-36:** Xóa bài kiểm tra cá nhân (Delete Personal Exam).
 
 ### 2.7 Nhóm Chức Năng Báo Cáo & Thống Kê (UC-Stats)
-*   **UC-36:** Xem Dashboard thống kê (View Dashboard).
-*   **UC-37:** Xem thống kê theo bài thi (Exam Statistics).
-*   **UC-38:** Xem thống kê theo lớp học (Class Statistics).
+*   **UC-37:** Xem Dashboard thống kê (View Dashboard).
+*   **UC-38:** Xem thống kê theo bài thi (Exam Statistics).
+*   **UC-39:** Xem thống kê theo lớp học (Class Statistics).
 *   **UC-40:** Xem thống kê nền tảng (Platform Statistics) - *Admin*.
 
 ### 2.8 Nhóm Chức Năng Thông Báo (UC-Notification)
@@ -74,10 +75,11 @@
 *   **UC-42:** Đánh dấu thông báo đã đọc (Mark as Read).
 *   **UC-43:** Xóa thông báo (Delete Notification).
 *   **UC-44:** Quản lý thông báo hệ thống (System Notifications) - *Admin*.
+*   **UC-45:** Nhận thông báo tự động nộp bài (Auto-Submit Notification) - *Student*.
 
 ### 2.9 Nhóm Chức Năng Tin Nhắn (UC-Message)
-*   **UC-45:** Gửi tin nhắn trong lớp học (Send Message).
-*   **UC-46:** Xem tin nhắn lớp học (View Messages). (Lưu ý: Chức năng xóa tin nhắn đã bị loại bỏ để đảm bảo tính minh bạch).
+*   **UC-46:** Gửi tin nhắn trong lớp học (Send Message).
+*   **UC-47:** Xem tin nhắn lớp học (View Messages). (Lưu ý: Chức năng xóa tin nhắn đã bị loại bỏ để đảm bảo tính minh bạch).
 
 ### 2.10 Nhóm Chức Năng Quản Trị (UC-Admin)
 *   **UC-48:** Quản lý người dùng hệ thống (User Management).
@@ -163,6 +165,7 @@
         - Thông báo khi đề thi bắt đầu.
         - Thông báo khi kết quả thi có sẵn.
         - Thông báo khi nộp bài thành công.
+        - Thông báo khi bài thi được tự động nộp do hết thời gian.
     *   **Teacher:**
         - Thông báo khi upload tài liệu thành công/thất bại.
         - Thông báo khi tạo đề thi thành công.
@@ -206,10 +209,10 @@
 | Lớp học | 7 |
 | Tài liệu & AI | 4 |
 | Câu hỏi | 4 |
-| Thi cử | 8 |
+| Thi cử | 9 |
 | Luyện tập | 4 |
-| Báo cáo & Thống kê | 5 |
-| Thông báo | 4 |
+| Báo cáo & Thống kê | 4 |
+| Thông báo | 5 |
 | Tin nhắn | 2 |
 | Quản trị | 7 |
-| **Tổng** | **52** |
+| **Tổng** | **54** |

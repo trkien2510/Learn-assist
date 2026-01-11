@@ -88,10 +88,10 @@ frontend/src/
 │   ├── useModal.js
 │   └── useDateFormat.js
 ├── services/            # API services
-│   ├── apiServices.js
-│   ├── otherServices.js
-│   ├── httpClient.js
-│   └── authService.js
+│   ├── apiServices.js   # All API service modules (classroom, document, question, exam, result, statistics, notification, practice, dashboard, admin)
+│   ├── httpClient.js    # HTTP client with interceptors
+│   ├── authService.js   # Authentication service
+│   └── index.js         # Exports
 ├── contexts/            # React Context
 ├── pages/               # Page components
 ├── utils/              # Utilities
@@ -145,6 +145,7 @@ backend/
 │   ├── admin_service.py
 │   ├── ai_service.py
 │   ├── auth_service.py
+│   ├── auto_submit_service.py
 │   ├── classroom_service.py
 │   ├── dashboard_service.py
 │   ├── document_service.py
@@ -195,7 +196,14 @@ backend/
 2.  **Practice:** Làm bài không giới hạn số lần.
 3.  **Review:** Xem kết quả và thống kê chi tiết.
 
-### 5.5 Quy Trình Thông Báo Tự Động
+### 5.5 Quy Trình Tự Động Nộp Bài (Auto-Submit)
+1.  **Scheduler:** Hệ thống chạy background task mỗi 30 giây.
+2.  **Check:** Kiểm tra các bài thi chưa nộp và đã hết thời gian.
+3.  **Auto-Submit:** Tự động chấm điểm và nộp bài.
+4.  **Notify:** Gửi thông báo cho học sinh về việc nộp bài tự động.
+5.  **Log:** Ghi log hành động vào hệ thống.
+
+### 5.6 Quy Trình Thông Báo Tự Động
 1.  **Trigger Event:** Hệ thống phát hiện sự kiện.
 2.  **Target Users:** Xác định người dùng cần nhận thông báo.
 3.  **Create Notification:** Tạo notification với title, message, related_id.
@@ -203,7 +211,7 @@ backend/
 5.  **Tracking:** Theo dõi trạng thái đã đọc/chưa đọc.
 
 **Các loại thông báo hệ thống:**
-- **Student:** exam_created, exam_started, exam_result, exam_submitted
+- **Student:** exam_created, exam_started, exam_result, exam_submitted, exam_auto_submitted
 - **Teacher:** document_upload_success/failed, exam_creation_success, exam_statistics_available
 - **Admin:** system_error, system_warning, user_anomaly, high_error_rate
 - **All:** personal_exam_created

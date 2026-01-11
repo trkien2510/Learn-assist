@@ -152,7 +152,7 @@ Ngân hàng câu hỏi trắc nghiệm.
 
 ### 2.6 Collection `result`
 Lưu trữ bài làm và kết quả của sinh viên.
-*   **Index:** Compound Index `(exam_id, user_id)`.
+*   **Index:** Compound Unique Index `(exam_id.$id, user_id.$id)` - đảm bảo mỗi user chỉ có 1 result cho mỗi exam.
 *   **Schema:**
     ```json
     {
@@ -167,6 +167,7 @@ Lưu trữ bài làm và kết quả của sinh viên.
       "submit_at": "DateTime"
     }
     ```
+    *Ràng buộc:* Unique compound index ngăn race condition khi bắt đầu exam.
 
 ### 2.7 Collection `logs`
 Ghi nhật ký hệ thống (Audit Trail).
@@ -193,7 +194,7 @@ Quản lý thông báo cho người dùng và hệ thống.
     {
       "_id": "ObjectId",
       "user_id": "Link<UserModel>",
-      "notification_type": "Enum ['exam_created', 'exam_started', 'exam_ended', 'exam_result', 'exam_submitted', 'document_upload_success', 'document_upload_failed', 'exam_creation_success', 'exam_statistics_available', 'personal_exam_created', 'system_error', 'system_warning', 'user_anomaly', 'high_error_rate']",
+      "notification_type": "Enum ['exam_created', 'exam_started', 'exam_ended', 'exam_result', 'exam_auto_submitted', 'document_upload_success', 'document_upload_failed', 'exam_creation_success', 'exam_statistics_available', 'system_error', 'system_warning', 'user_anomaly', 'high_error_rate', 'personal_exam_created']",
       "title": "String",
       "message": "String",
       "related_id": "String (Optional - ID of related resource)",
@@ -228,7 +229,7 @@ Quản lý mã OTP cho xác thực.
       "expires_at": "DateTime (UTC)",
       "is_used": "Boolean (Default: false)",
       "attempts": "Integer (Default: 0)",
-      "max_attempts": "Integer (Default: 3)",
+      "max_attempts": "Integer (Default: 5)",
       "created_at": "DateTime (UTC)"
     }
     ```
@@ -258,11 +259,12 @@ MongoDB không hỗ trợ Foreign Key cứng như SQL, nhưng thiết kế sử 
 *   **Document - Question:** Quan hệ 1-N. `Question` tham chiếu ngược về `Document` thông qua `document_id`.
 
 ### 3.2 Chiến Lược Đánh Index
-1.  **Authentication:** `users.email` và `users.username`.
-2.  **Classroom Access:** `classrooms.class_code`, `classrooms.members.$id`.
-3.  **Analytics:** `results.exam_id` và `results.user_id`.
+1.  **Authentication:** `users.email` và `users.username` (unique).
+2.  **Classroom Access:** `classrooms.class_code` (unique), `classrooms.members.$id`.
+3.  **Result Integrity:** `results.(exam_id.$id, user_id.$id)` (unique compound) - ngăn duplicate results.
 4.  **OTP Lookup:** `otp.email + otp.purpose`.
-5.  **Log Cleanup:** `logs.created_at` (TTL Index).
+5.  **Log Cleanup:** `logs.created_at` (TTL Index - 30 ngày).
+6.  **Notification Cleanup:** `notifications.created_at` (TTL Index - 7 ngày).
 
 ---
 

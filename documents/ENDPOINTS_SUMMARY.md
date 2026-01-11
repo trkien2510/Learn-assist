@@ -88,7 +88,7 @@
 
 ---
 
-## 6. Exam (`/exam`) - 9 endpoints
+## 6. Exam (`/exam`) - 10 endpoints
 
 ### Exam CRUD
 
@@ -108,6 +108,7 @@
 |--------|----------|----------|
 | POST | `/{exam_id}/start` | Start exam, creates Result to track time |
 | POST | `/{exam_id}/submit` | Submit exam, calculates score |
+| POST | `/{exam_id}/save-answers` | Save progress during exam |
 
 ---
 
@@ -164,7 +165,7 @@
 
 ---
 
-## 11. Messages (`/message`) - 3 endpoints
+## 11. Messages (`/message`) - 2 endpoints
 
 | Method | Endpoint | Function |
 |--------|----------|----------|
@@ -258,12 +259,12 @@
 | Classroom | 13 |
 | Document | 4 |
 | Question | 6 |
-| Exam | 9 |
+| Exam | 10 |
 | Result | 4 |
 | Statistics | 10 |
 | Dashboard | 1 |
 | Notifications | 5 |
-| Messages | 3 |
+| Messages | 2 |
 | Practice | 9 |
 | Admin | 21 |
 | **Total** | **99** |

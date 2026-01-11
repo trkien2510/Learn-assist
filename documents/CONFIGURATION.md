@@ -1,7 +1,7 @@
 # Hướng Dẫn Triển Khai & Vận Hành (Deployment Guide)
 
 **Dự án:** Nghiên cứu xây dựng Website tự động tạo bộ câu hỏi ôn tập từ tài liệu hỗ trợ giáo viên kiểm tra sinh viên ôn luyện kèm hệ thống thống kê  
-**Cập nhật lần cuối:** 2026-01-06
+**Cập nhật lần cuối:** 2026-01-11
 
 ---
 
@@ -163,10 +163,11 @@ server {
 0 3 * * * mongodump --uri="$MONGO_URI" --gzip --archive=/backup/db_$(date +\%Y\%m\%d).gz
 ```
 
-### 6.3 Dọn dẹp tự động
+### 6.3 Dọn dẹp tự động & Background Tasks
 Hệ thống tự động:
 *   Xóa logs sau 30 ngày (TTL Index)
 *   Xóa OTP hết hạn
+*   **Auto-Submit Service:** Kiểm tra và tự động nộp bài thi hết hạn mỗi 30 giây
 *   Admin có thể trigger cleanup thủ công qua API
 
 ### 6.4 Troubleshooting
@@ -194,7 +195,7 @@ Hệ thống tự động:
 ### Email & OTP
 - [ ] Sử dụng App Password thay vì password chính
 - [ ] OTP expiry = 5 phút
-- [ ] Max attempts = 3
+- [ ] Max attempts = 5
 
 ### Database
 - [ ] MongoDB có authentication enabled
