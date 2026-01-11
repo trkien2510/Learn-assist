@@ -261,7 +261,7 @@ async def submit_exam(exam_id: str, submit_data, current_user):
 
     exam = await ExamModel.get(obj_id)
     if not exam:
-        raise AppException(StatusCode.NOT_FOUND, "Exam not found")
+        raise AppException(StatusCode.EXAM_DELETED, "Bài kiểm tra đã bị xóa bởi giáo viên")
 
     now = datetime.now(timezone.utc)
 
@@ -351,7 +351,7 @@ async def save_answers(exam_id: str, answer_data, current_user):
 
     exam = await ExamModel.get(obj_id)
     if not exam:
-        raise AppException(StatusCode.NOT_FOUND, "Exam not found")
+        raise AppException(StatusCode.EXAM_DELETED, "Bài kiểm tra đã bị xóa bởi giáo viên")
 
     result = await ResultModel.find_one({
         "exam_id.$id": obj_id,

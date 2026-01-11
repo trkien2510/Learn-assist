@@ -370,10 +370,12 @@ const Documents = () => {
                                 />
                                 <p className="text-xs text-gray-500 mt-2">
                                     AI sẽ tự động sinh {numQuestions} câu hỏi từ nội dung tài liệu
+                                    <br/>
+                                    Quá trình này có thể tốn nhiều thời gian
                                 </p>
                             </div>
 
-                            <div className="flex gap-3 pt-4">
+                            <div className="flex gap-3">
                                 <button
                                     type="button"
                                     onClick={() => {

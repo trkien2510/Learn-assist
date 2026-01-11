@@ -24,6 +24,7 @@ class StatusCode(int, Enum):
     CLASSROOM_NOT_FOUND = 4305
     MESSAGE_NOT_FOUND = 4306
     DOCUMENT_ACCESS_DENIED = 4310
+    EXAM_DELETED = 4311
     
     # OTP errors (44xx)
     OTP_INVALID = 4401
@@ -34,6 +35,12 @@ class StatusCode(int, Enum):
     DATABASE_ERROR = 5001
     FILE_PROCESSING_ERROR = 5002
     EXTERNAL_API_ERROR = 5003
+    AI_GENERATION_FAILED = 5004
+
+    # Document validation errors (45xx)
+    DOCUMENT_TOO_SHORT = 4501
+    DOCUMENT_INVALID_CONTENT = 4502
+    DOCUMENT_INSUFFICIENT_FOR_QUESTIONS = 4503
 
 
 STATUS_MESSAGES = {
@@ -56,6 +63,7 @@ STATUS_MESSAGES = {
     StatusCode.CLASSROOM_NOT_FOUND: "Không tìm thấy lớp học",
     StatusCode.MESSAGE_NOT_FOUND: "Context tin nhắn không tồn tại",
     StatusCode.DOCUMENT_ACCESS_DENIED: "Không có quyền truy cập tài liệu này",
+    StatusCode.EXAM_DELETED: "Bài kiểm tra đã bị xóa bởi giáo viên",
 
     StatusCode.OTP_INVALID: "Mã OTP không hợp lệ",
     StatusCode.OTP_EXPIRED: "Mã OTP đã hết hạn",
@@ -64,4 +72,9 @@ STATUS_MESSAGES = {
     StatusCode.DATABASE_ERROR: "Lỗi cơ sở dữ liệu",
     StatusCode.FILE_PROCESSING_ERROR: "Lỗi xử lý tệp tin",
     StatusCode.EXTERNAL_API_ERROR: "Lỗi kết nối dịch vụ bên ngoài",
+    StatusCode.AI_GENERATION_FAILED: "Không thể sinh câu hỏi từ tài liệu",
+
+    StatusCode.DOCUMENT_TOO_SHORT: "Tài liệu quá ngắn để sinh câu hỏi",
+    StatusCode.DOCUMENT_INVALID_CONTENT: "Nội dung tài liệu không hợp lệ để sinh câu hỏi",
+    StatusCode.DOCUMENT_INSUFFICIENT_FOR_QUESTIONS: "Tài liệu không đủ nội dung để sinh số câu hỏi yêu cầu",
 }

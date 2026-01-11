@@ -1,6 +1,9 @@
 from fastapi import UploadFile
 from utils.document_util import read_and_clean_uploaded_file
-from services.ai_service import call_openai_for_questions, create_question_generation_prompt
+from services.ai_service import (
+    generate_questions_from_large_document,
+    validate_document_content
+)
 from core.exception_handler import AppException
 from core.status_code import StatusCode
 from services import log_service, notification_service
@@ -33,6 +36,16 @@ async def process_upload(number_question: int, file: UploadFile, current_user):
             )
             raise AppException(StatusCode.BAD_REQUEST, "Document is empty or has no text content")
 
+        validation = validate_document_content(document_content.strip(), number_question)
+        
+        if not validation.is_valid:
+            await notification_service.notify_document_upload_failed(
+                user=current_user,
+                document_name=file.filename,
+                error_message=validation.error_message
+            )
+            raise AppException(StatusCode.BAD_REQUEST, validation.error_message)
+
         new_document = DocumentModel(
             name=os.path.splitext(file.filename)[0],
             creator=current_user,
@@ -42,19 +55,33 @@ async def process_upload(number_question: int, file: UploadFile, current_user):
         )
         await new_document.insert()
 
-        ai_response = call_openai_for_questions(create_question_generation_prompt(document_content.strip(), number_question))
+        ai_result, error_message = generate_questions_from_large_document(
+            document_content.strip(), 
+            number_question
+        )
         
-        questions = []
-        if ai_response and isinstance(ai_response, dict):
-            questions = ai_response.get("questions", [])
-        elif ai_response and isinstance(ai_response, list):
-            questions = ai_response
+        if error_message:
+            await notification_service.notify_document_upload_failed(
+                user=current_user,
+                document_name=file.filename,
+                error_message=error_message
+            )
+            await new_document.delete()
+            raise AppException(StatusCode.BAD_REQUEST, error_message)
+        
+        questions = ai_result.get("questions", [])
+        chunks_processed = ai_result.get("chunks_processed", 1)
+        total_chunks = ai_result.get("total_chunks", 1)
+        total_tokens = ai_result.get("total_tokens", 0)
 
         await log_service.log_document("upload_document", str(new_document.id), current_user, {
             "filename": file.filename,
-            "number_question": number_question
+            "number_question": number_question,
+            "questions_generated": len(questions),
+            "chunks_processed": chunks_processed,
+            "total_chunks": total_chunks,
+            "total_tokens": total_tokens
         })
-
 
         question_count = len(questions)
         await notification_service.notify_document_upload_success(
@@ -67,7 +94,13 @@ async def process_upload(number_question: int, file: UploadFile, current_user):
         return {
             "document_id": str(new_document.id),
             "document_name": new_document.name,
-            "questions": questions
+            "questions": questions,
+            "metadata": {
+                "chunks_processed": chunks_processed,
+                "total_chunks": total_chunks,
+                "total_tokens": total_tokens,
+                "document_was_chunked": total_chunks > 1
+            }
         }
     except AppException:
         raise
