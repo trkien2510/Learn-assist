@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth, ROLES } from '../contexts/AuthContext';
 import { useModal } from '../hooks';
 import { classroomService } from '../services/apiServices';
-import { BookIcon, UsersIcon, PlusIcon, CloseIcon, CheckIcon, XIcon, TrashIcon, LogoutIcon, CopyIcon } from '../components/icons/Icons';
+import { BookIcon, UsersIcon, PlusIcon, CloseIcon, CheckIcon, XIcon, TrashIcon, LogoutIcon, CopyIcon, UserAddIcon } from '../components/icons/Icons';
 
 const Classrooms = () => {
     const { user, hasRole } = useAuth();
@@ -68,7 +68,7 @@ const Classrooms = () => {
         try {
             setError('');
             await classroomService.sendJoinRequest(joinCode);
-            setSuccess('Đã gửi yêu cầu tham gia! Đợi giáo viên phê duyệt.');
+            setSuccess('Đã gửi yêu cầu tham gia! Vui lòng đợi chủ lớp phê duyệt.');
             joinModal.close();
             setJoinCode('');
             setTimeout(() => setSuccess(''), 3000);
@@ -183,10 +183,16 @@ const Classrooms = () => {
                 </div>
 
                 {isTeacher && (
-                    <button onClick={() => createModal.open()} className="btn-primary flex items-center gap-2">
-                        <PlusIcon className="w-5 h-5" />
-                        Tạo lớp học
-                    </button>
+                    <div className="flex gap-3">
+                        <button onClick={() => joinModal.open()} className="btn-secondary flex items-center gap-2">
+                            <UserAddIcon className="w-5 h-5" />
+                            Tham gia lớp
+                        </button>
+                        <button onClick={() => createModal.open()} className="btn-primary flex items-center gap-2">
+                            <PlusIcon className="w-5 h-5" />
+                            Tạo lớp học
+                        </button>
+                    </div>
                 )}
                 {isStudent && (
                     <button onClick={() => joinModal.open()} className="btn-primary flex items-center gap-2">
@@ -225,15 +231,25 @@ const Classrooms = () => {
                         {isTeacher ? 'Chưa có lớp học nào' : 'Bạn chưa tham gia lớp học nào'}
                     </h3>
                     <p className="text-gray-500 mb-6">
-                        {isTeacher ? 'Tạo lớp học đầu tiên của bạn' : isStudent ? 'Nhập mã lớp học để tham gia' : 'Không có lớp học nào trong hệ thống'}
+                        {isTeacher ? 'Tạo lớp học mới hoặc tham gia lớp học hiện có' : isStudent ? 'Nhập mã lớp học để tham gia' : 'Không có lớp học nào trong hệ thống'}
                     </p>
                     {isTeacher && (
-                        <button
-                            onClick={() => createModal.open()}
-                            className="btn-primary"
-                        >
-                            Tạo lớp học
-                        </button>
+                        <div className="flex gap-3 justify-center">
+                            <button
+                                onClick={() => joinModal.open()}
+                                className="btn-secondary flex items-center gap-2"
+                            >
+                                <UserAddIcon className="w-5 h-5" />
+                                Tham gia lớp
+                            </button>
+                            <button
+                                onClick={() => createModal.open()}
+                                className="btn-primary flex items-center gap-2"
+                            >
+                                <PlusIcon className="w-5 h-5" />
+                                Tạo lớp học
+                            </button>
+                        </div>
                     )}
                     {isStudent && (
                         <button
@@ -420,7 +436,7 @@ const Classrooms = () => {
                                     maxLength={8}
                                 />
                                 <p className="text-xs text-gray-500 mt-2">
-                                    Nhập mã 8 ký tự do giáo viên cung cấp
+                                    Nhập mã 8 ký tự của lớp học bạn muốn tham gia
                                 </p>
                             </div>
 
