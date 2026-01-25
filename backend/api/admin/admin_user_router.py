@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, BackgroundTasks
 from core.dependencies import get_current_user, get_current_admin
 from models.user_model import UserModel
 from schemas.base_schema import BaseResponse
-from schemas.user_schema import UserUpdate
+from schemas.user_schema import UserUpdate, AdminCreateUser
 from core.exception_handler import AppException
 from core.status_code import StatusCode
 from services import user_service
@@ -13,6 +13,13 @@ router = APIRouter()
 
 class ToggleStatusRequest(BaseModel):
     is_activate: bool
+
+
+@router.post("/create", response_model=BaseResponse)
+async def create_user_admin(user_data: AdminCreateUser, current_user: UserModel = Depends(get_current_admin)):
+    """Admin creates a new user, optionally bypassing email verification."""
+    data = await user_service.create_user_by_admin(user_data, current_user)
+    return BaseResponse(data=data)
 
 
 @router.get("", response_model=BaseResponse)

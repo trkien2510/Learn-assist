@@ -312,6 +312,10 @@ export const adminService = {
             return httpClient.get(API_ENDPOINTS.ADMIN_USERS, { page, page_size: pageSize, ...filters });
         },
 
+        async create(userData) {
+            return httpClient.post(API_ENDPOINTS.ADMIN_USER_CREATE, userData);
+        },
+
         async getById(userId) {
             return httpClient.get(API_ENDPOINTS.ADMIN_USER_GET(userId));
         },

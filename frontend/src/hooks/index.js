@@ -4,4 +4,4 @@ export { default as usePagination } from './usePagination';
 export { default as useModal } from './useModal';
 export { default as useDateFormat } from './useDateFormat';
 export { useNotifications } from '../contexts/NotificationContext';
-
+export { useToast } from '../contexts/ToastContext';

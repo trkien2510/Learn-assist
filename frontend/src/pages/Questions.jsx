@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { questionService } from '../services/apiServices';
+import { useToast } from '../contexts/ToastContext';
 import { PlusIcon, EditIcon, TrashIcon, SearchIcon, CloseIcon } from '../components/icons/Icons';
 
 const Questions = () => {
     const [questions, setQuestions] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
+    const { showSuccess, showError } = useToast();
 
     const [showModal, setShowModal] = useState(false);
     const [editingQuestion, setEditingQuestion] = useState(null);
@@ -50,7 +50,7 @@ const Questions = () => {
             setQuestions(data.items || data || []);
             setTotalPages(data.total_pages || 1);
         } catch (err) {
-            setError(err.message || 'Không thể tải câu hỏi');
+            showError(err.message || 'Không thể tải câu hỏi');
         } finally {
             setLoading(false);
         }
@@ -60,18 +60,16 @@ const Questions = () => {
         e.preventDefault();
 
         if (!formData.content || !formData.answers) {
-            setError('Vui lòng điền đầy đủ thông tin');
+            showError('Vui lòng điền đầy đủ thông tin');
             return;
         }
 
         if (formData.options.some(opt => !opt.trim())) {
-            setError('Vui lòng điền đầy đủ 4 đáp án');
+            showError('Vui lòng điền đầy đủ 4 đáp án');
             return;
         }
 
         try {
-            setError('');
-
             const submitData = {
                 content: formData.content,
                 options: formData.options,
@@ -81,18 +79,17 @@ const Questions = () => {
 
             if (editingQuestion) {
                 await questionService.update(editingQuestion._id || editingQuestion.id, submitData);
-                setSuccess('Cập nhật câu hỏi thành công!');
+                showSuccess('Cập nhật câu hỏi thành công!');
             } else {
                 await questionService.create(submitData);
-                setSuccess('Tạo câu hỏi thành công!');
+                showSuccess('Tạo câu hỏi thành công!');
             }
 
             setShowModal(false);
             resetForm();
             fetchQuestions();
-            setTimeout(() => setSuccess(''), 3000);
         } catch (err) {
-            setError(err.message || 'Thao tác thất bại');
+            showError(err.message || 'Thao tác thất bại');
         }
     };
 
@@ -112,11 +109,10 @@ const Questions = () => {
 
         try {
             await questionService.delete(questionId);
-            setSuccess('Đã xóa câu hỏi!');
+            showSuccess('Đã xóa câu hỏi!');
             fetchQuestions();
-            setTimeout(() => setSuccess(''), 2000);
         } catch (err) {
-            setError(err.message || 'Không thể xóa câu hỏi');
+            showError(err.message || 'Không thể xóa câu hỏi');
         }
     };
 
@@ -150,18 +146,6 @@ const Questions = () => {
                     Tạo câu hỏi
                 </button>
             </div>
-
-            {error && (
-                <div className="p-4 bg-red-500/10 border border-red-500/50 rounded-xl text-red-400">
-                    {error}
-                </div>
-            )}
-
-            {success && (
-                <div className="p-4 bg-green-500/10 border border-green-500/50 rounded-xl text-green-400">
-                    {success}
-                </div>
-            )}
 
             <div className="card-glass p-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -349,8 +333,9 @@ const Questions = () => {
                                         onChange={(e) => setFormData({ ...formData, answers: e.target.value })}
                                         className="input-glass"
                                     >
+                                        <option value="">-- Chọn đáp án đúng --</option>
                                         {formData.options.map((option, idx) => (
-                                            <option key={idx} value={option}>
+                                            <option key={idx} value={option} disabled={!option.trim()}>
                                                 {String.fromCharCode(65 + idx)}. {option || `Đáp án ${String.fromCharCode(65 + idx)}`}
                                             </option>
                                         ))}

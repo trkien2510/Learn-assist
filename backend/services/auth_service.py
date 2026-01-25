@@ -29,7 +29,7 @@ async def register(user_in, background_tasks):
     hashed = get_password_hash(user_in.password)
     verification_expires = datetime.now(timezone.utc) + timedelta(minutes=5)
     user = UserModel(
-        username=user_in.username,
+        username=user_in.username.lower(),
         email=user_in.email,
         full_name=user_in.full_name,
         hashed_password=hashed,
@@ -64,11 +64,11 @@ async def register(user_in, background_tasks):
     
     background_tasks.add_task(send_otp_email, user_in.email, otp_code, OTPPurpose.REGISTRATION, user.full_name)
 
-    return {"message": "Registration successful. OTP has been sent to your email for verification"}
+    return {"message": "Registration successful. Please check your email for OTP verification"}
 
 
 async def login(login_data):
-    identifier = login_data.login_identifier
+    identifier = login_data.login_identifier.lower()
     if "@" in identifier:
         query = {"email": identifier}
     else:
@@ -80,10 +80,10 @@ async def login(login_data):
         raise AppException(StatusCode.UNAUTHORIZED, "Invalid username or password")
 
     if not user.email_verified:
-        raise AppException(StatusCode.FORBIDDEN, "Email not verified. Please verify your email first")
+        raise AppException(StatusCode.FORBIDDEN, "Email not verified")
 
     if not user.is_activate:
-        raise AppException(StatusCode.FORBIDDEN, "Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ hỗ trợ tại trkien2503@gmail.com để được hỗ trợ.")
+        raise AppException(StatusCode.FORBIDDEN, "Account deactivated")
 
     access = create_access_token({"sub": str(user.id), "role": user.role})
     refresh = create_refresh_token({"sub": str(user.id)})
@@ -113,7 +113,7 @@ async def refresh_token(token: str):
         raise AppException(StatusCode.UNAUTHORIZED, "User not found")
 
     if not user.is_activate:
-        raise AppException(StatusCode.FORBIDDEN, "Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ hỗ trợ tại trkien2503@gmail.com để được hỗ trợ.")
+        raise AppException(StatusCode.FORBIDDEN, "Account deactivated")
 
     access = create_access_token({"sub": str(user.id), "role": user.role})
     return TokenResponse(access_token=access, refresh_token=token, role=user.role)

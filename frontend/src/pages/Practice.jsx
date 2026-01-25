@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '../contexts/ToastContext';
 import { practiceService, questionService } from '../services/apiServices';
 import {
     ExamIcon,
@@ -14,13 +15,13 @@ import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from 'recha
 
 const Practice = () => {
     const navigate = useNavigate();
+    const { showError } = useToast();
     const [activeTab, setActiveTab] = useState('exams');
     const [loading, setLoading] = useState(true);
     const [exams, setExams] = useState([]);
     const [stats, setStats] = useState(null);
     const [questions, setQuestions] = useState([]);
     const [showCreateModal, setShowCreateModal] = useState(false);
-    const [error, setError] = useState('');
 
     const [formData, setFormData] = useState({
         title: '',
@@ -50,7 +51,7 @@ const Practice = () => {
             const questionsData = questionsRes.data || questionsRes;
             setQuestions(questionsData.items || []);
         } catch (err) {
-            setError(err.message);
+            showError(err.message);
         } finally {
             setLoading(false);
         }
@@ -60,7 +61,6 @@ const Practice = () => {
         e.preventDefault();
         try {
             setLoading(true);
-            setError('');
 
             const examData = {
                 title: formData.title || `Bài tự luyện ${new Date().toLocaleDateString('vi-VN')}`,
@@ -90,7 +90,7 @@ const Practice = () => {
                 });
             }
         } catch (err) {
-            setError(err.message || 'Không thể tạo bài tự luyện. Hãy đảm bảo bạn có đủ câu hỏi trong ngân hàng.');
+            showError(err.message || 'Không thể tạo bài tự luyện. Hãy đảm bảo bạn có đủ câu hỏi trong ngân hàng.');
         } finally {
             setLoading(false);
         }
@@ -102,7 +102,7 @@ const Practice = () => {
                 state: { isPersonal: true }
             });
         } catch (err) {
-            setError(err.message);
+            showError(err.message);
         }
     };
 
@@ -113,7 +113,7 @@ const Practice = () => {
             await practiceService.delete(examId);
             await fetchData();
         } catch (err) {
-            setError(err.message);
+            showError(err.message);
         }
     };
 
@@ -194,13 +194,6 @@ const Practice = () => {
                 </div>
             </div>
 
-            {error && (
-                <div className="p-4 bg-red-500/10 border border-red-500/50 rounded-xl text-red-400">
-                    {error}
-                    <button onClick={() => setError('')} className="ml-2 underline">Đóng</button>
-                </div>
-            )}
-
             {questions.length === 0 && (
                 <div className="card-glass p-8 text-center">
                     <div className="w-16 h-16 rounded-full bg-orange-500/20 flex items-center justify-center mx-auto mb-4">
@@ -271,7 +264,7 @@ const Practice = () => {
                                             <div key={exam.id || exam._id} className="card-glass p-4 hover-scale">
                                                 <div className="flex items-start justify-between mb-3">
                                                     <div className="flex-1">
-                                                        <h4 className="font-semibold text-5ray-900 dark:text-gray-900 truncate">
+                                                        <h4 className="font-semibold text-gray-900 dark:text-gray-900 truncate">
                                                             {exam.title}
                                                         </h4>
                                                         <p className="text-sm text-gray-500">

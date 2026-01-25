@@ -63,7 +63,7 @@ def validate_document_content(
         return DocumentValidationResult(
             is_valid=False,
             error_code="EMPTY_CONTENT",
-            error_message="Tài liệu trống hoặc không có nội dung văn bản"
+            error_message="Document is empty or has no text content"
         )
     
     cleaned_text = text.strip()
@@ -74,7 +74,7 @@ def validate_document_content(
         return DocumentValidationResult(
             is_valid=False,
             error_code="INSUFFICIENT_CONTENT",
-            error_message=f"Tài liệu chỉ có {word_count} từ, cần ít nhất {MIN_CONTENT_WORDS} từ để sinh câu hỏi",
+            error_message=f"Document has only {word_count} words, need at least {MIN_CONTENT_WORDS} words to generate questions",
             word_count=word_count,
             token_count=token_count
         )
@@ -85,7 +85,7 @@ def validate_document_content(
         return DocumentValidationResult(
             is_valid=False,
             error_code="INSUFFICIENT_FOR_QUESTIONS",
-            error_message=f"Tài liệu chỉ có {word_count} từ, không đủ để sinh {num_questions} câu hỏi. Đề xuất tối đa {recommended_questions} câu hỏi",
+            error_message=f"Document has only {word_count} words, not enough to generate {num_questions} questions. Recommended maximum {recommended_questions} questions",
             word_count=word_count,
             token_count=token_count
         )
@@ -177,6 +177,68 @@ def split_document_into_chunks(
     
     return chunks
 
+_document_type_cache = {}
+
+def detect_document_type_fast(text: str) -> str:
+    sample = text[:1000].lower()
+    
+    keyword_patterns = {
+        'Pháp luật': ['điều', 'khoản', 'nghị định', 'luật', 'thông tư', 'quy định', 'quyền', 'nghĩa vụ', 'xử phạt', 'hình sự', 'dân sự', 'hợp đồng', 'bộ luật'],
+        'Kỹ thuật': ['hệ thống', 'thuật toán', 'module', 'cấu trúc', 'database', 'api', 'server', 'function', 'class', 'code', 'lập trình', 'phần mềm', 'hardware', 'software'],
+        'Học thuật': ['định nghĩa', 'định lý', 'chứng minh', 'công thức', 'giả thuyết', 'nghiên cứu', 'phương pháp', 'lý thuyết', 'thí nghiệm', 'kết luận', 'tham khảo'],
+        'Văn học': ['nhân vật', 'tác giả', 'tác phẩm', 'thơ', 'truyện', 'tiểu thuyết', 'nghệ thuật', 'hình tượng', 'biểu cảm', 'cảm xúc', 'văn xuôi'],
+        'Báo chí': ['phóng viên', 'thông tin', 'sự kiện', 'ngày', 'tháng', 'năm', 'theo', 'cho biết', 'được biết', 'nguồn tin', 'hôm nay']
+    }
+    
+    scores = {}
+    for doc_type, keywords in keyword_patterns.items():
+        score = sum(1 for kw in keywords if kw in sample)
+        scores[doc_type] = score
+    
+    max_score = max(scores.values())
+    if max_score >= 2:
+        return max(scores, key=scores.get)
+    
+    return "Chung"
+
+
+def detect_document_type(text: str, model: str = DEFAULT_MODEL) -> str:
+    fast_result = detect_document_type_fast(text)
+    if fast_result != "Chung":
+        return fast_result
+    
+    client = OpenAI(api_key=settings.OPENAI_API_KEY)
+    
+    sample_text = text[:500]
+    
+    try:
+        completion = client.chat.completions.create(
+            model=model,
+            messages=[
+                {
+                    "role": "system",
+                    "content": "Phân loại văn bản: 'Học thuật', 'Kỹ thuật', 'Pháp luật', 'Văn học', 'Báo chí', hoặc 'Chung'. Chỉ trả về tên loại."
+                },
+                {
+                    "role": "user",
+                    "content": sample_text
+                }
+            ],
+            max_completion_tokens=20
+        )
+        
+        doc_type = completion.choices[0].message.content.strip()
+        valid_types = ['Học thuật', 'Kỹ thuật', 'Pháp luật', 'Văn học', 'Báo chí']
+        
+        for v_type in valid_types:
+            if v_type.lower() in doc_type.lower():
+                return v_type
+                
+        return "Chung"
+    except Exception as e:
+        print(f"Error detecting document type: {e}")
+        return "Chung"
+
 
 def call_openai_for_questions(prompt: str, model: str = DEFAULT_MODEL) -> Optional[dict]:
     client = OpenAI(api_key=settings.OPENAI_API_KEY)
@@ -224,21 +286,24 @@ def generate_questions_from_large_document(
     if not validation.is_valid:
         return None, validation.error_message
     
+    doc_type = detect_document_type(text, model)
+    
     if not validation.requires_chunking:
-        prompt = create_question_generation_prompt(text.strip(), num_questions)
+        prompt = create_question_generation_prompt(text.strip(), num_questions, doc_type)
         result = call_openai_for_questions(prompt, model)
         
         if result is None:
-            return None, "Không thể sinh câu hỏi từ nội dung tài liệu. Vui lòng kiểm tra lại nội dung."
+            return None, "Cannot generate questions from document content. Please check the content again."
         
         questions = result.get("questions", [])
         if not questions:
-            return None, "Nội dung tài liệu không phù hợp để sinh câu hỏi trắc nghiệm"
+            return None, "Document content is not suitable for generating multiple choice questions"
         
         return {
             "questions": questions,
             "chunks_processed": 1,
-            "total_tokens": validation.token_count
+            "total_tokens": validation.token_count,
+            "doc_type": doc_type
         }, None
     
     chunks = split_document_into_chunks(text, model)
@@ -253,7 +318,7 @@ def generate_questions_from_large_document(
         if questions_per_chunk[i] == 0:
             continue
             
-        prompt = create_question_generation_prompt(chunk, questions_per_chunk[i])
+        prompt = create_question_generation_prompt(chunk, questions_per_chunk[i], doc_type)
         result = call_openai_for_questions(prompt, model)
         
         if result and result.get("questions"):
@@ -263,7 +328,7 @@ def generate_questions_from_large_document(
             failed_chunks += 1
     
     if not all_questions:
-        return None, "Không thể sinh câu hỏi từ bất kỳ phần nào của tài liệu. Nội dung có thể không phù hợp."
+        return None, "Cannot generate questions from any part of the document. Content may be unsuitable."
     
     unique_questions = deduplicate_questions(all_questions)
     
@@ -272,7 +337,8 @@ def generate_questions_from_large_document(
         "chunks_processed": chunks_processed,
         "total_chunks": len(chunks),
         "failed_chunks": failed_chunks,
-        "total_tokens": validation.token_count
+        "total_tokens": validation.token_count,
+        "doc_type": doc_type
     }, None
 
 
@@ -306,9 +372,23 @@ def deduplicate_questions(questions: List[dict]) -> List[dict]:
     return unique
 
 
-def create_question_generation_prompt(text_chunk: str, num_questions: int) -> str:
+def create_question_generation_prompt(text_chunk: str, num_questions: int, doc_type: str = "Chung") -> str:
+    type_specific_instructions = {
+        "Học thuật": "Tập trung vào kiến thức nền tảng, các định nghĩa, định lý, hệ quả và các mối quan hệ logic trong văn bản. Đảm bảo câu hỏi có tính chất kiểm tra sự hiểu biết sâu sắc.",
+        "Kỹ thuật": "Tập trung vào các thông số kỹ thuật, quy trình thực hiện, nguyên lý vận hành và các bước giải quyết vấn đề. Câu hỏi nên có tính thực tiễn cao.",
+        "Pháp luật": "Tập trung vào các điều khoản, quyền lợi, nghĩa vụ, thời hạn và các quy định cụ thể. Cần sự chính xác tuyệt đối về thuật ngữ pháp lý.",
+        "Văn học": "Tập trung vào các biện pháp nghệ thuật, nội dung tư tưởng, hình tượng nhân vật và ý nghĩa của các chi tiết nghệ thuật. Phân loại độ khó dựa trên khả năng cảm thụ.",
+        "Báo chí": "Tập trung vào các sự kiện then chốt, nhân vật liên quan, thời gian, địa điểm và nguyên nhân của sự việc (mô hình 5W1H).",
+        "Chung": "Tạo các câu hỏi bao quát nội dung chính của tài liệu, phân bổ đều kiến thức."
+    }
+    
+    instruction = type_specific_instructions.get(doc_type, type_specific_instructions["Chung"])
+
     return f"""
 Nhiệm vụ: Tạo đúng {num_questions} câu hỏi trắc nghiệm dựa trên nội dung tài liệu bên dưới.
+Loại tài liệu được nhận diện: {doc_type}
+
+HƯỚNG DẪN CHUYÊN BIỆT: {instruction}
 
 --- NỘI DUNG TÀI LIỆU ---
 {text_chunk}

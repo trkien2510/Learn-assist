@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from core.security import verify_password
+from core.security import verify_password, get_password_hash
 from core.exception_handler import AppException
 from core.status_code import StatusCode
 from models.user_model import UserModel, UserRole
@@ -42,8 +42,6 @@ async def update_profile(update_data, current_user):
 
 
 async def change_password(password_data, current_user):
-    from core.security import get_password_hash
-    
     if not verify_password(password_data.old_password, current_user.hashed_password):
         raise AppException(StatusCode.UNAUTHORIZED, "Current password is incorrect")
     
@@ -163,15 +161,14 @@ async def update_user_by_admin(user_id: str, update_data, admin_user=None):
     user = await get_user_by_id(user_id)
 
     if admin_user and str(user.id) == str(admin_user.id):
-        raise AppException(StatusCode.FORBIDDEN, "Không thể chỉnh sửa tài khoản của chính mình")
+        raise AppException(StatusCode.FORBIDDEN, "Cannot edit your own account")
 
     if user.role == "admin" or (hasattr(user.role, 'value') and user.role.value == "admin"):
-        raise AppException(StatusCode.FORBIDDEN, "Không thể chỉnh sửa tài khoản admin khác")
+        raise AppException(StatusCode.FORBIDDEN, "Cannot edit another admin account")
 
     update_dict = update_data.model_dump(exclude_unset=True)
     for key, value in update_dict.items():
         if key == "password":
-            from core.security import get_password_hash
             user.hashed_password = get_password_hash(value)
         else:
             setattr(user, key, value)
@@ -191,10 +188,10 @@ async def delete_user_by_admin(user_id: str, admin_user=None, background_tasks=N
     user = await get_user_by_id(user_id)
 
     if admin_user and str(user.id) == str(admin_user.id):
-        raise AppException(StatusCode.FORBIDDEN, "Không thể xóa tài khoản của chính mình")
+        raise AppException(StatusCode.FORBIDDEN, "Cannot delete your own account")
 
     if user.role == "admin" or (hasattr(user.role, 'value') and user.role.value == "admin"):
-        raise AppException(StatusCode.FORBIDDEN, "Không thể xóa tài khoản admin khác")
+        raise AppException(StatusCode.FORBIDDEN, "Cannot delete another admin account")
 
     await log_service.log_user("admin_delete_user", user_id, admin_user, {
         "target_email": user.email
@@ -223,10 +220,10 @@ async def toggle_user_status(user_id: str, is_active: bool, admin_user=None, bac
     user = await get_user_by_id(user_id)
 
     if admin_user and str(user.id) == str(admin_user.id):
-        raise AppException(StatusCode.FORBIDDEN, "Không thể thay đổi trạng thái tài khoản của chính mình")
+        raise AppException(StatusCode.FORBIDDEN, "Cannot change your own account status")
 
     if user.role == "admin" or (hasattr(user.role, 'value') and user.role.value == "admin"):
-        raise AppException(StatusCode.FORBIDDEN, "Không thể thay đổi trạng thái tài khoản admin")
+        raise AppException(StatusCode.FORBIDDEN, "Cannot change admin account status")
 
     user.is_activate = is_active
     user.updated_at = datetime.now(timezone.utc)
@@ -293,3 +290,53 @@ async def _cleanup_user_data(user_id: str, user_email: str):
         
     except Exception as e:
         print(f"Error during user data cleanup for {user_id}: {e}")
+
+
+async def create_user_by_admin(user_data, admin_user):
+    from schemas.user_schema import AdminCreateUser
+    
+    existing_email = await UserModel.find_one(UserModel.email == user_data.email)
+    if existing_email:
+        raise AppException(StatusCode.DUPLICATE_ENTRY, "Email already exists")
+    
+    existing_username = await UserModel.find_one(UserModel.username == user_data.username)
+    if existing_username:
+        raise AppException(StatusCode.DUPLICATE_ENTRY, "Username already exists")
+    
+    hashed_password = get_password_hash(user_data.password)
+    
+    new_user = UserModel(
+        username=user_data.username,
+        email=user_data.email,
+        full_name=user_data.full_name,
+        hashed_password=hashed_password,
+        role=user_data.role,
+        dob=user_data.dob,
+        phone_number=user_data.phone_number,
+        email_verified=user_data.email_verified,
+        verification_expires_at=None if user_data.email_verified else datetime.now(timezone.utc),
+        is_activate=True
+    )
+    
+    await new_user.insert()
+    
+    await log_service.log_user(
+        action="admin_create_user",
+        target_user_id=str(new_user.id),
+        user=admin_user,
+        details={
+            "email": new_user.email,
+            "role": user_data.role.value if hasattr(user_data.role, 'value') else str(user_data.role),
+            "email_verified": user_data.email_verified
+        }
+    )
+    
+    return {
+        "id": str(new_user.id),
+        "username": new_user.username,
+        "email": new_user.email,
+        "full_name": new_user.full_name,
+        "role": new_user.role.value if hasattr(new_user.role, 'value') else str(new_user.role),
+        "email_verified": new_user.email_verified,
+        "message": "User created successfully"
+    }

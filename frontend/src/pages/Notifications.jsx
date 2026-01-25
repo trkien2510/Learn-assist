@@ -5,6 +5,7 @@ import { notificationService } from '../services/apiServices';
 import { useNotifications } from '../contexts/NotificationContext';
 import { useDateFormat, usePagination, useFetch } from '../hooks';
 import { BellIcon, TrashIcon, CheckIcon } from '../components/icons/Icons';
+import { translateError } from '../utils/errorMessages';
 
 const Notifications = () => {
     const {
@@ -168,14 +169,18 @@ const Notifications = () => {
                         >
                             <div className="flex items-start justify-between">
                                 <div className="flex-1">
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <h3 className="font-semibold text-gray-900">{notification.title}</h3>
+                                    <div className="flex items-center gap-3 mb-1">
+                                        <h3 className="font-semibold text-gray-900">{translateError(notification.title)}</h3>
                                         {!notification.is_read && (
                                             <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
                                         )}
                                     </div>
 
-                                    <p className="text-sm text-gray-500">
+                                    <p className="text-gray-600 mb-2 leading-relaxed">
+                                        {translateError(notification.message)}
+                                    </p>
+
+                                    <p className="text-xs text-gray-400">
                                         {formatDateTime(notification.created_at)}
                                     </p>
                                 </div>

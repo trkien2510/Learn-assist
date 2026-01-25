@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useToast } from '../contexts/ToastContext';
 import { resultService, examService } from '../services/apiServices';
 import { CheckIcon, XIcon, ArrowLeftIcon, CalendarIcon, EditIcon, ClockIcon } from '../components/icons/Icons';
 
 const Results = () => {
     const [searchParams] = useSearchParams();
+    const { showError } = useToast();
     const [results, setResults] = useState([]);
     const [selectedResult, setSelectedResult] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
 
     useEffect(() => {
         fetchResults();
@@ -17,7 +18,6 @@ const Results = () => {
     const fetchResults = async () => {
         try {
             setLoading(true);
-            setError('');
             const examId = searchParams.get('exam_id');
             const classId = searchParams.get('class_id');
 
@@ -34,8 +34,8 @@ const Results = () => {
             const items = data?.items || data || [];
             setResults(Array.isArray(items) ? items : []);
         } catch (err) {
-            
-            setError(err.message || 'Không thể tải kết quả');
+
+            showError(err.message || 'Không thể tải kết quả');
             setResults([]);
         } finally {
             setLoading(false);
@@ -45,7 +45,6 @@ const Results = () => {
     const viewDetail = async (result) => {
         try {
             setLoading(true);
-            setError('');
 
             const examIdObj = result.exam?._id ||
                 result.exam?.id ||
@@ -68,8 +67,8 @@ const Results = () => {
 
             setSelectedResult(result);
         } catch (err) {
-            
-            setError(err.message || 'Không thể tải chi tiết bài kiểm tra');
+
+            showError(err.message || 'Không thể tải chi tiết bài kiểm tra');
         } finally {
             setLoading(false);
         }
@@ -104,12 +103,6 @@ const Results = () => {
                 <h1 className="text-3xl font-bold gradient-text">Kết quả học tập</h1>
                 <p className="text-gray-500 mt-2">Xem chi tiết điểm số và câu trả lời</p>
             </div>
-
-            {error && (
-                <div className="p-4 bg-red-500/10 border border-red-500/50 rounded-xl text-red-400">
-                    {error}
-                </div>
-            )}
 
             {results.length === 0 ? (
                 <div className="card-glass p-12 text-center">

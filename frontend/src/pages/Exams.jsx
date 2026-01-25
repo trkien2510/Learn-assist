@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, ROLES } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { useDateFormat, useModal, useApi } from '../hooks';
 import { examService, classroomService, questionService } from '../services/apiServices';
 import { PlusIcon, ClockIcon, CalendarIcon, UsersIcon, BookIcon, CloseIcon, SearchIcon, EditIcon, RefreshIcon, CheckIcon } from '../components/icons/Icons';
@@ -8,12 +9,11 @@ import Portal from '../components/common/Portal';
 
 const Exams = () => {
     const { user, hasRole } = useAuth();
+    const { showSuccess, showError } = useToast();
     const navigate = useNavigate();
     const [exams, setExams] = useState([]);
     const [submittedExamIds, setSubmittedExamIds] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
 
     const createModal = useModal(false);
     const [classrooms, setClassrooms] = useState([]);
@@ -72,27 +72,27 @@ const Exams = () => {
 
     const validateConfig = () => {
         if (!formData.title.trim()) {
-            setError('Vui lòng nhập tên bài kiểm tra');
+            showError('Vui lòng nhập tên bài kiểm tra');
             return false;
         }
         if (!formData.class_id) {
-            setError('Vui lòng chọn lớp học');
+            showError('Vui lòng chọn lớp học');
             return false;
         }
         if (!formData.start_at || !formData.end_at) {
-            setError('Vui lòng chọn thời gian bắt đầu và kết thúc');
+            showError('Vui lòng chọn thời gian bắt đầu và kết thúc');
             return false;
         }
         if (new Date(formData.start_at) >= new Date(formData.end_at)) {
-            setError('Thời gian kết thúc phải sau thời gian bắt đầu');
+            showError('Thời gian kết thúc phải sau thời gian bắt đầu');
             return false;
         }
         if (formData.total_questions < 1) {
-            setError('Số câu hỏi phải lớn hơn 0');
+            showError('Số câu hỏi phải lớn hơn 0');
             return false;
         }
         if (formData.easy_count + formData.medium_count + formData.hard_count !== formData.total_questions) {
-            setError('Tổng số câu hỏi theo độ khó phải bằng tổng số câu hỏi');
+            showError('Tổng số câu hỏi theo độ khó phải bằng tổng số câu hỏi');
             return false;
         }
         return true;
@@ -103,11 +103,10 @@ const Exams = () => {
 
         try {
             setLoading(true);
-            setError('');
 
             const selectedClassroom = classrooms.find(c => (c._id || c.id) === formData.class_id);
             if (!selectedClassroom) {
-                setError('Không tìm thấy lớp học');
+                showError('Không tìm thấy lớp học');
                 return;
             }
 
@@ -123,7 +122,7 @@ const Exams = () => {
             setExcludedIds(data.questions?.map(q => q.id) || []);
             setStep(2);
         } catch (err) {
-            setError(err.message || 'Không thể tải danh sách câu hỏi');
+            showError(err.message || 'Không thể tải danh sách câu hỏi');
         } finally {
             setLoading(false);
         }
@@ -131,7 +130,6 @@ const Exams = () => {
 
     const handleReplaceQuestion = async (questionId, difficulty) => {
         try {
-            setError('');
             const selectedClassroom = classrooms.find(c => (c._id || c.id) === formData.class_id);
 
             const response = await examService.replaceQuestion(
@@ -148,20 +146,19 @@ const Exams = () => {
 
             setExcludedIds(prev => [...prev.filter(id => id !== questionId), newQuestion.id]);
         } catch (err) {
-            setError(err.message || 'Không thể thay thế câu hỏi');
+            showError(err.message || 'Không thể thay thế câu hỏi');
         }
     };
 
     const handleCreateExam = async () => {
         try {
             setLoading(true);
-            setError('');
 
             const questionIds = previewQuestions.map(q => q.id);
 
             const selectedClassroom = classrooms.find(c => (c._id || c.id) === formData.class_id);
             if (!selectedClassroom) {
-                setError('Không tìm thấy lớp học');
+                showError('Không tìm thấy lớp học');
                 return;
             }
 
@@ -174,13 +171,12 @@ const Exams = () => {
                 question_ids: questionIds
             });
 
-            setSuccess('Tạo bài kiểm tra thành công!');
+            showSuccess('Tạo bài kiểm tra thành công!');
             createModal.close();
             resetForm();
             fetchExams();
-            setTimeout(() => setSuccess(''), 3000);
         } catch (err) {
-            setError(err.message || 'Không thể tạo bài kiểm tra');
+            showError(err.message || 'Không thể tạo bài kiểm tra');
         } finally {
             setLoading(false);
         }
@@ -243,7 +239,6 @@ const Exams = () => {
         setStep(1);
         setPreviewQuestions([]);
         setExcludedIds([]);
-        setError('');
     };
 
     const formatDateLocal = (dateString) => {
@@ -309,18 +304,6 @@ const Exams = () => {
                     </button>
                 )}
             </div>
-
-            {error && (
-                <div className="p-4 bg-red-500/10 border border-red-500/50 rounded-xl text-red-400">
-                    {error}
-                </div>
-            )}
-
-            {success && (
-                <div className="p-4 bg-green-500/10 border border-green-500/50 rounded-xl text-green-400">
-                    {success}
-                </div>
-            )}
 
             {examsApi.loading && exams.length === 0 ? (
                 <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">

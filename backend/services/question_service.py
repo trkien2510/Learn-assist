@@ -123,9 +123,12 @@ async def get_my_questions(page: int, page_size: int, current_user, search: str 
     
     if search:
         from beanie.operators import RegEx, Or
-        search_pattern = f".*{search}.*"
+        import re
+        escaped_search = re.escape(search)
+        search_pattern = f".*{escaped_search}.*"
         query_conditions.append(Or(
-            RegEx(QuestionModel.content, search_pattern, options="i")
+            RegEx(QuestionModel.content, search_pattern, options="i"),
+            RegEx(QuestionModel.options, search_pattern, options="i")
         ))
     
     if difficulty:

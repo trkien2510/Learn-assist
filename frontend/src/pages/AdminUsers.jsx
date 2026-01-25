@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { adminService } from '../services/apiServices';
 import { useDateFormat, usePagination, useModal } from '../hooks';
+import { useToast } from '../contexts/ToastContext';
+import { translateError } from '../utils';
 import {
     UsersIcon,
     SearchIcon,
@@ -10,16 +12,15 @@ import {
     ClockIcon,
     TrendingUpIcon,
     FilterIcon,
-    AlertIcon,
-    CheckIcon
+    PlusIcon
 } from '../components/icons/Icons';
 
 const AdminUsers = () => {
     const [users, setUsers] = useState([]);
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
+    const [statsLoading, setStatsLoading] = useState(true);
+    const { showSuccess, showError } = useToast();
 
     const [filters, setFilters] = useState({
         role: '',
@@ -30,7 +31,19 @@ const AdminUsers = () => {
     const { formatDateOnly, formatDateTime } = useDateFormat();
     const { page, totalPages, setPage, updateFromResponse } = usePagination(1, 20);
     const userModal = useModal();
+    const createUserModal = useModal();
     const [userActivity, setUserActivity] = useState(null);
+    const [createLoading, setCreateLoading] = useState(false);
+    const [createFormData, setCreateFormData] = useState({
+        username: '',
+        email: '',
+        password: '',
+        full_name: '',
+        dob: '',
+        phone_number: '',
+        role: 'student',
+        email_verified: true
+    });
 
     useEffect(() => {
         fetchUsers();
@@ -48,7 +61,7 @@ const AdminUsers = () => {
             setUsers(data.items || data || []);
             updateFromResponse(data);
         } catch (err) {
-            setError(err.message || 'Không thể tải danh sách người dùng');
+            showError(err.message || 'Không thể tải danh sách người dùng');
         } finally {
             setLoading(false);
         }
@@ -77,12 +90,11 @@ const AdminUsers = () => {
 
         try {
             await adminService.users.updateStatus(userId, !currentStatus);
-            setSuccess(`Đã ${!currentStatus ? 'kích hoạt' : 'vô hiệu hóa'} người dùng!`);
+            showSuccess(`Đã ${!currentStatus ? 'kích hoạt' : 'vô hiệu hóa'} người dùng!`);
             fetchUsers();
             fetchStats();
-            setTimeout(() => setSuccess(''), 3000);
         } catch (err) {
-            setError(err.message || 'Không thể cập nhật trạng thái');
+            showError(err.message || 'Không thể cập nhật trạng thái');
         }
     };
 
@@ -91,12 +103,11 @@ const AdminUsers = () => {
 
         try {
             await adminService.users.delete(userId);
-            setSuccess('Đã xóa người dùng!');
+            showSuccess('Đã xóa người dùng!');
             fetchUsers();
             fetchStats();
-            setTimeout(() => setSuccess(''), 3000);
         } catch (err) {
-            setError(err.message || 'Không thể xóa người dùng');
+            showError(err.message || 'Không thể xóa người dùng');
         }
     };
 
@@ -106,7 +117,34 @@ const AdminUsers = () => {
             setUserActivity(response.data || response);
             userModal.open(user);
         } catch (err) {
-            setError('Không thể tải hoạt động người dùng');
+            showError('Không thể tải hoạt động người dùng');
+        }
+    };
+
+    const handleCreateUser = async (e) => {
+        e.preventDefault();
+        setCreateLoading(true);
+
+        try {
+            await adminService.users.create(createFormData);
+            showSuccess('Tạo người dùng thành công!');
+            createUserModal.close();
+            setCreateFormData({
+                username: '',
+                email: '',
+                password: '',
+                full_name: '',
+                dob: '',
+                phone_number: '',
+                role: 'student',
+                email_verified: true
+            });
+            fetchUsers();
+            fetchStats();
+        } catch (err) {
+            showError(err.message || 'Không thể tạo người dùng');
+        } finally {
+            setCreateLoading(false);
         }
     };
 
@@ -130,9 +168,18 @@ const AdminUsers = () => {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h1 className="text-3xl font-bold gradient-text">Quản lý người dùng</h1>
-                <p className="text-gray-500 mt-2">Quản lý tất cả người dùng trong hệ thống</p>
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-3xl font-bold gradient-text">Quản lý người dùng</h1>
+                    <p className="text-gray-500 mt-2">Quản lý tất cả người dùng trong hệ thống</p>
+                </div>
+                <button
+                    onClick={() => createUserModal.open()}
+                    className="btn-primary flex items-center gap-2"
+                >
+                    <PlusIcon className="w-5 h-5" />
+                    Thêm người dùng
+                </button>
             </div>
 
             {stats && stats.users && (
@@ -236,20 +283,6 @@ const AdminUsers = () => {
                     </select>
                 </div>
             </div>
-
-            {error && (
-                <div className="p-4 bg-red-500/10 border border-red-500/50 rounded-xl text-red-400 flex items-center gap-2">
-                    <AlertIcon className="w-5 h-5" />
-                    {error}
-                </div>
-            )}
-
-            {success && (
-                <div className="p-4 bg-green-500/10 border border-green-500/50 rounded-xl text-green-400 flex items-center gap-2">
-                    <CheckIcon className="w-5 h-5" />
-                    {success}
-                </div>
-            )}
 
             {loading ? (
                 <div className="card-glass p-12 text-center">
@@ -367,7 +400,7 @@ const AdminUsers = () => {
 
             {userModal.isOpen && userModal.data && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-100" onClick={() => userModal.close()}>
-                    <div className="card-glass max-w-2xl w-full max-h-[80vh] overflow-y-auto m-4" onClick={(e) => e.stopPropagation()}>
+                    <div className="card-glass max-w-2xl w-full max-h-[80vh] overflow-y-auto scrollbar-hide m-4" onClick={(e) => e.stopPropagation()}>
                         <div className="p-6 border-b border-gray-200">
                             <div className="flex items-center justify-between">
                                 <div>
@@ -391,7 +424,7 @@ const AdminUsers = () => {
                                         <div key={idx} className="p-3 bg-gray-50 rounded-lg border border-gray-200">
                                             <div className="flex items-start justify-between">
                                                 <div className="flex-1">
-                                                    <p className="text-sm font-medium text-gray-900">{log.action}</p>
+                                                    <p className="text-sm font-medium text-gray-900">{translateError(log.action)}</p>
                                                     <p className="text-xs text-gray-500 mt-1">
                                                         {formatDateTime(log.created_at)}
                                                     </p>
@@ -412,6 +445,157 @@ const AdminUsers = () => {
                                 <p className="text-center text-gray-500">Không có hoạt động nào</p>
                             )}
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {createUserModal.isOpen && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-100 p-4" onClick={() => createUserModal.close()}>
+                    <div className="card-glass p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto scrollbar-hide animate-fadeIn" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-between mb-6">
+                            <div>
+                                <h2 className="text-2xl font-bold gradient-text">Thêm người dùng mới</h2>
+                                <p className="text-sm text-gray-500 mt-1">Tạo tài khoản mới (bỏ qua xác thực email)</p>
+                            </div>
+                            <button
+                                onClick={() => createUserModal.close()}
+                                className="p-2 hover:bg-white/5 rounded-lg transition-colors"
+                            >
+                                <span className="text-gray-500 text-xl">✕</span>
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleCreateUser} className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-600 mb-2">
+                                        Tên đăng nhập <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={createFormData.username}
+                                        onChange={(e) => setCreateFormData({ ...createFormData, username: e.target.value })}
+                                        className="input-glass w-full"
+                                        required
+                                        minLength={3}
+                                        placeholder="username"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-600 mb-2">
+                                        Email <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="email"
+                                        value={createFormData.email}
+                                        onChange={(e) => setCreateFormData({ ...createFormData, email: e.target.value })}
+                                        className="input-glass w-full"
+                                        required
+                                        placeholder="email@example.com"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-600 mb-2">
+                                        Mật khẩu <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="password"
+                                        value={createFormData.password}
+                                        onChange={(e) => setCreateFormData({ ...createFormData, password: e.target.value })}
+                                        className="input-glass w-full"
+                                        required
+                                        minLength={8}
+                                        placeholder="Tối thiểu 8 ký tự"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-600 mb-2">
+                                        Họ và tên <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={createFormData.full_name}
+                                        onChange={(e) => setCreateFormData({ ...createFormData, full_name: e.target.value })}
+                                        className="input-glass w-full"
+                                        required
+                                        placeholder="Nguyễn Văn A"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-600 mb-2">
+                                        Ngày sinh <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="date"
+                                        value={createFormData.dob}
+                                        onChange={(e) => setCreateFormData({ ...createFormData, dob: e.target.value })}
+                                        className="input-glass w-full"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-600 mb-2">
+                                        Số điện thoại
+                                    </label>
+                                    <input
+                                        type="tel"
+                                        value={createFormData.phone_number}
+                                        onChange={(e) => setCreateFormData({ ...createFormData, phone_number: e.target.value })}
+                                        className="input-glass w-full"
+                                        placeholder="0123456789"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-600 mb-2">
+                                    Vai trò <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                    value={createFormData.role}
+                                    onChange={(e) => setCreateFormData({ ...createFormData, role: e.target.value })}
+                                    className="input-glass w-full"
+                                    required
+                                >
+                                    <option value="student">Sinh viên</option>
+                                    <option value="teacher">Giảng viên</option>
+                                    <option value="admin">Quản trị viên</option>
+                                </select>
+                            </div>
+
+                            <div className="flex gap-3 pt-4">
+                                <button
+                                    type="button"
+                                    onClick={() => createUserModal.close()}
+                                    className="flex-1 btn-secondary"
+                                >
+                                    Hủy
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={createLoading}
+                                    className="flex-1 btn-primary flex items-center justify-center gap-2"
+                                >
+                                    {createLoading ? (
+                                        <>
+                                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                            Đang tạo...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <PlusIcon className="w-4 h-4" />
+                                            Tạo người dùng
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}

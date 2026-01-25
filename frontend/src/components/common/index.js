@@ -5,3 +5,4 @@ export { default as Pagination } from './Pagination';
 export { default as ConfirmModal } from './ConfirmModal';
 export { default as StatusBadge } from './StatusBadge';
 export { default as Portal } from './Portal';
+export { Toast, ToastContainer } from './Toast';

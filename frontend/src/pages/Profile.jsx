@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { userService } from '../services/authService';
 import { UserIcon, EmailIcon, LockIcon, EditIcon, PhoneIcon, CalendarIcon, TrashIcon } from '../components/icons/Icons';
 
 const Profile = () => {
     const { user, updateUser, logout } = useAuth();
+    const { showSuccess, showError } = useToast();
     const [editing, setEditing] = useState(false);
     const [changingPassword, setChangingPassword] = useState(false);
     const [deleting, setDeleting] = useState(false);
@@ -21,8 +23,6 @@ const Profile = () => {
         confirm_password: ''
     });
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
 
     useEffect(() => {
         if (user) {
@@ -39,17 +39,15 @@ const Profile = () => {
         e.preventDefault();
         try {
             setLoading(true);
-            setError('');
 
             const { email, ...updateData } = formData;
 
             await userService.updateProfile(updateData);
             await updateUser();
-            setSuccess('Cập nhật thông tin thành công!');
+            showSuccess('Cập nhật thông tin thành công!');
             setEditing(false);
-            setTimeout(() => setSuccess(''), 3000);
         } catch (err) {
-            setError(err.message || 'Không thể cập nhật thông tin');
+            showError(err.message || 'Không thể cập nhật thông tin');
         } finally {
             setLoading(false);
         }
@@ -61,14 +59,13 @@ const Profile = () => {
 
         try {
             setLoading(true);
-            setError('');
             await userService.deleteAccount({ password: deletePassword });
 
             logout();
 
             window.location.href = '/login';
         } catch (err) {
-            setError(err.message || 'Không thể xóa tài khoản');
+            showError(err.message || 'Không thể xóa tài khoản');
             setLoading(false);
         }
     };
@@ -77,28 +74,26 @@ const Profile = () => {
         e.preventDefault();
 
         if (passwordData.new_password !== passwordData.confirm_password) {
-            setError('Mật khẩu mới không khớp');
+            showError('Mật khẩu mới không khớp');
             return;
         }
 
         if (passwordData.new_password.length < 6) {
-            setError('Mật khẩu phải có ít nhất 6 ký tự');
+            showError('Mật khẩu phải có ít nhất 6 ký tự');
             return;
         }
 
         try {
             setLoading(true);
-            setError('');
             await userService.changePassword({
                 old_password: passwordData.old_password,
                 new_password: passwordData.new_password
             });
-            setSuccess('Đổi mật khẩu thành công!');
+            showSuccess('Đổi mật khẩu thành công!');
             setChangingPassword(false);
             setPasswordData({ old_password: '', new_password: '', confirm_password: '' });
-            setTimeout(() => setSuccess(''), 3000);
         } catch (err) {
-            setError(err.message || 'Không thể đổi mật khẩu');
+            showError(err.message || 'Không thể đổi mật khẩu');
         } finally {
             setLoading(false);
         }
@@ -125,18 +120,6 @@ const Profile = () => {
                 <h1 className="text-3xl font-bold gradient-text">Hồ sơ cá nhân</h1>
                 <p className="text-gray-500 mt-2">Quản lý thông tin tài khoản của bạn</p>
             </div>
-
-            {error && (
-                <div className="p-4 bg-red-500/10 border border-red-500/50 rounded-xl text-red-400">
-                    {error}
-                </div>
-            )}
-
-            {success && (
-                <div className="p-4 bg-green-500/10 border border-green-500/50 rounded-xl text-green-400">
-                    {success}
-                </div>
-            )}
 
             <div className="card-glass p-8">
                 <div className="flex items-start justify-between mb-6">

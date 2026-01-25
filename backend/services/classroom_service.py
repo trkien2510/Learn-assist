@@ -6,6 +6,7 @@ from models.classroom_model import ClassroomModel
 from models.join_request_model import JoinRequestModel
 from models.user_model import UserRole, UserModel
 from services import log_service
+from utils.query_helpers import batch_fetch_users_from_links, get_id_from_link
 
 
 def generate_class_code() -> str:
@@ -102,21 +103,21 @@ async def get_all_classrooms_admin(page: int = 1, page_size: int = 20):
 
 async def request_join_classroom(class_code: str, current_user):
     if current_user.role != UserRole.STUDENT and current_user.role != UserRole.TEACHER:
-        raise AppException(StatusCode.FORBIDDEN, "Chỉ học sinh và giáo viên mới có thể gửi yêu cầu tham gia")
+        raise AppException(StatusCode.FORBIDDEN, "Only students and teachers can request to join")
 
     classroom = await ClassroomModel.find_one(ClassroomModel.class_code == class_code)
     if not classroom:
-        raise AppException(StatusCode.NOT_FOUND, "Không tìm thấy lớp học")
+        raise AppException(StatusCode.NOT_FOUND, "Classroom not found")
 
     if any(m.ref.id == current_user.id for m in classroom.members):
-        raise AppException(StatusCode.ALREADY_MEMBER, "Bạn đã là thành viên của lớp này")
+        raise AppException(StatusCode.ALREADY_MEMBER, "You are already a member of this class")
 
     existing_request = await JoinRequestModel.find_one({
         "user_id.$id": current_user.id,
         "class_id.$id": classroom.id
     })
     if existing_request:
-        raise AppException(StatusCode.JOIN_REQUEST_EXISTS, "Bạn đã gửi yêu cầu tham gia trước đó và đang chờ duyệt")
+        raise AppException(StatusCode.JOIN_REQUEST_EXISTS, "Join request already exists and pending")
 
     new_request = JoinRequestModel(
         user_id=current_user.id,
@@ -331,31 +332,42 @@ async def get_classroom_members(class_code: str, current_user):
     if not is_member and current_user.role != "admin":
         raise AppException(StatusCode.FORBIDDEN, "You do not have permission to view members of this class")
 
+    members_map = await batch_fetch_users_from_links(classroom.members)
+    creator_id = get_id_from_link(classroom.creator)
+    
     members_info = []
     for member_link in classroom.members:
-        member = await UserModel.get(member_link.ref.id)
+        member_id = get_id_from_link(member_link)
+        member = members_map.get(member_id)
         if member:
             members_info.append({
                 "id": str(member.id),
                 "full_name": member.full_name,
                 "email": member.email,
                 "role": member.role,
-                "is_creator": member.id == classroom.creator.ref.id
+                "is_creator": member.id == creator_id
             })
 
     pending_requests = []
-    if classroom.creator.ref.id == current_user.id:
+    if creator_id == current_user.id:
         join_requests = await JoinRequestModel.find({"class_id.$id": classroom.id}).to_list()
-        for jr in join_requests:
-            user = await UserModel.get(jr.user_id.ref.id)
-            if user:
-                pending_requests.append({
-                    "request_id": str(jr.id),
-                    "user_id": str(user.id),
-                    "full_name": user.full_name,
-                    "email": user.email,
-                    "created_at": jr.created_at if hasattr(jr, 'created_at') else None
-                })
+        
+        if join_requests:
+            request_user_ids = [get_id_from_link(jr.user_id) for jr in join_requests]
+            from utils.query_helpers import batch_fetch_users
+            users_map = await batch_fetch_users(request_user_ids)
+            
+            for jr in join_requests:
+                user_id = get_id_from_link(jr.user_id)
+                user = users_map.get(user_id)
+                if user:
+                    pending_requests.append({
+                        "request_id": str(jr.id),
+                        "user_id": str(user.id),
+                        "full_name": user.full_name,
+                        "email": user.email,
+                        "created_at": jr.created_at if hasattr(jr, 'created_at') else None
+                    })
 
     return {
         "class_code": classroom.class_code,
@@ -421,10 +433,22 @@ async def get_my_pending_requests(current_user):
         {"class_id.$id": {"$in": class_ids}}
     ).to_list()
 
+    if not join_requests:
+        return {
+            "items": [],
+            "total": 0
+        }
+
+    from utils.query_helpers import batch_fetch_users
+    user_ids = [get_id_from_link(jr.user_id) for jr in join_requests]
+    users_map = await batch_fetch_users(user_ids)
+    
     items = []
     for jr in join_requests:
-        user = await UserModel.get(jr.user_id.ref.id)
-        class_info = class_map.get(jr.class_id.ref.id, {})
+        user_id = get_id_from_link(jr.user_id)
+        class_id = get_id_from_link(jr.class_id)
+        user = users_map.get(user_id)
+        class_info = class_map.get(class_id, {})
         
         if user:
             items.append({

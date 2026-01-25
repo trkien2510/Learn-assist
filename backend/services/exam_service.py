@@ -8,6 +8,13 @@ from models.question_model import QuestionModel
 from models.result_model import ResultModel
 from models.document_model import DocumentModel
 from services import log_service, notification_service
+from utils.query_helpers import (
+    batch_fetch_questions,
+    batch_fetch_users_from_links,
+    get_questions_data_optimized,
+    get_id_from_link,
+    get_submitted_exam_ids_for_user
+)
 
 
 async def create_exam(exam_data, current_user):
@@ -23,13 +30,17 @@ async def create_exam(exam_data, current_user):
 
     question_links = []
     if exam_data.question_ids:
+        # Batch fetch all questions in a single query instead of N queries
+        question_obj_ids = []
         for qid in exam_data.question_ids:
             try:
-                q = await QuestionModel.get(PydanticObjectId(qid))
-                if q:
-                    question_links.append(q)
+                question_obj_ids.append(PydanticObjectId(qid))
             except:
                 pass
+        
+        if question_obj_ids:
+            questions = await QuestionModel.find({"_id": {"$in": question_obj_ids}}).to_list()
+            question_links = questions
 
 
     start_at = exam_data.start_at
@@ -112,18 +123,8 @@ async def get_exam_detail(exam_id: str, current_user):
     if not exam:
         raise AppException(StatusCode.NOT_FOUND, "Exam not found")
 
-    questions_data = []
-    for q_link in exam.questions:
-        question = await QuestionModel.get(q_link.ref.id)
-        if question:
-            questions_data.append({
-                "id": str(question.id),
-                "_id": str(question.id),
-                "content": question.content,
-                "options": question.options,
-                "answers": question.answers,
-                "difficulty": question.difficulty
-            })
+    # OPTIMIZED: Use batch query instead of N individual queries
+    questions_data = await get_questions_data_optimized(exam.questions, include_answer=True)
 
     return {
         "exam": {
@@ -206,18 +207,8 @@ async def start_exam(exam_id: str, current_user):
 
     is_continuing = result.started_at != now
 
-    questions_data = []
-    for q_link in exam.questions:
-        question = await QuestionModel.get(q_link.ref.id)
-        if question:
-            questions_data.append({
-                "id": str(question.id),
-                "_id": str(question.id),
-                "content": question.content,
-                "options": question.options,
-                "answers": question.answers,
-                "difficulty": question.difficulty
-            })
+    # OPTIMIZED: Use batch query instead of N individual queries
+    questions_data = await get_questions_data_optimized(exam.questions, include_answer=True)
 
     if not is_continuing:
         try:
@@ -261,7 +252,7 @@ async def submit_exam(exam_id: str, submit_data, current_user):
 
     exam = await ExamModel.get(obj_id)
     if not exam:
-        raise AppException(StatusCode.EXAM_DELETED, "Bài kiểm tra đã bị xóa bởi giáo viên")
+        raise AppException(StatusCode.EXAM_DELETED, "Exam has been deleted by teacher")
 
     now = datetime.now(timezone.utc)
 
@@ -294,8 +285,11 @@ async def submit_exam(exam_id: str, submit_data, current_user):
     correct_count = 0
     total_questions = len(exam.questions)
 
-    for question_link in exam.questions:
-        question = await QuestionModel.get(question_link.ref.id)
+    questions_map = await batch_fetch_questions(exam.questions)
+    
+    for q_link in exam.questions:
+        q_id = get_id_from_link(q_link)
+        question = questions_map.get(q_id)
         if question:
             question_id_str = str(question.id)
             if question_id_str in answers:
@@ -351,7 +345,7 @@ async def save_answers(exam_id: str, answer_data, current_user):
 
     exam = await ExamModel.get(obj_id)
     if not exam:
-        raise AppException(StatusCode.EXAM_DELETED, "Bài kiểm tra đã bị xóa bởi giáo viên")
+        raise AppException(StatusCode.EXAM_DELETED, "Exam has been deleted by teacher")
 
     result = await ResultModel.find_one({
         "exam_id.$id": obj_id,
@@ -380,7 +374,7 @@ async def save_answers(exam_id: str, answer_data, current_user):
     await result.save()
 
     return {
-        "message": "Lưu câu trả lời thành công",
+        "message": "Answers saved successfully",
         "saved_count": len(answers)
     }
 
@@ -715,18 +709,8 @@ async def start_personal_exam(exam_id: str, current_user):
 
     is_continuing = not is_new_result
 
-    questions_data = []
-    for q_link in exam.questions:
-        question = await QuestionModel.get(q_link.ref.id)
-        if question:
-            questions_data.append({
-                "id": str(question.id),
-                "_id": str(question.id),
-                "content": question.content,
-                "options": question.options,
-                "answers": question.answers,
-                "difficulty": question.difficulty
-            })
+    # OPTIMIZED: Use batch query instead of N individual queries
+    questions_data = await get_questions_data_optimized(exam.questions, include_answer=True)
 
     if not is_continuing:
         try:

@@ -11,13 +11,13 @@ from models.document_model import DocumentModel
 from models.user_model import UserModel, UserRole
 from core.exception_handler import AppException
 from core.status_code import StatusCode
-
-
-def get_id_from_other(obj) -> PydanticObjectId:
-    """Helper to get ID from either a Link or a Document object."""
-    if hasattr(obj, "ref"):
-        return obj.ref.id
-    return obj.id
+from utils.query_helpers import (
+    get_id_from_link as get_id_from_other,
+    batch_fetch_questions,
+    batch_fetch_users,
+    batch_fetch_exams,
+    batch_fetch_classrooms
+)
 
 
 def calculate_score_distribution(scores: List[float]) -> Dict[str, int]:
@@ -43,20 +43,12 @@ def calculate_score_distribution(scores: List[float]) -> Dict[str, int]:
 
 
 def calculate_grade(score: float) -> str:
-    if score >= 9:
-        return "A+"
-    elif score >= 8.5:
+    if score >= 8:
         return "A"
-    elif score >= 8:
-        return "B+"
-    elif score >= 7:
-        return "B"
     elif score >= 6.5:
-        return "C+"
-    elif score >= 5.5:
-        return "C"
+        return "B"
     elif score >= 5:
-        return "D+"
+        return "C"
     elif score >= 4:
         return "D"
     else:
@@ -167,17 +159,25 @@ async def get_student_comprehensive_statistics(current_user) -> Dict[str, Any]:
     classroom_performance = []
     classroom_ids = set()
     
+    exam_ids_from_results = [get_id_from_other(r.exam_id) for r in classroom_results]
+    exams_map = await batch_fetch_exams(exam_ids_from_results)
+    
+    result_exam_map = {}
     for r in classroom_results:
-        exam = await ExamModel.get(get_id_from_other(r.exam_id))
+        exam_id = get_id_from_other(r.exam_id)
+        exam = exams_map.get(exam_id)
+        result_exam_map[r.id] = exam
         if exam and exam.class_id:
             classroom_ids.add(get_id_from_other(exam.class_id))
     
+    classrooms_map = await batch_fetch_classrooms(list(classroom_ids))
+    
     for class_id in classroom_ids:
-        classroom = await ClassroomModel.get(class_id)
+        classroom = classrooms_map.get(class_id)
         if classroom:
             class_results = []
             for r in classroom_results:
-                exam = await ExamModel.get(get_id_from_other(r.exam_id))
+                exam = result_exam_map.get(r.id)
                 if exam and exam.class_id and get_id_from_other(exam.class_id) == class_id:
                     class_results.append(r)
             
@@ -250,7 +250,7 @@ async def get_student_comprehensive_statistics(current_user) -> Dict[str, Any]:
             "score_distribution": calculate_score_distribution(all_scores),
             "grade_distribution": {
                 grade: len([s for s in all_scores if calculate_grade(s) == grade])
-                for grade in ["A+", "A", "B+", "B", "C+", "C", "D+", "D", "F"]
+                for grade in ["A", "B", "C", "D", "F"]
             },
             "pass_rate": round(len([s for s in all_scores if s >= 4]) / len(all_scores) * 100, 2),
             "excellence_rate": round(len([s for s in all_scores if s >= 8]) / len(all_scores) * 100, 2)
@@ -385,7 +385,7 @@ async def get_teacher_comprehensive_statistics(current_user) -> Dict[str, Any]:
             "score_distribution": calculate_score_distribution(all_scores),
             "grade_distribution": {
                 grade: len([s for s in all_scores if calculate_grade(s) == grade])
-                for grade in ["A+", "A", "B+", "B", "C+", "C", "D+", "D", "F"]
+                for grade in ["A", "B", "C", "D", "F"]
             }
         }
     
@@ -519,9 +519,12 @@ async def get_exam_detailed_statistics(exam_id: str, current_user) -> Dict[str, 
             time_taken = (r.ended_at - r.started_at).total_seconds() / 60
             completion_times.append(time_taken)
     
+    questions_map = await batch_fetch_questions(exam.questions)
+    
     question_stats = []
     for q_link in exam.questions:
-        question = await QuestionModel.get(get_id_from_other(q_link))
+        q_id = get_id_from_other(q_link)
+        question = questions_map.get(q_id)
         if question:
             correct_count = 0
             answered_count = 0
@@ -564,9 +567,13 @@ async def get_exam_detailed_statistics(exam_id: str, current_user) -> Dict[str, 
                 "is_difficult": correct_count / answered_count < 0.5 if answered_count > 0 else False
             })
     
+    user_ids = [get_id_from_other(r.user_id) for r in results]
+    users_map = await batch_fetch_users(user_ids)
+    
     participants = []
     for r in results:
-        user = await UserModel.get(get_id_from_other(r.user_id))
+        user_id = get_id_from_other(r.user_id)
+        user = users_map.get(user_id)
         if user:
             time_taken = 0
             if r.ended_at and r.started_at:
@@ -576,7 +583,7 @@ async def get_exam_detailed_statistics(exam_id: str, current_user) -> Dict[str, 
             for q_link in exam.questions:
                 q_id_str = str(get_id_from_other(q_link))
                 if q_id_str in r.answer_map:
-                    question = await QuestionModel.get(get_id_from_other(q_link))
+                    question = questions_map.get(get_id_from_other(q_link))
                     if question and r.answer_map[q_id_str] == question.answers:
                         correct_answers += 1
             
@@ -621,7 +628,7 @@ async def get_exam_detailed_statistics(exam_id: str, current_user) -> Dict[str, 
             "distribution": calculate_score_distribution(scores),
             "grade_distribution": {
                 grade: len([s for s in scores if calculate_grade(s) == grade])
-                for grade in ["A+", "A", "B+", "B", "C+", "C", "D+", "D", "F"]
+                for grade in ["A", "B", "C", "D", "F"]
             }
         },
         "questions": question_stats,
@@ -693,9 +700,19 @@ async def get_classroom_detailed_statistics(class_id: str, current_user) -> Dict
     student_count = len(student_members)
 
     student_stats = []
+    total_exams = len(exams)
+    passing_students = 0
+    
     for member in student_members:
         student_results = [r for r in submitted_results if get_id_from_other(r.user_id) == member.id]
         student_scores = [r.score for r in student_results]
+        
+        total_score = sum(student_scores) if student_scores else 0
+        weighted_average = round(total_score / total_exams, 2) if total_exams > 0 else 0
+        
+        is_passing = weighted_average >= 4
+        if is_passing:
+            passing_students += 1
         
         if student_scores:
             student_stats.append({
@@ -703,13 +720,31 @@ async def get_classroom_detailed_statistics(class_id: str, current_user) -> Dict
                 "full_name": member.full_name,
                 "email": member.email,
                 "exams_taken": len(student_results),
-                "exams_available": len(exams),
-                "participation_rate": round(len(student_results) / len(exams) * 100, 2) if exams else 0,
-                "average_score": round(sum(student_scores) / len(student_scores), 2),
+                "exams_available": total_exams,
+                "participation_rate": round(len(student_results) / total_exams * 100, 2) if total_exams > 0 else 0,
+                "total_score": round(total_score, 2),
+                "average_score": weighted_average,
                 "highest_score": max(student_scores),
                 "lowest_score": min(student_scores),
-                "grade": calculate_grade(sum(student_scores) / len(student_scores)),
-                "percentile": calculate_percentile(sum(student_scores)/len(student_scores), scores) if scores else 0
+                "grade": calculate_grade(weighted_average),
+                "is_passing": is_passing,
+                "percentile": calculate_percentile(weighted_average, scores) if scores else 0
+            })
+        else:
+            student_stats.append({
+                "student_id": str(member.id),
+                "full_name": member.full_name,
+                "email": member.email,
+                "exams_taken": 0,
+                "exams_available": total_exams,
+                "participation_rate": 0,
+                "total_score": 0,
+                "average_score": 0,
+                "highest_score": 0,
+                "lowest_score": 0,
+                "grade": "F",
+                "is_passing": False,
+                "percentile": 0
             })
     
     student_stats.sort(key=lambda x: x["average_score"], reverse=True)
@@ -734,6 +769,8 @@ async def get_classroom_detailed_statistics(class_id: str, current_user) -> Dict
             "pass_rate": round(len([s for s in exam_scores if s >= 4]) / len(exam_scores) * 100, 2) if exam_scores else 0
         })
     
+    student_weighted_averages = [s["average_score"] for s in student_stats]
+    
     return {
         "classroom_info": {
             "id": str(classroom.id),
@@ -745,14 +782,16 @@ async def get_classroom_detailed_statistics(class_id: str, current_user) -> Dict
         },
         "overall_performance": {
             "total_submissions": len(submitted_results),
-            "average_score": round(sum(scores) / len(scores), 2) if scores else 0,
-            "pass_rate": round(len([s for s in scores if s >= 4]) / len(scores) * 100, 2) if scores else 0,
-            "excellence_rate": round(len([s for s in scores if s >= 8]) / len(scores) * 100, 2) if scores else 0,
-            "score_distribution": calculate_score_distribution(scores),
+            "average_score": round(sum(student_weighted_averages) / len(student_weighted_averages), 2) if student_weighted_averages else 0,
+            "pass_rate": round(passing_students / student_count * 100, 2) if student_count > 0 else 0,
+            "passing_students": passing_students,
+            "total_students": student_count,
+            "excellence_rate": round(len([s for s in student_weighted_averages if s >= 8]) / len(student_weighted_averages) * 100, 2) if student_weighted_averages else 0,
+            "score_distribution": calculate_score_distribution(student_weighted_averages) if student_weighted_averages else {},
             "grade_distribution": {
-                grade: len([s for s in scores if calculate_grade(s) == grade])
-                for grade in ["A+", "A", "B+", "B", "C+", "C", "D+", "D", "F"]
-            } if scores else {}
+                grade: len([s for s in student_weighted_averages if calculate_grade(s) == grade])
+                for grade in ["A", "B", "C", "D", "F"]
+            } if student_weighted_averages else {}
         },
         "student_performance": student_stats,
         "exam_breakdown": exam_breakdown
@@ -831,7 +870,7 @@ async def get_admin_platform_statistics() -> Dict[str, Any]:
             "score_distribution": calculate_score_distribution(recent_scores),
             "grade_distribution": {
                 grade: len([s for s in recent_scores if calculate_grade(s) == grade])
-                for grade in ["A+", "A", "B+", "B", "C+", "C", "D+", "D", "F"]
+                for grade in ["A", "B", "C", "D", "F"]
             } if recent_scores else {}
         }
     }

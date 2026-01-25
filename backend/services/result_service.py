@@ -5,12 +5,7 @@ from models.result_model import ResultModel
 from models.exam_model import ExamModel
 from models.classroom_model import ClassroomModel
 from services import log_service
-
-
-def get_id_from_other(obj) -> PydanticObjectId:
-    if hasattr(obj, "ref"):
-        return obj.ref.id
-    return obj.id
+from utils.query_helpers import get_id_from_link as get_id_from_other, batch_fetch_exams
 
 
 async def get_results_by_exam_id(exam_id: str, page: int, page_size: int, current_user):
@@ -208,22 +203,24 @@ async def get_my_results(page: int, page_size: int, current_user):
         total = await query.count()
         items = await query.skip(skip).limit(page_size).to_list()
 
+    exam_ids_list = [get_id_from_other(item.exam_id) for item in items]
+    exams_map = await batch_fetch_exams(exam_ids_list)
+    
     enriched_items = []
     for item in items:
         item_dict = item.model_dump(mode='json')
         
         try:
             exam_id = get_id_from_other(item.exam_id)
-            if exam_id:
-                exam = await ExamModel.get(exam_id)
-                if exam:
-                    item_dict['exam_title'] = exam.title
-                    item_dict['question_count'] = len(exam.questions) if exam.questions else 0
-                    item_dict['duration'] = exam.duration
-                else:
-                    item_dict['exam_title'] = "Bài kiểm tra"
-                    item_dict['question_count'] = 0
-                    item_dict['duration'] = 0
+            exam = exams_map.get(exam_id) if exam_id else None
+            if exam:
+                item_dict['exam_title'] = exam.title
+                item_dict['question_count'] = len(exam.questions) if exam.questions else 0
+                item_dict['duration'] = exam.duration
+            else:
+                item_dict['exam_title'] = "Bài kiểm tra"
+                item_dict['question_count'] = 0
+                item_dict['duration'] = 0
         except Exception:
             item_dict['exam_title'] = "Bài kiểm tra"
             item_dict['question_count'] = 0

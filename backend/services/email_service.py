@@ -22,8 +22,7 @@ fm = FastMail(conf)
 def get_otp_email_subject(purpose: OTPPurpose) -> str:
     subjects = {
         OTPPurpose.REGISTRATION: "Xác thực email đăng ký tài khoản",
-        OTPPurpose.FORGOT_PASSWORD: "Đặt lại mật khẩu",
-        OTPPurpose.REACTIVATE_ACCOUNT: "Kích hoạt lại tài khoản"
+        OTPPurpose.FORGOT_PASSWORD: "Đặt lại mật khẩu"
     }
     return subjects.get(purpose, "Mã xác thực OTP")
 
@@ -37,10 +36,6 @@ def get_otp_email_template(otp_code: str, purpose: OTPPurpose, full_name: str = 
         OTPPurpose.FORGOT_PASSWORD: {
             "title": "Đặt lại mật khẩu",
             "message": "Bạn đã yêu cầu đặt lại mật khẩu. Vui lòng sử dụng mã OTP bên dưới để tiếp tục."
-        },
-        OTPPurpose.REACTIVATE_ACCOUNT: {
-            "title": "Kích hoạt lại tài khoản",
-            "message": "Bạn đã yêu cầu kích hoạt lại tài khoản. Vui lòng sử dụng mã OTP bên dưới để tiếp tục."
         }
     }
 
@@ -101,15 +96,6 @@ def get_otp_email_template(otp_code: str, purpose: OTPPurpose, full_name: str = 
                                 </p>
                                 <p style="margin: 0; color: #718096; font-size: 14px; line-height: 1.6;">
                                     ⚠️ Nếu bạn không yêu cầu mã này, vui lòng bỏ qua email này.
-                                </p>
-                            </td>
-                        </tr>
-                        
-                        <!-- Footer -->
-                        <tr>
-                            <td style="padding: 24px 40px; background-color: #f8fafc; border-radius: 0 0 16px 16px; text-align: center;">
-                                <p style="margin: 0; color: #a0aec0; font-size: 12px;">
-                                    © 2024 {settings.PROJECT_NAME}. All rights reserved.
                                 </p>
                             </td>
                         </tr>
@@ -212,15 +198,6 @@ async def send_account_notification_email(email: str, full_name: str, notificati
                                 {reason_text}
                                 <p style="margin: 24px 0 0; color: #718096; font-size: 14px; line-height: 1.6;">
                                     Nếu bạn có thắc mắc, vui lòng liên hệ với quản trị viên hệ thống.
-                                </p>
-                            </td>
-                        </tr>
-                        
-                        <!-- Footer -->
-                        <tr>
-                            <td style="padding: 24px 40px; background-color: #f8fafc; border-radius: 0 0 16px 16px; text-align: center;">
-                                <p style="margin: 0; color: #a0aec0; font-size: 12px;">
-                                    © 2024 {settings.PROJECT_NAME}. All rights reserved.
                                 </p>
                             </td>
                         </tr>

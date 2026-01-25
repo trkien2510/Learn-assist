@@ -1,7 +1,5 @@
 from fastapi import APIRouter, BackgroundTasks
 
-from core.security import get_password_hash
-from models.user_model import UserModel
 from schemas.base_schema import BaseResponse, TokenResponse
 from schemas.user_schema import UserRegister, UserLogin
 from schemas.otp_schema import (
@@ -17,23 +15,6 @@ from services import otp_service
 
 router = APIRouter()
 
-
-@router.post("/add-user/for-test", response_model=BaseResponse[dict])
-async def add_user(user_in: UserRegister):
-    hashed = get_password_hash(user_in.password)
-    user = UserModel(
-        username=user_in.username,
-        email=user_in.email,
-        full_name=user_in.full_name,
-        hashed_password=hashed,
-        role=user_in.role,
-        dob=user_in.dob,
-        phone_number=user_in.phone_number,
-        email_verified=True,
-        verification_expires_at=None,
-    )
-    await user.insert()
-    return BaseResponse()
 
 @router.post("/register", response_model=BaseResponse[dict])
 async def register(user_in: UserRegister, background_tasks: BackgroundTasks):

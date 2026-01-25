@@ -46,12 +46,20 @@ async def process_upload(number_question: int, file: UploadFile, current_user):
             )
             raise AppException(StatusCode.BAD_REQUEST, validation.error_message)
 
+        file_extension = os.path.splitext(file.filename)[1].lower().replace('.', '')
+        if not file_extension:
+            if file.content_type == "application/pdf":
+                file_extension = "pdf"
+            elif file.content_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+                file_extension = "docx"
+            elif file.content_type == "application/msword":
+                file_extension = "doc"
+
         new_document = DocumentModel(
             name=os.path.splitext(file.filename)[0],
             creator=current_user,
             file_name=file.filename,
-            file_path=file.filename,
-            file_type=file.content_type or "application/octet-stream"
+            file_type=file_extension or "bin"
         )
         await new_document.insert()
 

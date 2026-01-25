@@ -91,6 +91,7 @@ export const API_ENDPOINTS = {
   PRACTICE_DOCUMENT_STATS: '/practice/documents/statistics',
 
   ADMIN_USERS: '/admin/users/',
+  ADMIN_USER_CREATE: '/admin/users/create',
   ADMIN_USER_GET: (userId) => `/admin/users/${userId}`,
   ADMIN_USER_UPDATE: (userId) => `/admin/users/${userId}`,
   ADMIN_USER_DELETE: (userId) => `/admin/users/${userId}`,

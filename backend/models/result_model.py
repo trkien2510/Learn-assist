@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from typing import Dict, Any, Optional
 
 from beanie import Document, Link, Indexed
-from pymongo import IndexModel, ASCENDING
+from pymongo import IndexModel, ASCENDING, DESCENDING
 from pydantic import Field
 
 from models.exam_model import ExamModel
@@ -26,5 +26,10 @@ class ResultModel(Document):
                 [("exam_id.$id", ASCENDING), ("user_id.$id", ASCENDING)],
                 unique=True,
                 name="unique_exam_user"
-            )
+            ),
+            IndexModel([("exam_id.$id", ASCENDING)], name="idx_exam_id"),
+            IndexModel([("user_id.$id", ASCENDING)], name="idx_user_id"),
+            IndexModel([("user_id.$id", ASCENDING), ("submitted", ASCENDING)], name="idx_user_submitted"),
+            IndexModel([("exam_id.$id", ASCENDING), ("submitted", ASCENDING)], name="idx_exam_submitted"),
+            IndexModel([("submitted", ASCENDING), ("submit_at", DESCENDING)], name="idx_submitted_date"),
         ]

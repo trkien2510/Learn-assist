@@ -150,18 +150,18 @@ async def get_unread_count(current_user: UserModel):
     return {"unread_count": count}
 
 async def notify_students_exam_created(exam: ExamModel, classroom: ClassroomModel, creator_name: str):
-    students = []
-    for member_link in classroom.members:
-        member = await UserModel.get(member_link.ref.id)
-        if member and member.role == UserRole.STUDENT:
-            students.append(member)
+    from utils.query_helpers import batch_fetch_users_from_links
+    
+    members_map = await batch_fetch_users_from_links(classroom.members)
+    
+    students = [user for user in members_map.values() if user and user.role == UserRole.STUDENT]
     
     if students:
         await create_bulk_notifications(
             users=students,
             notification_type=NotificationType.EXAM_CREATED,
-            title=f"Bài thi mới: {exam.title}",
-            message=f"Giáo viên {creator_name} đã tạo bài thi mới '{exam.title}' trong lớp '{classroom.name}'. Bài thi bắt đầu lúc {exam.start_at.strftime('%Y-%m-%d %H:%M')} và kết thúc lúc {exam.end_at.strftime('%Y-%m-%d %H:%M')}.",
+            title=f"New exam: {exam.title}",
+            message=f"Teacher {creator_name} has created a new exam '{exam.title}' in class '{classroom.name}'. Exam starts at {exam.start_at.strftime('%Y-%m-%d %H:%M')} and ends at {exam.end_at.strftime('%Y-%m-%d %H:%M')}.",
             related_id=str(exam.id),
             related_type="exam"
         )
@@ -173,8 +173,8 @@ async def notify_student_exam_started(user: UserModel, exam: ExamModel, classroo
     await create_notification(
         user=user,
         notification_type=NotificationType.EXAM_STARTED,
-        title=f"Bắt đầu làm bài: {exam.title}",
-        message=f"Bạn đã bắt đầu làm bài thi '{exam.title}' trong lớp '{classroom_name}'. Bạn có {exam.duration} phút để hoàn thành. Chúc bạn làm bài tốt!",
+        title=f"Exam started: {exam.title}",
+        message=f"You have started the exam '{exam.title}' in class '{classroom_name}'. You have {exam.duration} minutes to complete it. Good luck!",
         related_id=str(exam.id),
         related_type="exam"
     )
@@ -184,8 +184,8 @@ async def notify_student_exam_submitted(user: UserModel, exam: ExamModel, score:
     await create_notification(
         user=user,
         notification_type=NotificationType.EXAM_RESULT,
-        title=f"Kết quả bài thi: {exam.title}",
-        message=f"Bạn đã hoàn thành bài thi '{exam.title}'. Điểm số: {score}/10 ({correct_count}/{total_questions} câu đúng).",
+        title=f"Exam result: {exam.title}",
+        message=f"You have completed the exam '{exam.title}'. Score: {score}/10 ({correct_count}/{total_questions} correct answers).",
         related_id=str(exam.id),
         related_type="exam"
     )
@@ -195,40 +195,18 @@ async def notify_student_exam_auto_submitted(user: UserModel, exam: ExamModel, s
     await create_notification(
         user=user,
         notification_type=NotificationType.EXAM_RESULT,
-        title=f"Bài thi tự động nộp: {exam.title}",
-        message=f"Bài thi '{exam.title}' của bạn đã được tự động nộp do vượt quá thời gian làm bài. Điểm số: {score}/10 ({correct_count}/{total_questions} câu đúng).",
+        title=f"Exam auto-submitted: {exam.title}",
+        message=f"Your exam '{exam.title}' has been auto-submitted due to time limit. Score: {score}/10 ({correct_count}/{total_questions} correct answers).",
         related_id=str(exam.id),
         related_type="exam"
     )
-
-async def notify_teacher_document_upload_success(user: UserModel, document_name: str, document_id: str, question_count: int):
-    await create_notification(
-        user=user,
-        notification_type=NotificationType.DOCUMENT_UPLOAD_SUCCESS,
-        title=f"Tải tài liệu thành công: {document_name}",
-        message=f"Tài liệu '{document_name}' của bạn đã được tải lên và xử lý thành công. {question_count} câu hỏi đã được tạo.",
-        related_id=document_id,
-        related_type="document"
-    )
-
-
-async def notify_teacher_document_upload_failed(user: UserModel, document_name: str, error_message: str):
-    await create_notification(
-        user=user,
-        notification_type=NotificationType.DOCUMENT_UPLOAD_FAILED,
-        title=f"Tải tài liệu thất bại: {document_name}",
-        message=f"Không thể tải lên hoặc xử lý tài liệu '{document_name}'. Lỗi: {error_message}",
-        related_id=None,
-        related_type="document"
-    )
-
 
 async def notify_document_upload_success(user: UserModel, document_name: str, document_id: str, question_count: int):
     await create_notification(
         user=user,
         notification_type=NotificationType.DOCUMENT_UPLOAD_SUCCESS,
-        title=f"Tải tài liệu thành công: {document_name}",
-        message=f"Tài liệu '{document_name}' của bạn đã được tải lên và xử lý thành công. {question_count} câu hỏi đã được tạo.",
+        title=f"Document upload successful: {document_name}",
+        message=f"Your document '{document_name}' has been uploaded and processed successfully. {question_count} questions have been generated.",
         related_id=document_id,
         related_type="document"
     )
@@ -238,8 +216,8 @@ async def notify_document_upload_failed(user: UserModel, document_name: str, err
     await create_notification(
         user=user,
         notification_type=NotificationType.DOCUMENT_UPLOAD_FAILED,
-        title=f"Tải tài liệu thất bại: {document_name}",
-        message=f"Không thể tải lên hoặc xử lý tài liệu '{document_name}'. Lỗi: {error_message}",
+        title=f"Document upload failed: {document_name}",
+        message=f"Could not upload or process document '{document_name}'. Error: {error_message}",
         related_id=None,
         related_type="document"
     )
@@ -249,8 +227,8 @@ async def notify_teacher_exam_created(user: UserModel, exam: ExamModel, classroo
     await create_notification(
         user=user,
         notification_type=NotificationType.EXAM_CREATION_SUCCESS,
-        title=f"Tạo bài thi thành công: {exam.title}",
-        message=f"Bài thi '{exam.title}' của bạn đã được tạo thành công trong lớp '{classroom_name}' với {question_count} câu hỏi. Bài thi sẽ bắt đầu lúc {exam.start_at.strftime('%Y-%m-%d %H:%M')}.",
+        title=f"Exam creation successful: {exam.title}",
+        message=f"Your exam '{exam.title}' has been created successfully in class '{classroom_name}' with {question_count} questions. The exam will start at {exam.start_at.strftime('%Y-%m-%d %H:%M')}.",
         related_id=str(exam.id),
         related_type="exam"
     )
@@ -260,8 +238,8 @@ async def notify_teacher_exam_ended(user: UserModel, exam: ExamModel, classroom_
     await create_notification(
         user=user,
         notification_type=NotificationType.EXAM_STATISTICS_AVAILABLE,
-        title=f"Bài thi đã kết thúc: {exam.title}",
-        message=f"Bài thi '{exam.title}' trong lớp '{classroom_name}' đã kết thúc. Có {participant_count} học sinh tham gia. Bạn có thể xem thống kê ngay bây giờ.",
+        title=f"Exam ended: {exam.title}",
+        message=f"Exam '{exam.title}' in class '{classroom_name}' has ended. There were {participant_count} students participated. You can view the statistics now.",
         related_id=str(exam.id),
         related_type="exam"
     )

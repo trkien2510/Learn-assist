@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, ROLES } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { useModal } from '../hooks';
 import { classroomService } from '../services/apiServices';
 import { BookIcon, UsersIcon, PlusIcon, CloseIcon, CheckIcon, XIcon, TrashIcon, LogoutIcon, CopyIcon, UserAddIcon } from '../components/icons/Icons';
 
 const Classrooms = () => {
     const { user, hasRole } = useAuth();
+    const { showSuccess, showError } = useToast();
     const navigate = useNavigate();
     const [classrooms, setClassrooms] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
 
     const createModal = useModal(false);
     const joinModal = useModal(false);
@@ -37,12 +37,11 @@ const Classrooms = () => {
     const fetchClassrooms = async () => {
         try {
             setLoading(true);
-            setError('');
             const response = await classroomService.getAll(1, 50);
             const data = response.data || response;
             setClassrooms(data.items || data || []);
         } catch (err) {
-            setError(err.message || 'Không thể tải danh sách lớp học');
+            showError(err.message || 'Không thể tải danh sách lớp học');
         } finally {
             setLoading(false);
         }
@@ -51,29 +50,25 @@ const Classrooms = () => {
     const handleCreateClassroom = async (e) => {
         e.preventDefault();
         try {
-            setError('');
             await classroomService.create(createForm);
-            setSuccess('Tạo lớp học thành công!');
+            showSuccess('Tạo lớp học thành công!');
             createModal.close();
             setCreateForm({ name: '', subject: '', description: '' });
             fetchClassrooms();
-            setTimeout(() => setSuccess(''), 3000);
         } catch (err) {
-            setError(err.message || 'Không thể tạo lớp học');
+            showError(err.message || 'Không thể tạo lớp học');
         }
     };
 
     const handleJoinClassroom = async (e) => {
         e.preventDefault();
         try {
-            setError('');
             await classroomService.sendJoinRequest(joinCode);
-            setSuccess('Đã gửi yêu cầu tham gia! Vui lòng đợi chủ lớp phê duyệt.');
+            showSuccess('Đã gửi yêu cầu tham gia! Vui lòng đợi chủ lớp phê duyệt.');
             joinModal.close();
             setJoinCode('');
-            setTimeout(() => setSuccess(''), 3000);
         } catch (err) {
-            setError(err.message || 'Không thể tham gia lớp học');
+            showError(err.message || 'Không thể tham gia lớp học');
         }
     };
 
@@ -87,7 +82,7 @@ const Classrooms = () => {
             setMembers(data.members || []);
             setPendingRequests(data.pending_requests || []);
         } catch (err) {
-            setError(err.message || 'Không thể tải danh sách thành viên');
+            showError(err.message || 'Không thể tải danh sách thành viên');
         } finally {
             setLoadingMembers(false);
         }
@@ -96,22 +91,20 @@ const Classrooms = () => {
     const handleAcceptRequest = async (requestId) => {
         try {
             await classroomService.acceptRequest(membersModal.data.class_code, requestId);
-            setSuccess('Đã chấp nhận yêu cầu!');
+            showSuccess('Đã chấp nhận yêu cầu!');
             handleViewMembers(membersModal.data);
-            setTimeout(() => setSuccess(''), 2000);
         } catch (err) {
-            setError(err.message || 'Không thể chấp nhận yêu cầu');
+            showError(err.message || 'Không thể chấp nhận yêu cầu');
         }
     };
 
     const handleRejectRequest = async (requestId) => {
         try {
             await classroomService.rejectRequest(membersModal.data.class_code, requestId);
-            setSuccess('Đã từ chối yêu cầu!');
+            showSuccess('Đã từ chối yêu cầu!');
             handleViewMembers(membersModal.data);
-            setTimeout(() => setSuccess(''), 2000);
         } catch (err) {
-            setError(err.message || 'Không thể từ chối yêu cầu');
+            showError(err.message || 'Không thể từ chối yêu cầu');
         }
     };
 
@@ -120,11 +113,10 @@ const Classrooms = () => {
 
         try {
             await classroomService.removeMember(membersModal.data.class_code, memberId);
-            setSuccess('Đã xóa thành viên!');
+            showSuccess('Đã xóa thành viên!');
             handleViewMembers(membersModal.data);
-            setTimeout(() => setSuccess(''), 2000);
         } catch (err) {
-            setError(err.message || 'Không thể xóa thành viên');
+            showError(err.message || 'Không thể xóa thành viên');
         }
     };
 
@@ -133,11 +125,10 @@ const Classrooms = () => {
 
         try {
             await classroomService.leave(classCode);
-            setSuccess('Đã rời khỏi lớp học!');
+            showSuccess('Đã rời khỏi lớp học!');
             fetchClassrooms();
-            setTimeout(() => setSuccess(''), 3000);
         } catch (err) {
-            setError(err.message || 'Không thể rời khỏi lớp học');
+            showError(err.message || 'Không thể rời khỏi lớp học');
         }
     };
 
@@ -146,11 +137,10 @@ const Classrooms = () => {
 
         try {
             await classroomService.delete(classCode);
-            setSuccess('Đã xóa lớp học!');
+            showSuccess('Đã xóa lớp học!');
             fetchClassrooms();
-            setTimeout(() => setSuccess(''), 3000);
         } catch (err) {
-            setError(err.message || 'Không thể xóa lớp học');
+            showError(err.message || 'Không thể xóa lớp học');
         }
     };
 
@@ -201,18 +191,6 @@ const Classrooms = () => {
                     </button>
                 )}
             </div>
-
-            {error && (
-                <div className="p-4 bg-red-500/10 border border-red-500/50 rounded-xl text-red-400 animate-fadeIn">
-                    {error}
-                </div>
-            )}
-
-            {success && (
-                <div className="p-4 bg-green-500/10 border border-green-500/50 rounded-xl text-green-400 animate-fadeIn">
-                    {success}
-                </div>
-            )}
 
             {loading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

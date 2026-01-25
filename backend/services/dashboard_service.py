@@ -7,14 +7,10 @@ from models.question_model import QuestionModel
 from models.result_model import ResultModel
 from models.log_model import LogModel
 from beanie import PydanticObjectId
+from utils.query_helpers import batch_fetch_users
 
 
 async def get_recent_activities(current_user: UserModel, limit: int = 20) -> list:
-    """
-    Get recent activities from logs
-    - Admin: sees all activities (except auth)
-    - Teacher/Student: sees only their own activities (except auth)
-    """
     role = current_user.role
     user_id = str(current_user.id)
     
@@ -26,8 +22,17 @@ async def get_recent_activities(current_user: UserModel, limit: int = 20) -> lis
             "resource_type": {"$ne": "auth"}
         })
     
-    
     logs = await query.sort([("created_at", -1)]).limit(limit).to_list()
+    
+    user_ids = []
+    for log in logs:
+        if log.user_id:
+            try:
+                user_ids.append(PydanticObjectId(log.user_id))
+            except:
+                pass
+    
+    users_map = await batch_fetch_users(user_ids) if user_ids else {}
     
     activities = []
     for log in logs:
@@ -37,13 +42,12 @@ async def get_recent_activities(current_user: UserModel, limit: int = 20) -> lis
         if log.user_id:
             try:
                 user_obj_id = PydanticObjectId(log.user_id)
-                user = await UserModel.get(user_obj_id)
+                user = users_map.get(user_obj_id)
                 if user:
                     user_name = user.full_name or user.username
                     user_email = user.email
             except:
                 pass
-        
         
         resource_name = log.details.get("resource_name") if log.details else None
         

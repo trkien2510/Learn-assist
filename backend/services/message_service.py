@@ -68,7 +68,7 @@ async def get_classroom_messages(class_code: str, page: int, page_size: int, cur
             "id": str(msg.id),
             "classroom_id": str(classroom.id),
             "sender_id": sender_id_str or "deleted_user",
-            "sender_name": sender.full_name if sender else "Người dùng đã xóa",
+            "sender_name": sender.full_name if sender else "Deleted User",
             "sender_email": sender.email if sender else "N/A",
             "content": msg.content,
             "created_at": msg.created_at

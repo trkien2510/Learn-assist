@@ -66,7 +66,7 @@ export const NotificationProvider = ({ children }) => {
 
     const deleteAllNotifications = useCallback(async () => {
         try {
-            await notificationService.delete_all();
+            await notificationService.deleteAll();
             setNotifications([]);
             setUnreadCount(0);
         } catch (err) {

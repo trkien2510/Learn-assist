@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { documentService } from '../services/apiServices';
+import { useToast } from '../contexts/ToastContext';
 import { UploadIcon, FileIcon, TrashIcon, EditIcon, CloseIcon, CalendarIcon, SaveIcon } from '../components/icons/Icons';
 
 const Documents = () => {
     const [documents, setDocuments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
+    const { showSuccess, showError } = useToast();
 
     const [selectedFile, setSelectedFile] = useState(null);
     const [numQuestions, setNumQuestions] = useState(10);
@@ -26,12 +26,11 @@ const Documents = () => {
     const fetchDocuments = async () => {
         try {
             setLoading(true);
-            setError('');
             const response = await documentService.getAll(1, 50);
             const data = response.data || response;
             setDocuments(data.items || data || []);
         } catch (err) {
-            setError(err.message || 'Không thể tải danh sách tài liệu');
+            showError(err.message || 'Không thể tải danh sách tài liệu');
         } finally {
             setLoading(false);
         }
@@ -51,34 +50,32 @@ const Documents = () => {
             ];
 
             if (!validTypes.includes(file.type)) {
-                setError('Chỉ chấp nhận file PDF hoặc DOCX');
+                showError('Chỉ chấp nhận file PDF hoặc DOCX');
                 return;
             }
 
             if (file.size > 10 * 1024 * 1024) {
-                setError('File không được vượt quá 10MB');
+                showError('File không được vượt quá 10MB');
                 return;
             }
 
             setSelectedFile(file);
-            setError('');
         }
     };
 
     const handleUpload = async () => {
         if (!selectedFile) {
-            setError('Vui lòng chọn file');
+            showError('Vui lòng chọn file');
             return;
         }
 
         if (numQuestions < 1 || numQuestions > 50) {
-            setError('Số lượng câu hỏi phải từ 1 đến 50');
+            showError('Số lượng câu hỏi phải từ 1 đến 50');
             return;
         }
 
         try {
             setUploading(true);
-            setError('');
 
             const uploadResponse = await documentService.upload(selectedFile, numQuestions);
 
@@ -107,15 +104,13 @@ const Documents = () => {
                 : [];
             setSelectedQuestions(allIndices);
 
-            setSuccess('Upload và sinh câu hỏi thành công!');
+            showSuccess('Upload và sinh câu hỏi thành công!');
             setShowUploadModal(false);
             setShowPreviewModal(true);
             setUploading(false);
             fetchDocuments();
-
-            setTimeout(() => setSuccess(''), 3000);
         } catch (err) {
-            setError(err.message || 'Upload thất bại. Vui lòng thử lại.');
+            showError(err.message || 'Upload thất bại. Vui lòng thử lại.');
             setUploading(false);
         }
     };
@@ -130,26 +125,23 @@ const Documents = () => {
 
     const handleSaveQuestions = async () => {
         if (selectedQuestions.length === 0) {
-            setError('Vui lòng chọn ít nhất 1 câu hỏi');
+            showError('Vui lòng chọn ít nhất 1 câu hỏi');
             return;
         }
 
         try {
             setUploading(true);
-            setError('');
 
             const questionsToSave = selectedQuestions.map(idx => generatedQuestions[idx]);
 
             await documentService.saveQuestions(currentDocumentId, questionsToSave);
 
-            setSuccess(`Đã lưu ${questionsToSave.length} câu hỏi vào ngân hàng!`);
+            showSuccess(`Đã lưu ${questionsToSave.length} câu hỏi vào ngân hàng!`);
             setShowPreviewModal(false);
             fetchDocuments();
             resetUploadForm();
-
-            setTimeout(() => setSuccess(''), 3000);
         } catch (err) {
-            setError(err.message || 'Không thể lưu câu hỏi');
+            showError(err.message || 'Không thể lưu câu hỏi');
         } finally {
             setUploading(false);
         }
@@ -176,11 +168,10 @@ const Documents = () => {
 
         try {
             await documentService.delete(documentId);
-            setSuccess('Đã xóa tài liệu!');
+            showSuccess('Đã xóa tài liệu!');
             fetchDocuments();
-            setTimeout(() => setSuccess(''), 2000);
         } catch (err) {
-            setError(err.message || 'Không thể xóa tài liệu');
+            showError(err.message || 'Không thể xóa tài liệu');
         }
     };
 
@@ -232,18 +223,6 @@ const Documents = () => {
                 </button>
             </div>
 
-            {error && (
-                <div className="p-4 bg-red-500/10 border border-red-500/50 rounded-xl text-red-400 animate-fadeIn">
-                    {error}
-                </div>
-            )}
-
-            {success && (
-                <div className="p-4 bg-green-500/10 border border-green-500/50 rounded-xl text-green-400 animate-fadeIn">
-                    {success}
-                </div>
-            )}
-
             {loading ? (
                 <div className="space-y-4">
                     {[1, 2, 3].map(i => (
@@ -282,12 +261,10 @@ const Documents = () => {
                                                 <CalendarIcon className="w-4 h-4" />
                                                 {formatDate(doc.upload_date)}
                                             </span>
-                                            {doc.file_path && (
-                                                <span className="flex items-center gap-1.5">
-                                                    <SaveIcon className="w-4 h-4" />
-                                                    {doc.file_name}
-                                                </span>
-                                            )}
+                                            <span className="flex items-center gap-1.5">
+                                                <SaveIcon className="w-4 h-4" />
+                                                {doc.file_name}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
@@ -370,7 +347,7 @@ const Documents = () => {
                                 />
                                 <p className="text-xs text-gray-500 mt-2">
                                     AI sẽ tự động sinh {numQuestions} câu hỏi từ nội dung tài liệu
-                                    <br/>
+                                    <br />
                                     Quá trình này có thể tốn nhiều thời gian
                                 </p>
                             </div>

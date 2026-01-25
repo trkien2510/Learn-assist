@@ -17,6 +17,8 @@ import {
     BellIcon
 } from '../icons/Icons';
 
+import { translateError } from '../../utils/errorMessages';
+
 const NotificationItem = ({ notification, onMarkAsRead, onDelete, onClick }) => {
     const getIcon = (type) => {
         const iconClass = "w-5 h-5";
@@ -97,12 +99,16 @@ const NotificationItem = ({ notification, onMarkAsRead, onDelete, onClick }) => 
                 <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
                         <h4 className={`text-sm font-medium ${notification.is_read ? 'text-gray-600 dark:text-gray-400' : 'text-gray-900 dark:text-gray-100'}`}>
-                            {notification.title}
+                            {translateError(notification.title)}
                         </h4>
                         {!notification.is_read && (
                             <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0 mt-1"></span>
                         )}
                     </div>
+
+                    <p className={`text-xs mt-1 line-clamp-2 ${notification.is_read ? 'text-gray-400' : 'text-gray-600 dark:text-gray-300'}`}>
+                        {translateError(notification.message)}
+                    </p>
 
 
 

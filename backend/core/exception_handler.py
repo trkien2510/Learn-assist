@@ -1,12 +1,13 @@
 from fastapi import Request
 from fastapi.responses import JSONResponse
 from core.status_code import StatusCode, STATUS_MESSAGES
+import traceback
 
 
 class AppException(Exception):
     def __init__(self, code: StatusCode, message: str = None):
         self.code = code
-        self.message = message or STATUS_MESSAGES.get(code, "Lỗi không xác định")
+        self.message = message or STATUS_MESSAGES.get(code, "Unknown error")
 
     def to_response(self):
         return {
@@ -16,6 +17,8 @@ class AppException(Exception):
 
 
 async def app_exception_handler(request: Request, exc: AppException):
+    from services import log_service
+    
     http_code_map = {
         StatusCode.SUCCESS: 200,
         StatusCode.CREATED: 201,
@@ -38,7 +41,52 @@ async def app_exception_handler(request: Request, exc: AppException):
         else:
             status_code = 400
 
+    if status_code == 500:
+        try:
+            await log_service.create_log(
+                action="app_exception_500",
+                details={
+                    "code": exc.code,
+                    "message": exc.message,
+                    "path": str(request.url.path),
+                    "method": request.method
+                },
+                status="error"
+            )
+        except:
+            pass
+
     return JSONResponse(
         status_code=status_code,
         content=exc.to_response(),
+    )
+
+
+async def generic_exception_handler(request: Request, exc: Exception):
+    from services import log_service
+    
+    stack_trace = traceback.format_exc()
+    
+    try:
+        await log_service.create_log(
+            action="unhandled_exception",
+            details={
+                "error_type": type(exc).__name__,
+                "error_message": str(exc),
+                "stack_trace": stack_trace,
+                "path": str(request.url.path),
+                "method": request.method
+            },
+            status="error"
+        )
+    except:
+        print(f"CRITICAL ERROR: {str(exc)}")
+        print(stack_trace)
+    
+    return JSONResponse(
+        status_code=500,
+        content={
+            "code": StatusCode.INTERNAL_SERVER_ERROR,
+            "message": "Internal Server Error"
+        }
     )

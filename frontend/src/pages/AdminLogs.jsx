@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { adminService } from '../services/apiServices';
+import { useToast } from '../contexts/ToastContext';
 import { useDateFormat, usePagination, useModal } from '../hooks';
+import { translateError } from '../utils';
 import {
     LogIcon,
     SearchIcon,
@@ -22,10 +24,10 @@ import {
 } from '../components/icons/Icons';
 
 const AdminLogs = () => {
+    const { showError } = useToast();
     const [logs, setLogs] = useState([]);
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
 
     const [filters, setFilters] = useState({
         resource_type: '',
@@ -67,7 +69,7 @@ const AdminLogs = () => {
             setLogs(data.items || data || []);
             updateFromResponse(data);
         } catch (err) {
-            setError(err.message || 'Không thể tải nhật ký');
+            showError(err.message || 'Không thể tải nhật ký');
         } finally {
             setLoading(false);
         }
@@ -319,13 +321,6 @@ const AdminLogs = () => {
                 </div>
             </div>
 
-            {error && (
-                <div className="p-4 bg-red-500/10 border border-red-500/50 rounded-xl text-red-400 flex items-center gap-2">
-                    <XCircleIcon className="w-5 h-5" />
-                    {error}
-                </div>
-            )}
-
             {loading ? (
                 <div className="card-glass p-12 text-center">
                     <div className="w-12 h-12 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto"></div>
@@ -370,7 +365,7 @@ const AdminLogs = () => {
                                             </span>
                                         </td>
                                         <td className="p-4">
-                                            <span className="text-sm font-medium text-gray-900">{log.action}</span>
+                                            <span className="text-sm font-medium text-gray-900">{translateError(log.action)}</span>
                                         </td>
                                         <td className="p-4">
                                             {log.resource_type ? (
@@ -425,7 +420,7 @@ const AdminLogs = () => {
 
             {logModal.isOpen && logModal.data && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-100" onClick={() => logModal.close()}>
-                    <div className="card-glass max-w-2xl w-full max-h-[80vh] overflow-y-auto m-4" onClick={(e) => e.stopPropagation()}>
+                    <div className="card-glass max-w-2xl w-full max-h-[80vh] overflow-y-auto scrollbar-hide m-4" onClick={(e) => e.stopPropagation()}>
                         <div className="p-6 border-b border-gray-200">
                             <div className="flex items-center justify-between">
                                 <h3 className="text-xl font-bold text-gray-900">Chi tiết nhật ký</h3>
@@ -440,7 +435,7 @@ const AdminLogs = () => {
                         <div className="p-6 space-y-4">
                             <div>
                                 <label className="text-sm font-medium text-gray-700">Hành động</label>
-                                <p className="mt-1 text-gray-900">{logModal.data.action}</p>
+                                <p className="mt-1 text-gray-900">{translateError(logModal.data.action)}</p>
                             </div>
 
                             <div>

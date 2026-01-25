@@ -28,7 +28,7 @@ async def lifespan(app: FastAPI):
 
 
 
-from core.exception_handler import AppException, app_exception_handler
+from core.exception_handler import AppException, app_exception_handler, generic_exception_handler
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -46,6 +46,7 @@ app.add_middleware(
 )
 
 app.add_exception_handler(AppException, app_exception_handler)
+app.add_exception_handler(Exception, generic_exception_handler)
 
 app.include_router(auth_router.router, prefix=f"{settings.API_PREFIX}/auth", tags=["Auth"])
 app.include_router(dashboard_router.router, prefix=f"{settings.API_PREFIX}/dashboard", tags=["Dashboard"])
