@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     MONGO_URI: str
     DATABASE_NAME: str
     OPENAI_API_KEY: str
+    AI_MODEL: str = "gpt-4o-mini"
     BACKEND_CORS_ORIGINS: List[str] = ["*"]
 
     MAIL_USERNAME: str

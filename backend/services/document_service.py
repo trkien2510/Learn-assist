@@ -1,7 +1,7 @@
 from fastapi import UploadFile
 from utils.document_util import read_and_clean_uploaded_file
 from services.ai_service import (
-    generate_questions_from_large_document,
+    generate_questions,
     validate_document_content
 )
 from core.exception_handler import AppException
@@ -63,9 +63,10 @@ async def process_upload(number_question: int, file: UploadFile, current_user):
         )
         await new_document.insert()
 
-        ai_result, error_message = generate_questions_from_large_document(
+        ai_result, error_message = await generate_questions(
             document_content.strip(), 
-            number_question
+            number_question,
+            filename=file.filename
         )
         
         if error_message:

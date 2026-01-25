@@ -28,6 +28,7 @@ const AdminLogs = () => {
     const [logs, setLogs] = useState([]);
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [exporting, setExporting] = useState(false);
 
     const [filters, setFilters] = useState({
         resource_type: '',
@@ -89,37 +90,55 @@ const AdminLogs = () => {
         logModal.open(log);
     };
 
-    const handleExport = () => {
-        const headers = ['Thời gian', 'Người dùng', 'Hành động', 'Tài nguyên', 'Trạng thái'];
+    const handleExport = async () => {
+        try {
+            setExporting(true);
+            const response = await adminService.logs.getAll(1, 1000, filters);
+            const data = response.data || response;
+            const logsToExport = data.items || data || [];
 
-        const escapeCSV = (value) => {
-            if (value == null) return '';
-            const str = String(value);
-            if (str.includes(',') || str.includes('\n') || str.includes('"')) {
-                return `"${str.replace(/"/g, '""')}"`;
+            if (logsToExport.length === 0) {
+                showError('Không có dữ liệu để xuất');
+                return;
             }
-            return str;
-        };
 
-        const rows = logs.map(log => [
-            escapeCSV(formatDateTime(log.created_at)),
-            escapeCSV(log.user_id || 'N/A'),
-            escapeCSV(log.action),
-            escapeCSV(log.resource_type || 'N/A'),
-            escapeCSV(log.status)
-        ]);
+            const headers = ['Thời gian', 'Người dùng', 'Hành động', 'Tài nguyên', 'Trạng thái', 'Chi tiết'];
 
-        const csvContent = [
-            headers.map(escapeCSV).join(','),
-            ...rows.map(row => row.join(','))
-        ].join('\n');
+            const escapeCSV = (value) => {
+                if (value == null) return '';
+                const str = String(value);
+                if (str.includes(',') || str.includes('\n') || str.includes('"')) {
+                    return `"${str.replace(/"/g, '""')}"`;
+                }
+                return str;
+            };
 
-        const BOM = '\uFEFF';
-        const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `logs_${new Date().toISOString()}.csv`;
-        link.click();
+            const rows = logsToExport.map(log => [
+                escapeCSV(formatDateTime(log.created_at)),
+                escapeCSV(log.user_id || 'System'),
+                escapeCSV(translateError(log.action)),
+                escapeCSV(log.resource_type || 'N/A'),
+                escapeCSV(log.status === 'success' ? 'Thành công' : 'Lỗi'),
+                escapeCSV(JSON.stringify(log.details || {}))
+            ]);
+
+            const csvContent = [
+                headers.map(escapeCSV).join(','),
+                ...rows.map(row => row.join(','))
+            ].join('\n');
+
+            const BOM = '\uFEFF';
+            const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `he_thong_logs_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+            showSuccess(`Đã xuất ${logsToExport.length} nhật ký ra file Excel (CSV)`);
+        } catch (err) {
+            showError('Lỗi khi xuất dữ liệu: ' + err.message);
+        } finally {
+            setExporting(false);
+        }
     };
 
     const getStatusBadge = (status) => {
@@ -177,10 +196,14 @@ const AdminLogs = () => {
                     <button
                         onClick={handleExport}
                         className="btn-secondary flex items-center gap-2"
-                        disabled={logs.length === 0}
+                        disabled={logs.length === 0 || exporting}
                     >
-                        <DownloadIcon className="w-5 h-5" />
-                        Xuất CSV
+                        {exporting ? (
+                            <div className="w-4 h-4 border-2 border-slate-400 border-t-slate-600 rounded-full animate-spin"></div>
+                        ) : (
+                            <DownloadIcon className="w-5 h-5" />
+                        )}
+                        {exporting ? 'Đang xuất...' : 'Xuất Excel'}
                     </button>
                     <button
                         onClick={() => { fetchLogs(); fetchStats(); }}

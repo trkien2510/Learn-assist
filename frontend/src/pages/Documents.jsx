@@ -430,8 +430,8 @@ const Documents = () => {
                                                 <div className="flex items-start justify-between mb-3">
                                                     <h4 className="font-medium text-gray-900">Câu {index + 1}</h4>
                                                     <div className="flex gap-2">
-                                                        <span className={`text-xs px-2 py-1 rounded ${question.difficulty === 'Easy' ? 'bg-green-500/20 text-green-400' :
-                                                            question.difficulty === 'Medium' ? 'bg-yellow-500/20 text-yellow-400' :
+                                                        <span className={`text-xs px-2 py-1 rounded ${question.difficulty === 'dễ' ? 'bg-green-500/20 text-green-400' :
+                                                            question.difficulty === 'trung bình' ? 'bg-yellow-500/20 text-yellow-400' :
                                                                 'bg-red-500/20 text-red-400'
                                                             }`}>
                                                             {question.difficulty}
@@ -547,13 +547,13 @@ const Documents = () => {
                                         Độ khó
                                     </label>
                                     <select
-                                        value={editingQuestion.difficulty || 'Easy'}
+                                        value={editingQuestion.difficulty || 'dễ'}
                                         onChange={(e) => setEditingQuestion({ ...editingQuestion, difficulty: e.target.value })}
                                         className="input-glass text-sm"
                                     >
-                                        <option value="Easy">Dễ</option>
-                                        <option value="Medium">Trung bình</option>
-                                        <option value="Hard">Khó</option>
+                                        <option value="dễ">Dễ</option>
+                                        <option value="trung bình">Trung bình</option>
+                                        <option value="khó">Khó</option>
                                     </select>
                                 </div>
                             </div>
