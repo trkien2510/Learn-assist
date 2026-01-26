@@ -80,7 +80,6 @@ async def process_upload(number_question: int, file: UploadFile, current_user):
         
         questions = ai_result.get("questions", [])
         chunks_processed = ai_result.get("chunks_processed", 1)
-        total_chunks = ai_result.get("total_chunks", 1)
         total_tokens = ai_result.get("total_tokens", 0)
 
         await log_service.log_document("upload_document", str(new_document.id), current_user, {
@@ -88,7 +87,6 @@ async def process_upload(number_question: int, file: UploadFile, current_user):
             "number_question": number_question,
             "questions_generated": len(questions),
             "chunks_processed": chunks_processed,
-            "total_chunks": total_chunks,
             "total_tokens": total_tokens
         })
 
@@ -106,9 +104,8 @@ async def process_upload(number_question: int, file: UploadFile, current_user):
             "questions": questions,
             "metadata": {
                 "chunks_processed": chunks_processed,
-                "total_chunks": total_chunks,
                 "total_tokens": total_tokens,
-                "document_was_chunked": total_chunks > 1
+                "was_chunked": chunks_processed > 1
             }
         }
     except AppException:

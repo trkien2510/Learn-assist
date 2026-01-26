@@ -123,7 +123,8 @@ DOCUMENT_KEYWORDS = {
     'Pháp luật': ['điều', 'khoản', 'nghị định', 'luật', 'thông tư', 'quy định', 'tòa án', 'vi phạm'],
     'Kinh tế': ['thị trường', 'lợi nhuận', 'doanh nghiệp', 'tài chính', 'ngân hàng', 'đầu tư', 'lạm phát'],
     'Lịch sử - Địa lý': ['thế kỷ', 'năm', 'sự kiện', 'văn hóa', 'quốc gia', 'địa danh', 'lịch sử', 'khí hậu'],
-    'Văn học': ['nhân vật', 'tác giả', 'tác phẩm', 'nghệ thuật', 'thơ', 'truyện', 'tiểu thuyết']
+    'Văn học': ['nhân vật', 'tác giả', 'tác phẩm', 'nghệ thuật', 'thơ', 'truyện', 'tiểu thuyết'],
+    'Toán học': ['toán', 'số học', 'hình học', 'đại số', 'bảng cửu chương', 'phép tính', 'phương trình', 'bài toán']
 }
 
 TYPE_HINTS = {
@@ -133,6 +134,7 @@ TYPE_HINTS = {
     "Kinh tế": "Tập trung vào các nguyên lý và chỉ số. CÓ THỂ mở rộng thêm các tình huống thực tế liên quan đến chuyên môn kinh tế để tăng tính ứng dụng.",
     "Lịch sử - Địa lý": "BÁM SÁT DỮ KIỆN. Tập trung vào các mốc thời gian, địa điểm và sự kiện cụ thể có trong tài liệu.",
     "Văn học": "CÓ THỂ sáng tạo. Tập trung vào cảm thụ, tâm lý và phong cách, có thể kết nối với các kiến thức văn học liên quan để câu hỏi sâu sắc hơn.",
+    "Toán học": "CÓ THỂ MỞ RỘNG. Nếu tài liệu nhắc đến một chủ đề toán học, hãy sử dụng toàn bộ quy tắc và kiến thức toán học của chủ đề đó để sinh câu hỏi.",
     "Chung": "Bám sát các ý chính và thông tin quan trọng trong văn bản tải lên."
 }
 
@@ -154,6 +156,7 @@ Yêu cầu chuyên môn: {hint}
 ---
 
 QUY TẮC BẮT BUỘC (PHẢI TUÂN THỦ):
+• PHẢI TẠO ĐỦ CHÍNH XÁC {num_questions} CÂU HỎI. Không được thiếu dù chỉ 1 câu.
 • MỌI câu hỏi phải dựa trên nội dung, khái niệm hoặc dữ kiện CÓ TRONG tài liệu.
 • KHÔNG được tạo câu hỏi về nội dung mà tài liệu không đề cập.
 • Đáp án:
@@ -212,44 +215,46 @@ async def generate_questions(
         return None, validation.error_message
     
     doc_type = detect_document_type(text, filename)
-    
-    if not validation.requires_chunking:
-        prompt = create_specialized_prompt(text.strip(), num_questions, doc_type)
-        result = await call_openai_fast(prompt, num_questions)
-        questions = result.get("questions", []) if result else []
+    all_questions = []
+    max_retries = 3
+    retry_count = 0
+
+    while len(all_questions) < num_questions and retry_count < max_retries:
+        remaining_needed = num_questions - len(all_questions)
         
-        return {
-            "questions": questions,
-            "chunks_processed": 1,
-            "total_tokens": validation.token_count,
-            "doc_type": doc_type,
-            "model": DEFAULT_MODEL
-        }, None
-    
-    chunks = split_document_into_chunks(text)
-    q_per_chunk = num_questions // len(chunks)
-    rem = num_questions % len(chunks)
-    
-    tasks = []
-    for i in range(len(chunks)):
-        count = q_per_chunk + (1 if i < rem else 0)
-        if count > 0:
-            prompt = create_specialized_prompt(chunks[i], count, doc_type)
-            tasks.append(call_openai_fast(prompt, count))
-    
-    results = await asyncio.gather(*tasks)
-    
-    all_qs = []
-    for res in results:
-        if res and res.get("questions"):
-            all_qs.extend(res["questions"])
-    
-    unique_qs = deduplicate_questions(all_qs)
-    
+        if not validation.requires_chunking:
+            extra_context = ""
+            if all_questions:
+                existing_qs = "\n".join([f"- {q['content']}" for q in all_questions[-10:]])
+                extra_context = f"\nLƯU Ý: Đã có các câu hỏi sau, hãy tạo các câu khác hoàn toàn:\n{existing_qs}"
+            
+            prompt = create_specialized_prompt(text.strip(), remaining_needed, doc_type) + extra_context
+            result = await call_openai_fast(prompt, remaining_needed)
+            new_qs = result.get("questions", []) if result else []
+            all_questions.extend(new_qs)
+        else:
+            chunks = split_document_into_chunks(text)
+            q_per_chunk = remaining_needed // len(chunks)
+            rem = remaining_needed % len(chunks)
+            
+            tasks = []
+            for i in range(len(chunks)):
+                count = q_per_chunk + (1 if i < rem else 0)
+                if count > 0:
+                    prompt = create_specialized_prompt(chunks[i], count, doc_type)
+                    tasks.append(call_openai_fast(prompt, count))
+            
+            results = await asyncio.gather(*tasks)
+            for res in results:
+                if res and res.get("questions"):
+                    all_questions.extend(res["questions"])
+        
+        all_questions = deduplicate_questions(all_questions)
+        retry_count += 1
+
     return {
-        "questions": unique_qs[:num_questions],
-        "chunks_processed": len(results),
-        "total_chunks": len(chunks),
+        "questions": all_questions[:num_questions],
+        "chunks_processed": 1 if not validation.requires_chunking else len(split_document_into_chunks(text)),
         "total_tokens": validation.token_count,
         "doc_type": doc_type,
         "model": DEFAULT_MODEL

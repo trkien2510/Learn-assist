@@ -334,7 +334,7 @@ const Documents = () => {
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-600 mb-2">
-                                    Số lượng câu hỏi cần sinh
+                                    Số lượng câu hỏi cần sinh (1 - 50)
                                 </label>
                                 <input
                                     type="number"
