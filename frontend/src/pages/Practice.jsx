@@ -418,12 +418,12 @@ const Practice = () => {
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                                    Số câu hỏi (tối đa: {questions.length})
+                                    Số câu hỏi (tối đa: {Math.min(questions.length, 50)})
                                 </label>
                                 <input
                                     type="number"
                                     min="1"
-                                    max={questions.length}
+                                    max={Math.min(questions.length, 50)}
                                     value={formData.num_questions}
                                     onChange={(e) => setFormData({ ...formData, num_questions: parseInt(e.target.value) || 1 })}
                                     className="input-glass"

@@ -9,14 +9,14 @@ class CreateExamSchema(BaseModel):
     duration: int
     start_at: datetime
     end_at: datetime
-    question_ids: List[str] = []
+    question_ids: List[str] = Field(default=[], max_length=50)
 
 
 class CreatePersonalExamSchema(BaseModel):
     title: str
     duration: int
-    question_ids: Optional[List[str]] = []
-    num_questions: Optional[int] = None
+    question_ids: Optional[List[str]] = Field(default=[], max_length=50)
+    num_questions: Optional[int] = Field(None, le=50)
     difficulty: Optional[str] = None
     subject: Optional[str] = None
 

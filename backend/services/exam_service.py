@@ -30,7 +30,9 @@ async def create_exam(exam_data, current_user):
 
     question_links = []
     if exam_data.question_ids:
-        # Batch fetch all questions in a single query instead of N queries
+        if len(exam_data.question_ids) > 50:
+            raise AppException(StatusCode.BAD_REQUEST, "A maximum of 50 questions is allowed per exam")
+
         question_obj_ids = []
         for qid in exam_data.question_ids:
             try:
@@ -122,7 +124,6 @@ async def get_exam_detail(exam_id: str, current_user):
     if not exam:
         raise AppException(StatusCode.NOT_FOUND, "Exam not found")
 
-    # OPTIMIZED: Use batch query instead of N individual queries
     questions_data = await get_questions_data_optimized(exam.questions, include_answer=True)
 
     return {
@@ -206,7 +207,6 @@ async def start_exam(exam_id: str, current_user):
 
     is_continuing = result.started_at != now
 
-    # OPTIMIZED: Use batch query instead of N individual queries
     questions_data = await get_questions_data_optimized(exam.questions, include_answer=True)
 
     if not is_continuing:
@@ -707,7 +707,6 @@ async def start_personal_exam(exam_id: str, current_user):
 
     is_continuing = not is_new_result
 
-    # OPTIMIZED: Use batch query instead of N individual queries
     questions_data = await get_questions_data_optimized(exam.questions, include_answer=True)
 
     if not is_continuing:

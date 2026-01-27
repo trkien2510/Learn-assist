@@ -41,6 +41,10 @@ const ExamCreationModal = ({ isOpen, onClose, classCode, onSuccess }) => {
             setError('Số câu hỏi phải lớn hơn 0');
             return false;
         }
+        if (config.total_questions > 50) {
+            setError('Số câu hỏi tối đa cho phép là 50 câu');
+            return false;
+        }
         if (config.easy_count + config.medium_count + config.hard_count !== config.total_questions) {
             setError('Tổng số câu hỏi theo độ khó phải bằng tổng số câu hỏi');
             return false;
@@ -229,7 +233,9 @@ const ExamCreationModal = ({ isOpen, onClose, classCode, onSuccess }) => {
                                             onChange={(e) => handleTotalQuestionsChange(e.target.value)}
                                             className="input-glass w-full"
                                             min="1"
+                                            max="50"
                                         />
+                                        <p className="text-[10px] text-gray-500 mt-1">* Tối đa 50 câu</p>
                                     </div>
                                 </div>
 
