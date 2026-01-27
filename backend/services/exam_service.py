@@ -63,8 +63,7 @@ async def create_exam(exam_data, current_user):
         questions=question_links,
         duration=exam_data.duration,
         start_at=start_at,
-        end_at=end_at,
-        expiry_at=end_at
+        end_at=end_at
     )
     await new_exam.insert()
 
@@ -619,7 +618,6 @@ async def create_personal_exam(exam_data, current_user):
         duration=exam_data.duration,
         start_at=now,
         end_at=now + timedelta(hours=24),
-        expiry_at=now + timedelta(hours=24),
         is_personal=True
     )
     await new_exam.insert()

@@ -13,7 +13,6 @@ class ExamModel(Document):
     title: str
     questions: List[Link[QuestionModel]] = Field(default_factory=list)
     duration: int
-    expiry_at: datetime
     start_at: datetime
     end_at: datetime
     is_personal: bool = Field(default=False)
