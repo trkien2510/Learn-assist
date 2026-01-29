@@ -21,7 +21,7 @@
 **LearnAssist** là hệ thống tích hợp AI để giải quyết bài toán tự động hóa soạn thảo đề thi.
 
 ### Stack Công Nghệ Chính
-*   **Backend Core:** Python 3.12, FastAPI.
+*   **Backend Core:** Python 3.11+, FastAPI.
 *   **Database:** MongoDB + Beanie ODM.
 *   **AI Engine:** OpenAI GPT Models.
 *   **Authentication:** JWT với thuật toán HS256/RS256.

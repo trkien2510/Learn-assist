@@ -1,12 +1,9 @@
-from datetime import datetime
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
-from core.dependencies import get_current_user, get_current_admin
+from core.dependencies import get_current_admin
 from models.user_model import UserModel
 from schemas.base_schema import BaseResponse
-from core.exception_handler import AppException
-from core.status_code import StatusCode
 from services import log_service
 
 router = APIRouter()

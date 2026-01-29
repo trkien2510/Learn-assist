@@ -23,11 +23,3 @@ class ResetPasswordRequest(BaseModel):
     new_password: str = Field(..., min_length=8, max_length=64)
     confirm_password: str = Field(..., min_length=8, max_length=64)
 
-
-class ReactivateAccountRequest(BaseModel):
-    email: EmailStr
-
-
-class ReactivateAccountVerify(BaseModel):
-    email: EmailStr
-    otp_code: str = Field(..., min_length=6, max_length=6)

@@ -63,51 +63,57 @@ async def process_upload(number_question: int, file: UploadFile, current_user):
         )
         await new_document.insert()
 
-        ai_result, error_message = await generate_questions(
-            document_content.strip(), 
-            number_question,
-            filename=file.filename
-        )
-        
-        if error_message:
-            await notification_service.notify_document_upload_failed(
-                user=current_user,
-                document_name=file.filename,
-                error_message=error_message
+        try:
+            ai_result, error_message = await generate_questions(
+                document_content.strip(), 
+                number_question,
+                filename=file.filename,
+                user=current_user
             )
-            await new_document.delete()
-            raise AppException(StatusCode.BAD_REQUEST, error_message)
-        
-        questions = ai_result.get("questions", [])
-        chunks_processed = ai_result.get("chunks_processed", 1)
-        total_tokens = ai_result.get("total_tokens", 0)
+            
+            if error_message:
+                raise AppException(StatusCode.AI_GENERATION_FAILED, error_message)
+            
+            questions = ai_result.get("questions", [])
+            chunks_processed = ai_result.get("chunks_processed", 1)
+            total_tokens = ai_result.get("total_tokens", 0)
 
-        await log_service.log_document("upload_document", str(new_document.id), current_user, {
-            "filename": file.filename,
-            "number_question": number_question,
-            "questions_generated": len(questions),
-            "chunks_processed": chunks_processed,
-            "total_tokens": total_tokens
-        })
-
-        question_count = len(questions)
-        await notification_service.notify_document_upload_success(
-            user=current_user,
-            document_name=new_document.name,
-            document_id=str(new_document.id),
-            question_count=question_count
-        )
-
-        return {
-            "document_id": str(new_document.id),
-            "document_name": new_document.name,
-            "questions": questions,
-            "metadata": {
+            await log_service.log_document("upload_document", str(new_document.id), current_user, {
+                "filename": file.filename,
+                "number_question": number_question,
+                "questions_generated": len(questions),
                 "chunks_processed": chunks_processed,
-                "total_tokens": total_tokens,
-                "was_chunked": chunks_processed > 1
+                "total_tokens": total_tokens
+            })
+
+            question_count = len(questions)
+            await notification_service.notify_document_upload_success(
+                user=current_user,
+                document_name=new_document.name,
+                document_id=str(new_document.id),
+                question_count=question_count
+            )
+
+            return {
+                "document_id": str(new_document.id),
+                "document_name": new_document.name,
+                "questions": questions,
+                "metadata": {
+                    "chunks_processed": chunks_processed,
+                    "total_tokens": total_tokens,
+                    "was_chunked": chunks_processed > 1
+                }
             }
-        }
+        except Exception as e:
+            await new_document.delete()
+            if isinstance(e, AppException):
+                await notification_service.notify_document_upload_failed(
+                    user=current_user,
+                    document_name=file.filename,
+                    error_message=e.message
+                )
+            raise e
+
     except AppException:
         raise
     except Exception as e:
@@ -122,30 +128,6 @@ async def process_upload(number_question: int, file: UploadFile, current_user):
             details={"filename": file.filename, "user_id": str(current_user.id)}
         )
         raise AppException(StatusCode.FILE_PROCESSING_ERROR, f"Failed to process document: {str(e)}")
-
-
-async def get_all_documents(page: int, page_size: int):
-    if page < 1:
-        page = 1
-    if page_size < 1 or page_size > 100:
-        page_size = 20
-
-    skip = (page - 1) * page_size
-
-    total = await DocumentModel.find_all().count()
-    items = await DocumentModel.find_all().skip(skip).limit(page_size).to_list()
-
-    total_pages = (total + page_size - 1) // page_size
-
-    return {
-        "items": items,
-        "total": total,
-        "page": page,
-        "page_size": page_size,
-        "total_pages": total_pages,
-        "has_next": page < total_pages,
-        "has_previous": page > 1
-    }
 
 
 async def get_my_documents(page: int, page_size: int, current_user):

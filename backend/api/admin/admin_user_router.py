@@ -1,10 +1,8 @@
 from fastapi import APIRouter, Depends, BackgroundTasks
-from core.dependencies import get_current_user, get_current_admin
+from core.dependencies import get_current_admin
 from models.user_model import UserModel
 from schemas.base_schema import BaseResponse
 from schemas.user_schema import UserUpdate, AdminCreateUser
-from core.exception_handler import AppException
-from core.status_code import StatusCode
 from services import user_service
 from pydantic import BaseModel
 

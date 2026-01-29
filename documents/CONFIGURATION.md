@@ -1,7 +1,6 @@
 # Hướng Dẫn Triển Khai & Vận Hành (Deployment Guide)
 
 **Dự án:** Nghiên cứu xây dựng Website tự động tạo bộ câu hỏi ôn tập từ tài liệu hỗ trợ giáo viên kiểm tra sinh viên ôn luyện kèm hệ thống thống kê  
-**Cập nhật lần cuối:** 2026-01-11
 
 ---
 
@@ -215,7 +214,8 @@ Hệ thống tự động:
 
 ### Version
 - Backend: FastAPI
-- Frontend: React 18 + Vite 6 + TailwindCSSv4
-- Database: MongoDB Alast
+- Frontend: React 19 + Vite 6 + Tailwind CSS v4
+- Database: MongoDB Atlas
 - Python: 3.11+
 - Node.js: 18+
+- AI: OpenAI GPT-4o-mini (Structured Outputs)

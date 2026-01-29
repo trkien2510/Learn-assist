@@ -6,9 +6,7 @@ from schemas.otp_schema import (
     OTPRequest, 
     OTPVerify, 
     ForgotPasswordRequest, 
-    ResetPasswordRequest,
-    ReactivateAccountRequest,
-    ReactivateAccountVerify
+    ResetPasswordRequest
 )
 from services.auth_service import register as register_service, login as login_service, refresh_token as refresh_token_service
 from services import otp_service
@@ -60,16 +58,4 @@ async def reset_password(request: ResetPasswordRequest):
         request.new_password,
         request.confirm_password
     )
-    return BaseResponse(data=data)
-
-
-@router.post("/reactivate/request", response_model=BaseResponse[dict])
-async def reactivate_request(request: ReactivateAccountRequest, background_tasks: BackgroundTasks):
-    data = await otp_service.request_reactivate_otp(request.email, background_tasks)
-    return BaseResponse(data=data)
-
-
-@router.post("/reactivate/verify", response_model=BaseResponse[dict])
-async def reactivate_verify(request: ReactivateAccountVerify):
-    data = await otp_service.reactivate_account(request.email, request.otp_code)
     return BaseResponse(data=data)

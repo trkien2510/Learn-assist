@@ -108,8 +108,7 @@ Quản lý tài liệu học tập được tải lên để sinh câu hỏi.
       "_id": "ObjectId",
       "name": "String",
       "file_name": "String (Original Filename)",
-      "file_path": "String (Storage Path)",
-      "file_type": "String (MIME Type: PDF/DOCX)",
+      "file_type": "String (MIME Type: PDF/DOCX/DOC)",
       "creator": "Link<UserModel>",
       "upload_date": "DateTime"
     }
@@ -194,7 +193,7 @@ Quản lý thông báo cho người dùng và hệ thống.
     {
       "_id": "ObjectId",
       "user_id": "Link<UserModel>",
-      "notification_type": "Enum ['exam_created', 'exam_started', 'exam_ended', 'exam_result', 'exam_auto_submitted', 'document_upload_success', 'document_upload_failed', 'exam_creation_success', 'exam_statistics_available', 'system_error', 'system_warning', 'user_anomaly', 'high_error_rate', 'personal_exam_created']",
+      "notification_type": "Enum ['exam_created', 'exam_started', 'exam_ended', 'exam_result', 'document_upload_success', 'document_upload_failed', 'exam_creation_success', 'exam_statistics_available', 'system_error', 'system_warning', 'user_anomaly', 'high_error_rate']",
       "title": "String",
       "message": "String",
       "related_id": "String (Optional - ID of related resource)",
@@ -216,7 +215,7 @@ Quản lý yêu cầu tham gia lớp học.
     }
     ```
 
-### 2.10 Collection `otp`
+### 2.10 Collection `otps`
 Quản lý mã OTP cho xác thực.
 *   **Index:** `email + purpose`, `expires_at` (TTL).
 *   **Schema:**
@@ -225,7 +224,7 @@ Quản lý mã OTP cho xác thực.
       "_id": "ObjectId",
       "email": "String",
       "otp_code": "String (6 digits)",
-      "purpose": "Enum ['registration', 'forgot_password', 'reactivate_account']",
+      "purpose": "Enum ['registration', 'forgot_password']",
       "expires_at": "DateTime (UTC)",
       "is_used": "Boolean (Default: false)",
       "attempts": "Integer (Default: 0)",
@@ -270,8 +269,8 @@ MongoDB không hỗ trợ Foreign Key cứng như SQL, nhưng thiết kế sử 
 
 ## 4. Chính Sách Dữ Liệu
 
-*   **Tính Vẹn Toàn:** Khi xóa `User`, toàn bộ dữ liệu liên quan sẽ bị xóa sạch (cascade manual): tin nhắn, tài liệu, câu hỏi, đề thi (nếu là người tạo), kết quả làm bài, thông báo, nhật ký hoạt động và mã OTP.
-*   **Vòng Đời Dữ Liệu:** Logs sẽ tự động bị xóa sau 30 ngày nhờ TTL Index.
-*   **OTP Expiry:** OTP sẽ tự động hết hạn sau 5 phút.
+*   **Tính Vẹn Toàn:** Khi xóa `User`, toàn bộ dữ liệu liên quan sẽ bị xóa sạch (cascade manual): tin nhắn, tài liệu, câu hỏi, đề thi (nếu là người tạo), kết quả làm bài, thông báo và mã OTP.
+*   **Vòng Đời Dữ Liệu:** Logs sẽ tự động bị xóa sau 30 ngày, Notifications xóa sau 7 ngày nhờ TTL Index.
+*   **OTP Expiry:** OTP sẽ tự động hết hạn sau 10 phút.
 *   **Định Dạng Thời Gian:** Tất cả `DateTime` đều được lưu dưới dạng UTC.
 *   **Bảo mật mật khẩu:** Sử dụng HMAC-SHA256 + Bcrypt với 12 rounds.

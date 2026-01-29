@@ -7,6 +7,10 @@ import re
 import asyncio
 
 from core.config import settings
+from core.exception_handler import AppException
+from core.status_code import StatusCode
+from services import log_service
+import openai
 
 DEFAULT_MODEL = "gpt-4o-mini"
 CONTEXT_WINDOW = 128000
@@ -46,7 +50,7 @@ def count_words(text: str) -> int:
 
 def validate_document_content(text: str, num_questions: int) -> DocumentValidationResult:
     if not text or not text.strip():
-        return DocumentValidationResult(is_valid=False, error_code="EMPTY", error_message="Tài liệu trống")
+        return DocumentValidationResult(is_valid=False, error_code="EMPTY", error_message="Document is empty")
     
     cleaned_text = text.strip()
     word_count = count_words(cleaned_text)
@@ -56,7 +60,7 @@ def validate_document_content(text: str, num_questions: int) -> DocumentValidati
         return DocumentValidationResult(
             is_valid=False,
             error_code="TOO_MANY_QUESTIONS",
-            error_message=f"Số lượng câu hỏi vượt quá giới hạn (Tối đa {MAX_QUESTIONS} câu).",
+            error_message=f"Number of questions exceeds limit (Maximum {MAX_QUESTIONS} questions).",
             word_count=word_count,
             token_count=token_count
         )
@@ -171,7 +175,7 @@ YÊU CẦU ĐỊNH DẠNG:
 4. Phải đảm bảo các câu hỏi không bị trùng lặp nội dung với nhau.
 """
 
-async def call_openai_fast(prompt: str, num_questions: int) -> Optional[dict]:
+async def call_openai_fast(prompt: str, num_questions: int, user=None) -> Optional[dict]:
     client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
     
     dynamic_max_tokens = min(num_questions * 400, MAX_OUTPUT_LIMIT)
@@ -189,8 +193,59 @@ async def call_openai_fast(prompt: str, num_questions: int) -> Optional[dict]:
         )
         parsed = completion.choices[0].message.parsed
         return parsed.model_dump() if parsed else None
+    except openai.AuthenticationError as e:
+        error_msg = f"AI Authentication Error (Invalid API Key): {str(e)}"
+        print(error_msg)
+        await log_service.create_log(
+            action="ai_generation_error",
+            user=user,
+            details={"error": error_msg, "type": "AuthenticationError"},
+            status="error"
+        )
+        raise AppException(StatusCode.AI_GENERATION_FAILED, "AI service authentication failed. Please check system configuration.")
+        
+    except openai.RateLimitError as e:
+        error_msg = f"AI Rate Limit/Token Exhausted: {str(e)}"
+        print(error_msg)
+        await log_service.create_log(
+            action="ai_generation_error",
+            user=user,
+            details={"error": error_msg, "type": "RateLimitError"},
+            status="error"
+        )
+        raise AppException(StatusCode.AI_GENERATION_FAILED, "AI service rate limit reached or quota exhausted. Please try again later.")
+
+    except openai.APIConnectionError as e:
+        error_msg = f"AI Connection Error: {str(e)}"
+        print(error_msg)
+        await log_service.create_log(
+            action="ai_generation_error",
+            user=user,
+            details={"error": error_msg, "type": "APIConnectionError"},
+            status="error"
+        )
+        raise AppException(StatusCode.AI_GENERATION_FAILED, "Could not connect to AI service. Please try again later.")
+
+    except openai.APIError as e:
+        error_msg = f"AI API Error: {str(e)}"
+        print(error_msg)
+        await log_service.create_log(
+            action="ai_generation_error",
+            user=user,
+            details={"error": error_msg, "type": "APIError"},
+            status="error"
+        )
+        raise AppException(StatusCode.AI_GENERATION_FAILED, "AI service encountered an internal error. Please try again later.")
+
     except Exception as e:
-        print(f"AI Error: {e}")
+        error_msg = f"AI Unexpected Error: {str(e)}"
+        print(error_msg)
+        await log_service.create_log(
+            action="ai_generation_error",
+            user=user,
+            details={"error": error_msg, "type": type(e).__name__},
+            status="error"
+        )
         return None
 
 def deduplicate_questions(questions: List[dict]) -> List[dict]:
@@ -207,7 +262,8 @@ async def generate_questions(
     text: str, 
     num_questions: int,
     model: str = None,
-    filename: str = None
+    filename: str = None,
+    user=None
 ) -> Tuple[Optional[dict], Optional[str]]:
     
     validation = validate_document_content(text, num_questions)
@@ -229,7 +285,7 @@ async def generate_questions(
                 extra_context = f"\nLƯU Ý: Đã có các câu hỏi sau, hãy tạo các câu khác hoàn toàn:\n{existing_qs}"
             
             prompt = create_specialized_prompt(text.strip(), remaining_needed, doc_type) + extra_context
-            result = await call_openai_fast(prompt, remaining_needed)
+            result = await call_openai_fast(prompt, remaining_needed, user)
             new_qs = result.get("questions", []) if result else []
             all_questions.extend(new_qs)
         else:
@@ -242,7 +298,7 @@ async def generate_questions(
                 count = q_per_chunk + (1 if i < rem else 0)
                 if count > 0:
                     prompt = create_specialized_prompt(chunks[i], count, doc_type)
-                    tasks.append(call_openai_fast(prompt, count))
+                    tasks.append(call_openai_fast(prompt, count, user))
             
             results = await asyncio.gather(*tasks)
             for res in results:
@@ -251,6 +307,9 @@ async def generate_questions(
         
         all_questions = deduplicate_questions(all_questions)
         retry_count += 1
+
+    if not all_questions:
+        return None, "AI service failed to generate any questions after multiple attempts."
 
     return {
         "questions": all_questions[:num_questions],

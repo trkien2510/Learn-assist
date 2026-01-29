@@ -24,20 +24,19 @@
 *   **UC-05:** Xóa tài khoản (Khi xóa tài khoản sẽ xóa toàn bộ dữ liệu liên quan: tin nhắn, lớp học, bài thi, kết quả...).
 *   **UC-06:** Quên mật khẩu với OTP (Forgot Password).
 *   **UC-07:** Đặt lại mật khẩu (Reset Password).
-*   **UC-08:** Kích hoạt lại tài khoản (Reactivate Account).
 
 ### 2.2 Nhóm Chức Năng Lớp Học (UC-Class)
-*   **UC-09:** Tạo lớp học mới (Create Class) - *Teacher only*.
-*   **UC-10:** Xem chi tiết lớp học (View Classroom Detail).
-*   **UC-11:** Tham gia lớp học bằng mã (Join by Code) - *Student*.
-*   **UC-12:** Phê duyệt yêu cầu tham gia (Approve/Reject Requests) - *Teacher*.
-*   **UC-13:** Quản lý thành viên lớp (Manage Members).
-*   **UC-14:** Rời khỏi lớp học (Leave Classroom) - *Student*.
-*   **UC-15:** Xem danh sách lớp học (View Classrooms).
+*   **UC-08:** Tạo lớp học mới (Create Class) - *Teacher only*.
+*   **UC-09:** Xem chi tiết lớp học (View Classroom Detail).
+*   **UC-10:** Tham gia lớp học bằng mã (Join by Code) - *Student*.
+*   **UC-11:** Phê duyệt yêu cầu tham gia (Approve/Reject Requests) - *Teacher*.
+*   **UC-12:** Quản lý thành viên lớp (Manage Members).
+*   **UC-13:** Rời khỏi lớp học (Leave Classroom) - *Student*.
+*   **UC-14:** Xem danh sách lớp học (View Classrooms).
 
 ### 2.3 Nhóm Chức Năng Tài Liệu & AI (UC-Doc)
 *   **UC-16:** Tải lên tài liệu học tập (Upload Document).
-*   **UC-17:** Sinh câu hỏi tự động với AI (Generate Questions) - *Structured Outputs*.
+*   **UC-17:** Sinh câu hỏi tự động với AI (Generate Questions) - *Sử dụng AsyncOpenAI & Parallel Processing*.
 *   **UC-18:** Chỉnh sửa & Lưu câu hỏi (Review & Save).
 *   **UC-19:** Xóa tài liệu (Delete Document).
 

@@ -4,11 +4,10 @@
 
 ---
 
-## 1. Authentication (`/auth`) - 10 endpoints
+## 1. Authentication (`/auth`) - 7 endpoints
 
 | Method | Endpoint | Function |
 |--------|----------|----------|
-| POST | `/add-user/for-test` | Add user for testing (bypass OTP) |
 | POST | `/register` | Register new account |
 | POST | `/login` | Login, returns access_token and refresh_token |
 | POST | `/refresh-token` | Refresh access token |
@@ -16,8 +15,7 @@
 | POST | `/otp/verify` | Verify registration OTP |
 | POST | `/forgot-password` | Request forgot password OTP |
 | POST | `/reset-password` | Reset password with OTP |
-| POST | `/reactivate/request` | Request account reactivation OTP |
-| POST | `/reactivate/verify` | Verify and reactivate account |
+
 
 ---
 
@@ -190,12 +188,13 @@
 
 ---
 
-## 13. Admin (`/admin`) - 21 endpoints (Admin Only)
+## 13. Admin (`/admin`) - 22 endpoints (Admin Only)
 
 ### User Management (`/admin/users`)
 
 | Method | Endpoint | Function |
 |--------|----------|----------|
+| POST | `/create` | Admin creates new user (can bypass OTP) |
 | GET | `/` | Get all users (paginated, supports role/status/search filters) |
 | GET | `/{user_id}` | Get user details |
 | PUT | `/{user_id}` | Update user information |
@@ -254,7 +253,7 @@
 
 | Module | Endpoints |
 |--------|----------|
-| Auth | 10 |
+| Auth | 7 |
 | User | 4 |
 | Classroom | 13 |
 | Document | 4 |
@@ -266,5 +265,7 @@
 | Notifications | 5 |
 | Messages | 2 |
 | Practice | 9 |
-| Admin | 21 |
-| **Total** | **99** |
+| Admin | 22 |
+| **Total** | **97** |
+
+

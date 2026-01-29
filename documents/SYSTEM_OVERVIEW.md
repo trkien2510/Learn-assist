@@ -20,10 +20,10 @@ Hệ thống bao gồm các phân hệ chính:
 ## 2. Các Thành Phần Chính
 
 1.  **Presentation Layer (Frontend ReactJS):** 
-    *   Giao diện người dùng (Web) tương tác với hệ thống qua HTTP Requests.
-    *   Sử dụng React 18+ với Vite làm build tool.
+    *   Giao diện người dùng (Web) hiện đại, responsive.
+    *   Sử dụng **React 19** với **Vite 6** làm build tool.
     *   State management với React Context API.
-    *   Styling với Vanilla CSS và thiết kế Glassmorphism.
+    *   Styling với **Tailwind CSS v4** và thiết kế Glassmorphism cao cấp.
     
 2.  **Application Layer (Backend API):**
     *   Xây dựng trên nền tảng **FastAPI** (Python) cho hiệu năng cao và khả năng xử lý bất đồng bộ (async).
@@ -37,8 +37,9 @@ Hệ thống bao gồm các phân hệ chính:
     *   TTL Index cho logs và OTP tự động expire.
     
 4.  **Integration Layer (AI Service):**
-    *   Tích hợp **OpenAI API** với Structured Outputs để sinh câu hỏi trắc nghiệm.
-    *   Sử dụng GPT-4o-mini cho xử lý ngôn ngữ tự nhiên.
+    *   Tích hợp **OpenAI API** với **AsyncOpenAI** (xử lý bất đồng bộ).
+    *   Sử dụng **GPT-4o-mini** với Structured Outputs để sinh câu hỏi trắc nghiệm chuẩn xác.
+    *   Hỗ trợ **Chunking & Parallel Processing**: Tự động chia nhỏ tài liệu lớn và xử lý song song để tăng tốc độ.
 
 5.  **Email Service:**
     *   Sử dụng **FastAPI-Mail** để gửi email OTP.
@@ -50,7 +51,7 @@ Hệ thống bao gồm các phân hệ chính:
 
 | Thành phần | Công nghệ | Lý do lựa chọn |
 |------------|-----------|----------------|
-| **Frontend Framework** | **React 18 + Vite** | Hot Module Replacement nhanh, build tối ưu. |
+| **Frontend Framework** | **React 19 + Vite 6** | Hiệu năng vượt trội, hỗ trợ các tính năng mới nhất của React. |
 | **Backend Framework** | **FastAPI** | Hiệu năng cao, hỗ trợ Async IO, tự động sinh API Docs. |
 | **Database** | **MongoDB** | Schema linh hoạt, khả năng scale tốt. |
 | **ODM** | **Beanie** | Async driver, cú pháp Pythonic. |
@@ -59,7 +60,8 @@ Hệ thống bao gồm các phân hệ chính:
 | **AI Integration** | **OpenAI API (GPT-4o-mini)** | Structured Outputs, hiểu ngữ cảnh tiếng Việt tốt. |
 | **Document Processing** | **PyPDF, Python-docx** | Xử lý văn bản đầu vào cho AI. |
 | **Email Service** | **FastAPI-Mail** | Gửi email bất đồng bộ. |
-| **Charts** | **Recharts** | Biểu đồ đẹp, responsive. |
+| **Charts** | **Recharts** | Biểu đồ tương tác, responsive. |
+| **Styling** | **Tailwind CSS v4** | Hệ thống style hiện đại, tối ưu hiệu năng và khả năng tùy biến. |
 
 ---
 
@@ -177,10 +179,10 @@ backend/
 ### 5.2 Quy Trình Sinh Câu Hỏi Tự Động
 1.  **Upload:** Giáo viên tải lên file tài liệu (PDF/Word).
 2.  **Pre-processing:** Hệ thống đọc file, làm sạch văn bản.
-3.  **AI Processing:** Gửi văn bản tới OpenAI với Structured Outputs.
-4.  **Parsing:** Nhận phản hồi JSON đã được validate.
-5.  **Review:** Hiển thị cho giáo viên kiểm tra, chỉnh sửa.
-6.  **Storage:** Lưu câu hỏi vào Ngân hàng câu hỏi.
+3.  **AI Processing:** Chia nhỏ văn bản (nếu cần), gửi song song tới OpenAI với Structured Outputs.
+4.  **Parsing:** Nhận phản hồi JSON, gộp các chunks và tiến hành loại bỏ câu hỏi trùng lặp (Deduplication).
+5.  **Review:** Hiển thị cho giáo viên kiểm tra, chỉnh sửa nội dung và độ khó.
+6.  **Storage:** Lưu câu hỏi vào Ngân hàng câu hỏi thuộc quyền sở hữu của giáo viên.
 
 ### 5.3 Quy Trình Tổ Chức Kiểm Tra
 1.  **Preview:** Giáo viên chọn số lượng câu hỏi theo độ khó -> Xem trước câu hỏi.

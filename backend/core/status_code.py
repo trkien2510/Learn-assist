@@ -25,6 +25,7 @@ class StatusCode(int, Enum):
     MESSAGE_NOT_FOUND = 4306
     DOCUMENT_ACCESS_DENIED = 4310
     EXAM_DELETED = 4311
+    AI_GENERATION_FAILED = 4312
     
     # OTP errors (44xx)
     OTP_INVALID = 4401
@@ -35,7 +36,6 @@ class StatusCode(int, Enum):
     DATABASE_ERROR = 5001
     FILE_PROCESSING_ERROR = 5002
     EXTERNAL_API_ERROR = 5003
-    AI_GENERATION_FAILED = 5004
 
     # Document validation errors (45xx)
     DOCUMENT_TOO_SHORT = 4501

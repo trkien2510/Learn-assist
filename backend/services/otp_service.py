@@ -168,40 +168,6 @@ async def reset_password(email: str, otp_code: str, new_password: str, confirm_p
     return {"message": "Password reset successful"}
 
 
-async def request_reactivate_otp(email: str, background_tasks = None) -> dict:
-    user = await UserModel.find_one({"email": email})
-    if not user:
-        raise AppException(StatusCode.NOT_FOUND, "No account found with this email")
-
-    if user.is_activate:
-        raise AppException(StatusCode.BAD_REQUEST, "Account already activated")
-
-    return await create_and_send_otp(email, OTPPurpose.REACTIVATE_ACCOUNT, user.full_name, background_tasks)
-
-
-async def reactivate_account(email: str, otp_code: str) -> dict:
-    await verify_otp(email, otp_code, OTPPurpose.REACTIVATE_ACCOUNT)
-
-    user = await UserModel.find_one({"email": email})
-    if not user:
-        raise AppException(StatusCode.NOT_FOUND, "User not found")
-
-    user.is_activate = True
-    user.updated_at = datetime.now(timezone.utc)
-    await user.save()
-
-    await log_service.create_log(
-        action="account_reactivated",
-        user=user,
-        resource_type="user",
-        resource_id=str(user.id),
-        details={"email": email},
-        status="success"
-    )
-
-    return {"message": "Account reactivated successfully"}
-
-
 async def cleanup_expired_otps():
     await OTPModel.find(
         OTPModel.expires_at < datetime.now(timezone.utc)

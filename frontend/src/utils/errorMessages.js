@@ -86,6 +86,13 @@ const errorMessages = {
     'File too large': 'File quá lớn',
     'Invalid file type': 'Loại file không hợp lệ',
     'Only PDF and DOCX files are allowed': 'Chỉ chấp nhận file PDF hoặc DOCX',
+    'AI service authentication failed. Please check system configuration.': 'Lỗi xác thực dịch vụ AI. Vui lòng kiểm tra cấu hình hệ thống',
+    'AI service rate limit reached or quota exhausted. Please try again later.': 'Dịch vụ AI đã hết hạn mức hoặc quá tải. Vui lòng thử lại sau',
+    'Could not connect to AI service. Please try again later.': 'Không thể kết nối với dịch vụ AI. Vui lòng thử lại sau',
+    'AI service encountered an internal error. Please try again later.': 'Dịch vụ AI gặp lỗi nội bộ. Vui lòng thử lại sau',
+    'Document is empty': 'Tài liệu trống',
+    'Number of questions exceeds limit': 'Số lượng câu hỏi vượt quá giới hạn',
+    'AI service failed to generate any questions after multiple attempts.': 'Dịch vụ AI không thể sinh câu hỏi sau nhiều lần thử. Vui lòng kiểm tra lại tài liệu hoặc thử lại sau',
 
     // Result errors
     'Result not found': 'Không tìm thấy kết quả',
