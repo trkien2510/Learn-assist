@@ -139,12 +139,10 @@ Ngân hàng câu hỏi trắc nghiệm.
       "duration": "Integer (Minutes)",
       "start_at": "DateTime (UTC)",
       "end_at": "DateTime (UTC)",
-      "expiry_at": "DateTime",
       "class_id": "Link<ClassroomModel> (Optional - null for personal exams)",
       "creator_id": "Link<UserModel>",
       "questions": ["Link<QuestionModel>"],
-      "is_personal": "Boolean (Default: false)",
-      "created_at": "DateTime"
+      "is_personal": "Boolean (Default: false)"
     }
     ```
     *Ràng buộc:* `start_at` < `end_at`.
@@ -235,12 +233,12 @@ Quản lý mã OTP cho xác thực.
 
 ### 2.11 Collection `messages`
 Quản lý tin nhắn trong lớp học.
-*   **Index:** `classroom_id + created_at`.
+*   **Index:** `classroom.$id + created_at`.
 *   **Schema:**
     ```json
     {
       "_id": "ObjectId",
-      "classroom_id": "Link<ClassroomModel>",
+      "classroom": "Link<ClassroomModel>",
       "sender": "Link<UserModel>",
       "content": "String",
       "created_at": "DateTime (UTC)"
