@@ -16,6 +16,7 @@ class ExamModel(Document):
     start_at: datetime
     end_at: datetime
     is_personal: bool = Field(default=False)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     class Settings:
         name = "exam"
