@@ -5,6 +5,9 @@ from models.result_model import ResultModel
 from models.question_model import QuestionModel
 from services import log_service, notification_service
 import asyncio
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 async def auto_submit_expired_exams():
@@ -75,24 +78,25 @@ async def auto_submit_expired_exams():
                             total_questions=total_questions
                         )
                 except Exception as log_error:
-                    print(f"Error logging auto-submission: {log_error}")
+                    logger.error(f"Error logging auto-submission: {log_error}")
         
         if auto_submitted_count > 0:
-            print(f"Auto-submitted {auto_submitted_count} expired exam(s) at {now}")
+            logger.info(f"Auto-submitted {auto_submitted_count} expired exam(s) at {now}")
         
         return auto_submitted_count
         
     except Exception as e:
-        print(f"Error in auto_submit_expired_exams: {e}")
+        logger.error(f"Error in auto_submit_expired_exams: {e}")
         return 0
 
 
 async def start_auto_submit_scheduler():
-    print("Auto-submit scheduler started")
+    logger.info("Auto-submit scheduler started")
     while True:
         try:
             await auto_submit_expired_exams()
         except Exception as e:
-            print(f"Error in auto-submit scheduler: {e}")
+            logger.error(f"Error in auto-submit scheduler: {e}")
         
         await asyncio.sleep(30)
+

@@ -14,3 +14,6 @@ class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str
     role: str
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str

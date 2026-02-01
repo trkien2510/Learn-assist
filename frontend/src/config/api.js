@@ -37,7 +37,7 @@ export const API_ENDPOINTS = {
   MESSAGE_DELETE: (messageId) => `/message/${messageId}`,
 
   DOCUMENT_ALL: '/document/all',
-  DOCUMENT_UPLOAD: (numQuestions) => `/document/upload/${numQuestions}`,
+  DOCUMENT_UPLOAD: (numQuestions, mode) => `/document/upload/${numQuestions}?mode=${mode}`,
   DOCUMENT_SAVE_QUESTIONS: (documentId) => `/document/save-questions/${documentId}`,
   DOCUMENT_DELETE: (documentId) => `/document/${documentId}`,
 

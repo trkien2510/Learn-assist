@@ -1,6 +1,6 @@
 from fastapi import APIRouter, BackgroundTasks
 
-from schemas.base_schema import BaseResponse, TokenResponse
+from schemas.base_schema import BaseResponse, TokenResponse, RefreshTokenRequest
 from schemas.user_schema import UserRegister, UserLogin
 from schemas.otp_schema import (
     OTPRequest, 
@@ -27,8 +27,8 @@ async def login(login_data: UserLogin):
 
 
 @router.post("/refresh-token", response_model=BaseResponse[TokenResponse])
-async def refresh(refresh_data: str):
-    data = await refresh_token_service(refresh_data)
+async def refresh(request: RefreshTokenRequest):
+    data = await refresh_token_service(request.refresh_token)
     return BaseResponse(data=data)
 
 

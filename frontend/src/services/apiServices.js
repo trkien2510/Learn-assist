@@ -68,10 +68,10 @@ export const documentService = {
         return httpClient.get(API_ENDPOINTS.DOCUMENT_ALL, { page, page_size: pageSize });
     },
 
-    async upload(file, numQuestions) {
+    async upload(file, numQuestions, mode) {
         const formData = new FormData();
         formData.append('file', file);
-        return httpClient.upload(API_ENDPOINTS.DOCUMENT_UPLOAD(numQuestions), formData);
+        return httpClient.upload(API_ENDPOINTS.DOCUMENT_UPLOAD(numQuestions, mode), formData);
     },
 
     async saveQuestions(documentId, questions) {

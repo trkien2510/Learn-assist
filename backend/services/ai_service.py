@@ -1,6 +1,7 @@
 from typing import Literal, List, Optional, Tuple
 from pydantic import BaseModel
 from openai import AsyncOpenAI
+from enum import Enum
 import tiktoken
 import math
 import re
@@ -17,6 +18,11 @@ CONTEXT_WINDOW = 128000
 MAX_OUTPUT_LIMIT = 16384
 RESERVED_TOKENS = 17500 
 MAX_QUESTIONS = 50
+
+
+class GenerationMode(str, Enum):
+    STRICT = "strict"
+    EXPANDED = "expanded"
 
 
 class GeneratedQuestion(BaseModel):
@@ -121,58 +127,28 @@ def split_document_into_chunks(text: str) -> List[str]:
     return chunks
 
 
-DOCUMENT_KEYWORDS = {
-    'Công nghệ': ['hệ thống', 'thuật toán', 'phần mềm', 'dữ liệu', 'mạng', 'lập trình', 'ai', 'cloud', 'database'],
-    'Y tế': ['bệnh', 'điều trị', 'thuốc', 'triệu chứng', 'y khoa', 'bác sĩ', 'vắc xin', 'sức khỏe'],
-    'Pháp luật': ['điều', 'khoản', 'nghị định', 'luật', 'thông tư', 'quy định', 'tòa án', 'vi phạm'],
-    'Kinh tế': ['thị trường', 'lợi nhuận', 'doanh nghiệp', 'tài chính', 'ngân hàng', 'đầu tư', 'lạm phát'],
-    'Lịch sử - Địa lý': ['thế kỷ', 'năm', 'sự kiện', 'văn hóa', 'quốc gia', 'địa danh', 'lịch sử', 'khí hậu'],
-    'Văn học': ['nhân vật', 'tác giả', 'tác phẩm', 'nghệ thuật', 'thơ', 'truyện', 'tiểu thuyết'],
-    'Toán học': ['toán', 'số học', 'hình học', 'đại số', 'bảng cửu chương', 'phép tính', 'phương trình', 'bài toán']
-}
+def create_prompt(text: str, num_questions: int, mode: GenerationMode) -> str:
+    if mode == GenerationMode.STRICT:
+        mode_desc = "BÁM SÁT: Chỉ dùng thông tin CÓ TRONG tài liệu. KHÔNG thêm kiến thức ngoài."
+    else:
+        mode_desc = """MỞ RỘNG: Câu hỏi PHẢI dựa trên chủ đề/khái niệm trong tài liệu.
+Có thể bổ sung kiến thức liên quan TRỰC TIẾP đến nội dung tài liệu.
+KHÔNG tạo câu hỏi về chủ đề không được đề cập."""
+    
+    return f"""Tạo {num_questions} câu trắc nghiệm.
+Chế độ: {mode_desc}
 
-TYPE_HINTS = {
-    "Công nghệ": "Tập trung vào logic, quy trình và thông số. CÓ THỂ sử dụng kiến thức chuyên môn bên ngoài để làm phong phú câu hỏi nếu tài liệu chưa đủ chi tiết.",
-    "Y tế": "YÊU CẦU CHÍNH XÁC TUYỆT ĐỐI. Chỉ đặt câu hỏi dựa trên các sự thật y khoa có trong tài liệu, KHÔNG tự ý suy diễn hoặc thêm kiến thức ngoài.",
-    "Pháp luật": "YÊU CẦU BÁM SÁT VĂN BẢN. Mọi câu hỏi và đáp án phải căn cứ trực tiếp vào các điều khoản, quy định trong tài liệu tải lên.",
-    "Kinh tế": "Tập trung vào các nguyên lý và chỉ số. CÓ THỂ mở rộng thêm các tình huống thực tế liên quan đến chuyên môn kinh tế để tăng tính ứng dụng.",
-    "Lịch sử - Địa lý": "BÁM SÁT DỮ KIỆN. Tập trung vào các mốc thời gian, địa điểm và sự kiện cụ thể có trong tài liệu.",
-    "Văn học": "CÓ THỂ sáng tạo. Tập trung vào cảm thụ, tâm lý và phong cách, có thể kết nối với các kiến thức văn học liên quan để câu hỏi sâu sắc hơn.",
-    "Toán học": "CÓ THỂ MỞ RỘNG. Nếu tài liệu nhắc đến một chủ đề toán học, hãy sử dụng toàn bộ quy tắc và kiến thức toán học của chủ đề đó để sinh câu hỏi.",
-    "Chung": "Bám sát các ý chính và thông tin quan trọng trong văn bản tải lên."
-}
-
-def detect_document_type(text: str, filename: str = None) -> str:
-    sample = (filename or "") + " " + text[:3000].lower()
-    scores = {dtype: sum(1 for kw in kws if kw in sample.lower()) for dtype, kws in DOCUMENT_KEYWORDS.items()}
-    max_score = max(scores.values())
-    return max(scores, key=scores.get) if max_score >= 1 else "Chung"
-
-def create_specialized_prompt(text: str, num_questions: int, doc_type: str = "Chung") -> str:
-    hint = TYPE_HINTS.get(doc_type, TYPE_HINTS["Chung"])
-    return f"""Tạo {num_questions} câu hỏi trắc nghiệm từ tài liệu thuộc lĩnh vực [{doc_type}].
-Yêu cầu chuyên môn: {hint}
-
----
-[TÀI LIỆU]
+[NỘI DUNG]
 {text}
-[/TÀI LIỆU]
----
+[/NỘI DUNG]
 
-QUY TẮC BẮT BUỘC (PHẢI TUÂN THỦ):
-• PHẢI TẠO ĐỦ CHÍNH XÁC {num_questions} CÂU HỎI. Không được thiếu dù chỉ 1 câu.
-• MỌI câu hỏi phải dựa trên nội dung, khái niệm hoặc dữ kiện CÓ TRONG tài liệu.
-• KHÔNG được tạo câu hỏi về nội dung mà tài liệu không đề cập.
-• Đáp án:
-  + Phải xuất hiện trực tiếp trong tài liệu,
-  + HOẶC là kết quả suy luận hợp lý từ thông tin trong tài liệu, NHƯNG CHỈ KHI "Yêu cầu chuyên môn" cho phép rõ ràng.
-• Nếu việc tạo câu hỏi yêu cầu suy diễn vượt quá tài liệu → KHÔNG tạo câu hỏi đó.
-
-YÊU CẦU ĐỊNH DẠNG:
-1. Mỗi câu có 4 lựa chọn (ghi rõ nội dung cụ thể).
-2. 'answer' là nội dung COPPY CHÍNH XÁC của 1 lựa chọn đúng.
-3. 'difficulty' ngẫu nhiên: "dễ", "trung bình", "khó".
-4. Phải đảm bảo các câu hỏi không bị trùng lặp nội dung với nhau.
+Yêu cầu:
+• {num_questions} câu, mỗi câu 4 đáp án
+• 'answer' = nội dung chính xác của đáp án đúng
+• 'difficulty': "dễ"|"trung bình"|"khó"
+• Câu hỏi phải liên quan đến nội dung tài liệu
+• Không trùng lặp, không mơ hồ
+• Nếu không đủ nội dung → {{"questions": []}}
 """
 
 async def call_openai_fast(prompt: str, num_questions: int, user=None) -> Optional[dict]:
@@ -184,7 +160,7 @@ async def call_openai_fast(prompt: str, num_questions: int, user=None) -> Option
         completion = await client.beta.chat.completions.parse(
             model=DEFAULT_MODEL,
             messages=[
-                {"role": "system", "content": "Bạn là chuyên gia tạo câu hỏi trắc nghiệm giáo dục chất lượng cao."},
+                {"role": "system", "content": "Chuyên gia tạo câu trắc nghiệm."},
                 {"role": "user", "content": prompt}
             ],
             response_format=QuestionGenerationResponse,
@@ -195,7 +171,6 @@ async def call_openai_fast(prompt: str, num_questions: int, user=None) -> Option
         return parsed.model_dump() if parsed else None
     except openai.AuthenticationError as e:
         error_msg = f"AI Authentication Error (Invalid API Key): {str(e)}"
-        print(error_msg)
         await log_service.create_log(
             action="ai_generation_error",
             user=user,
@@ -206,7 +181,6 @@ async def call_openai_fast(prompt: str, num_questions: int, user=None) -> Option
         
     except openai.RateLimitError as e:
         error_msg = f"AI Rate Limit/Token Exhausted: {str(e)}"
-        print(error_msg)
         await log_service.create_log(
             action="ai_generation_error",
             user=user,
@@ -217,7 +191,6 @@ async def call_openai_fast(prompt: str, num_questions: int, user=None) -> Option
 
     except openai.APIConnectionError as e:
         error_msg = f"AI Connection Error: {str(e)}"
-        print(error_msg)
         await log_service.create_log(
             action="ai_generation_error",
             user=user,
@@ -228,7 +201,6 @@ async def call_openai_fast(prompt: str, num_questions: int, user=None) -> Option
 
     except openai.APIError as e:
         error_msg = f"AI API Error: {str(e)}"
-        print(error_msg)
         await log_service.create_log(
             action="ai_generation_error",
             user=user,
@@ -239,7 +211,6 @@ async def call_openai_fast(prompt: str, num_questions: int, user=None) -> Option
 
     except Exception as e:
         error_msg = f"AI Unexpected Error: {str(e)}"
-        print(error_msg)
         await log_service.create_log(
             action="ai_generation_error",
             user=user,
@@ -258,22 +229,33 @@ def deduplicate_questions(questions: List[dict]) -> List[dict]:
             unique_questions.append(q)
     return unique_questions
 
+def validate_questions(questions: List[dict]) -> List[dict]:
+    valid_questions = []
+    for q in questions:
+        if not q.get('content') or not q.get('options') or not q.get('answer'):
+            continue
+        if len(q['options']) != 4:
+            continue
+        if q['answer'] not in q['options']:
+            continue
+        valid_questions.append(q)
+    return valid_questions
+
+
 async def generate_questions(
     text: str, 
     num_questions: int,
-    model: str = None,
-    filename: str = None,
+    mode: GenerationMode,
     user=None
 ) -> Tuple[Optional[dict], Optional[str]]:
-    
     validation = validate_document_content(text, num_questions)
     if not validation.is_valid:
         return None, validation.error_message
     
-    doc_type = detect_document_type(text, filename)
     all_questions = []
     max_retries = 3
     retry_count = 0
+    empty_responses = 0
 
     while len(all_questions) < num_questions and retry_count < max_retries:
         remaining_needed = num_questions - len(all_questions)
@@ -281,12 +263,19 @@ async def generate_questions(
         if not validation.requires_chunking:
             extra_context = ""
             if all_questions:
-                existing_qs = "\n".join([f"- {q['content']}" for q in all_questions[-10:]])
-                extra_context = f"\nLƯU Ý: Đã có các câu hỏi sau, hãy tạo các câu khác hoàn toàn:\n{existing_qs}"
+                existing_qs = "\n".join([f"- {q['content']}" for q in all_questions[-5:]])
+                extra_context = f"\nTránh trùng:\n{existing_qs}"
             
-            prompt = create_specialized_prompt(text.strip(), remaining_needed, doc_type) + extra_context
+            prompt = create_prompt(text.strip(), remaining_needed, mode) + extra_context
             result = await call_openai_fast(prompt, remaining_needed, user)
             new_qs = result.get("questions", []) if result else []
+            
+            if not new_qs:
+                empty_responses += 1
+                if empty_responses >= 2:
+                    break
+            
+            new_qs = validate_questions(new_qs)
             all_questions.extend(new_qs)
         else:
             chunks = split_document_into_chunks(text)
@@ -297,24 +286,39 @@ async def generate_questions(
             for i in range(len(chunks)):
                 count = q_per_chunk + (1 if i < rem else 0)
                 if count > 0:
-                    prompt = create_specialized_prompt(chunks[i], count, doc_type)
+                    prompt = create_prompt(chunks[i], count, mode)
                     tasks.append(call_openai_fast(prompt, count, user))
             
             results = await asyncio.gather(*tasks)
+            chunk_empty = 0
             for res in results:
                 if res and res.get("questions"):
-                    all_questions.extend(res["questions"])
+                    validated_qs = validate_questions(res["questions"])
+                    all_questions.extend(validated_qs)
+                else:
+                    chunk_empty += 1
+            
+            if chunk_empty == len(results):
+                empty_responses += 1
+                if empty_responses >= 2:
+                    break
         
         all_questions = deduplicate_questions(all_questions)
         retry_count += 1
 
     if not all_questions:
-        return None, "AI service failed to generate any questions after multiple attempts."
+        return {
+            "questions": [],
+            "chunks_processed": 1 if not validation.requires_chunking else len(split_document_into_chunks(text)),
+            "total_tokens": validation.token_count,
+            "model": DEFAULT_MODEL,
+            "reason": "Document content is not suitable for generating quiz questions."
+        }, None
 
     return {
         "questions": all_questions[:num_questions],
         "chunks_processed": 1 if not validation.requires_chunking else len(split_document_into_chunks(text)),
         "total_tokens": validation.token_count,
-        "doc_type": doc_type,
-        "model": DEFAULT_MODEL
+        "model": DEFAULT_MODEL,
+        "generation_mode": mode.value
     }, None

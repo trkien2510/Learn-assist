@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, File, Depends
+from fastapi import APIRouter, UploadFile, File, Depends, Query
 from core.dependencies import get_current_user
 from models.user_model import UserModel
 from schemas.base_schema import BaseResponse
@@ -15,8 +15,13 @@ async def get_all_documents(page: int = 1, page_size: int = 20, current_user: Us
 
 
 @router.post("/upload/{number_question}", response_model=BaseResponse)
-async def upload_document(number_question: int, file: UploadFile = File(...), current_user: UserModel = Depends(get_current_user)):
-    data = await document_service.process_upload(number_question, file, current_user)
+async def upload_document(
+    number_question: int, 
+    mode: str = Query(..., description="Generation mode: 'strict' (follow document content only) or 'expanded' (allow related knowledge)"),
+    file: UploadFile = File(...), 
+    current_user: UserModel = Depends(get_current_user)
+):
+    data = await document_service.process_upload(number_question, file, current_user, mode)
     return BaseResponse(data=data)
 
 

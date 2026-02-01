@@ -15,6 +15,9 @@ from utils.query_helpers import (
     get_id_from_link,
     get_submitted_exam_ids_for_user
 )
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 async def create_exam(exam_data, current_user):
@@ -215,7 +218,7 @@ async def start_exam(exam_id: str, current_user):
                 "title": exam.title
             })
         except Exception as e:
-            print(f"Failed to log exam start: {e}")
+            logger.error(f"Failed to log exam start: {e}")
 
         try:
             await notification_service.notify_student_exam_started(
@@ -224,7 +227,7 @@ async def start_exam(exam_id: str, current_user):
                 classroom_name=classroom.name
             )
         except Exception as e:
-            print(f"Failed to send notification: {e}")
+            logger.error(f"Failed to send notification: {e}")
 
     return {
         "exam": {
@@ -314,7 +317,7 @@ async def submit_exam(exam_id: str, submit_data, current_user):
             "total_questions": total_questions
         })
     except Exception as e:
-        print(f"Failed to log exam submission: {e}")
+        logger.error(f"Failed to log exam submission: {e}")
 
     try:
         await notification_service.notify_student_exam_submitted(
@@ -325,7 +328,7 @@ async def submit_exam(exam_id: str, submit_data, current_user):
             total_questions=total_questions
         )
     except Exception as e:
-        print(f"Failed to send submission notification: {e}")
+        logger.error(f"Failed to send submission notification: {e}")
 
     return {
         "result_id": str(result.id),
@@ -557,7 +560,7 @@ async def create_personal_exam(exam_data, current_user):
                         if document and document.creator.ref.id == current_user.id:
                             question_links.append(q)
             except Exception as e:
-                print(f"Error processing question {qid}: {e}")
+                logger.error(f"Error processing question {qid}: {e}")
                 pass
     
     elif exam_data.num_questions and exam_data.num_questions > 0:
@@ -715,7 +718,7 @@ async def start_personal_exam(exam_id: str, current_user):
                 "title": exam.title
             })
         except Exception as e:
-            print(f"Failed to log personal exam start: {e}")
+            logger.error(f"Failed to log personal exam start: {e}")
 
     return {
         "exam": {

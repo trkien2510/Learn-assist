@@ -1,8 +1,10 @@
 from fastapi import UploadFile
+from typing import Optional
 from utils.document_util import read_and_clean_uploaded_file
 from services.ai_service import (
     generate_questions,
-    validate_document_content
+    validate_document_content,
+    GenerationMode
 )
 from core.exception_handler import AppException
 from core.status_code import StatusCode
@@ -13,9 +15,14 @@ from models.document_model import DocumentModel
 import os
 
 
-async def process_upload(number_question: int, file: UploadFile, current_user):
+async def process_upload(number_question: int, file: UploadFile, current_user, mode: str):
     if current_user.role.value == "admin":
         raise AppException(StatusCode.FORBIDDEN, "Admin cannot upload documents")
+    
+    if not mode or mode.lower() not in ["strict", "expanded"]:
+        raise AppException(StatusCode.BAD_REQUEST, "Generation mode is required. Please choose 'strict' or 'expanded'")
+    
+    generation_mode = GenerationMode.STRICT if mode.lower() == "strict" else GenerationMode.EXPANDED
     
     try:
         document_content = await read_and_clean_uploaded_file(file)
@@ -67,7 +74,7 @@ async def process_upload(number_question: int, file: UploadFile, current_user):
             ai_result, error_message = await generate_questions(
                 document_content.strip(), 
                 number_question,
-                filename=file.filename,
+                generation_mode,
                 user=current_user
             )
             
@@ -77,13 +84,25 @@ async def process_upload(number_question: int, file: UploadFile, current_user):
             questions = ai_result.get("questions", [])
             chunks_processed = ai_result.get("chunks_processed", 1)
             total_tokens = ai_result.get("total_tokens", 0)
+            reason = ai_result.get("reason", None)
+            
+            if not questions:
+                await new_document.delete()
+                error_msg = reason or "Document content is not suitable for generating quiz questions."
+                await notification_service.notify_document_upload_failed(
+                    user=current_user,
+                    document_name=file.filename,
+                    error_message=error_msg
+                )
+                raise AppException(StatusCode.AI_GENERATION_FAILED, error_msg)
 
             await log_service.log_document("upload_document", str(new_document.id), current_user, {
                 "filename": file.filename,
                 "number_question": number_question,
                 "questions_generated": len(questions),
                 "chunks_processed": chunks_processed,
-                "total_tokens": total_tokens
+                "total_tokens": total_tokens,
+                "generation_mode": ai_result.get("generation_mode", "auto")
             })
 
             question_count = len(questions)
@@ -101,7 +120,8 @@ async def process_upload(number_question: int, file: UploadFile, current_user):
                 "metadata": {
                     "chunks_processed": chunks_processed,
                     "total_tokens": total_tokens,
-                    "was_chunked": chunks_processed > 1
+                    "was_chunked": chunks_processed > 1,
+                    "generation_mode": ai_result.get("generation_mode", mode.lower())
                 }
             }
         except Exception as e:

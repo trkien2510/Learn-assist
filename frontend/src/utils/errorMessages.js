@@ -93,6 +93,9 @@ const errorMessages = {
     'Document is empty': 'Tài liệu trống',
     'Number of questions exceeds limit': 'Số lượng câu hỏi vượt quá giới hạn',
     'AI service failed to generate any questions after multiple attempts.': 'Dịch vụ AI không thể sinh câu hỏi sau nhiều lần thử. Vui lòng kiểm tra lại tài liệu hoặc thử lại sau',
+    'Document content is not suitable for generating quiz questions.': 'Nội dung tài liệu không phù hợp để sinh câu hỏi trắc nghiệm',
+    'Document content is not suitable for generating quiz questions. The AI could not extract meaningful questions from this content.': 'Nội dung tài liệu không phù hợp để sinh câu hỏi. AI không thể trích xuất câu hỏi có ý nghĩa từ nội dung này',
+    "Generation mode is required. Please choose 'strict' or 'expanded'": "Vui lòng chọn chế độ sinh câu hỏi: 'Bám sát tài liệu' hoặc 'Mở rộng kiến thức'",
 
     // Result errors
     'Result not found': 'Không tìm thấy kết quả',

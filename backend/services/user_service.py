@@ -5,6 +5,9 @@ from core.status_code import StatusCode
 from models.user_model import UserModel, UserRole
 from services import log_service
 from services.email_service import send_account_notification_email
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 async def get_my_profile(current_user):
@@ -289,7 +292,7 @@ async def _cleanup_user_data(user_id: str, user_email: str):
         await OTPModel.find(OTPModel.email == user_email).delete()
         
     except Exception as e:
-        print(f"Error during user data cleanup for {user_id}: {e}")
+        logger.error(f"Error during user data cleanup for {user_id}: {e}")
 
 
 async def create_user_by_admin(user_data, admin_user):

@@ -69,15 +69,20 @@ class HttpClient {
             });
 
             if (response.ok) {
-                const data = await response.json();
-                cookieUtils.set('access_token', data.access_token, 7);
-                if (data.refresh_token) {
-                    cookieUtils.set('refresh_token', data.refresh_token, 7);
+                const responseData = await response.json();
+                const tokenData = responseData.data || responseData;
+
+                if (tokenData.access_token) {
+                    cookieUtils.set('access_token', tokenData.access_token, 7);
+                    if (tokenData.refresh_token) {
+                        cookieUtils.set('refresh_token', tokenData.refresh_token, 7);
+                    }
+                    return true;
                 }
-                return true;
             }
             return false;
         } catch (error) {
+            console.error('Refresh token error:', error);
             return false;
         }
     }

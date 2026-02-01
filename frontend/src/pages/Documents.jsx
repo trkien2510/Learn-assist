@@ -11,6 +11,7 @@ const Documents = () => {
 
     const [selectedFile, setSelectedFile] = useState(null);
     const [numQuestions, setNumQuestions] = useState(10);
+    const [generationMode, setGenerationMode] = useState('expanded');
     const [showUploadModal, setShowUploadModal] = useState(false);
 
     const [generatedQuestions, setGeneratedQuestions] = useState([]);
@@ -77,7 +78,7 @@ const Documents = () => {
         try {
             setUploading(true);
 
-            const uploadResponse = await documentService.upload(selectedFile, numQuestions);
+            const uploadResponse = await documentService.upload(selectedFile, numQuestions, generationMode);
 
 
             const responseData = uploadResponse.data;
@@ -178,6 +179,7 @@ const Documents = () => {
     const resetUploadForm = () => {
         setSelectedFile(null);
         setNumQuestions(10);
+        setGenerationMode('expanded');
         setGeneratedQuestions([]);
         setSelectedQuestions([]);
         setCurrentDocumentId(null);
@@ -350,6 +352,56 @@ const Documents = () => {
                                     <br />
                                     Quá trình này có thể tốn nhiều thời gian
                                 </p>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-600 mb-3">
+                                    Chế độ sinh câu hỏi
+                                </label>
+                                <div className="flex gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setGenerationMode('strict')}
+                                        className={`flex-1 p-3 rounded-xl border-2 transition-all text-left ${generationMode === 'strict'
+                                                ? 'border-blue-500 bg-blue-500/10'
+                                                : 'border-gray-200 bg-white/5 hover:border-gray-300'
+                                            }`}
+                                    >
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${generationMode === 'strict' ? 'border-blue-500' : 'border-gray-400'
+                                                }`}>
+                                                {generationMode === 'strict' && (
+                                                    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                                                )}
+                                            </div>
+                                            <span className="font-medium text-gray-900">Bám sát tài liệu</span>
+                                        </div>
+                                        <p className="text-xs text-gray-500 ml-6">
+                                            Chỉ sinh câu hỏi từ nội dung có trong tài liệu
+                                        </p>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setGenerationMode('expanded')}
+                                        className={`flex-1 p-3 rounded-xl border-2 transition-all text-left ${generationMode === 'expanded'
+                                                ? 'border-blue-500 bg-blue-500/10'
+                                                : 'border-gray-200 bg-white/5 hover:border-gray-300'
+                                            }`}
+                                    >
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${generationMode === 'expanded' ? 'border-blue-500' : 'border-gray-400'
+                                                }`}>
+                                                {generationMode === 'expanded' && (
+                                                    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                                                )}
+                                            </div>
+                                            <span className="font-medium text-gray-900">Mở rộng kiến thức</span>
+                                        </div>
+                                        <p className="text-xs text-gray-500 ml-6">
+                                            Mở rộng với kiến thức liên quan đến chủ đề
+                                        </p>
+                                    </button>
+                                </div>
                             </div>
 
                             <div className="flex gap-3">

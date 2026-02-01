@@ -56,7 +56,6 @@ const TakeExam = () => {
                 const detailMsg = err.response?.data?.detail || '';
 
                 if (!isPersonal && (errorMsg.includes('personal') || detailMsg.includes('personal'))) {
-                    console.log('Detected personal exam after refresh, falling back to practiceService');
                     response = await practiceService.start(id);
                 } else {
                     throw err;

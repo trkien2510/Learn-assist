@@ -2,6 +2,9 @@ from fastapi import Request
 from fastapi.responses import JSONResponse
 from core.status_code import StatusCode, STATUS_MESSAGES
 import traceback
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class AppException(Exception):
@@ -80,8 +83,8 @@ async def generic_exception_handler(request: Request, exc: Exception):
             status="error"
         )
     except:
-        print(f"CRITICAL ERROR: {str(exc)}")
-        print(stack_trace)
+        logger.critical(f"CRITICAL ERROR: {str(exc)}")
+        logger.critical(stack_trace)
     
     return JSONResponse(
         status_code=500,
@@ -90,3 +93,4 @@ async def generic_exception_handler(request: Request, exc: Exception):
             "message": "Internal Server Error"
         }
     )
+
