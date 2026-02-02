@@ -15,7 +15,6 @@ class ToggleStatusRequest(BaseModel):
 
 @router.post("/create", response_model=BaseResponse)
 async def create_user_admin(user_data: AdminCreateUser, current_user: UserModel = Depends(get_current_admin)):
-    """Admin creates a new user, optionally bypassing email verification."""
     data = await user_service.create_user_by_admin(user_data, current_user)
     return BaseResponse(data=data)
 

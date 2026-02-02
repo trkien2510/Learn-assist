@@ -28,7 +28,7 @@ class HttpClient {
         try {
             const response = await fetch(fullUrl, config);
 
-            if (response.status === 401 && !options.skipRefresh) {
+            if (response.status === 401 && !options.skipRefresh && !options.skipAuth) {
                 const refreshed = await this.refreshToken();
                 if (refreshed) {
                     return this.request(endpoint, { ...options, skipRefresh: true });
@@ -40,14 +40,13 @@ class HttpClient {
                         this.handleLogout();
                         throw new Error('Session expired. Please login again.');
                     }
-                    throw new Error('Unauthorized');
                 }
             }
 
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.detail || data.message || 'An error occurred');
+                throw new Error(data.message || data.detail || 'An error occurred');
             }
 
             return data;

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { userService } from '../services/authService';
+import { translateError } from '../utils/errorMessages';
 import { UserIcon, EmailIcon, LockIcon, EditIcon, PhoneIcon, CalendarIcon, TrashIcon } from '../components/icons/Icons';
 
 const Profile = () => {
@@ -47,7 +48,8 @@ const Profile = () => {
             showSuccess('Cập nhật thông tin thành công!');
             setEditing(false);
         } catch (err) {
-            showError(err.message || 'Không thể cập nhật thông tin');
+            const errorMessage = translateError(err);
+            showError(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -65,7 +67,8 @@ const Profile = () => {
 
             window.location.href = '/login';
         } catch (err) {
-            showError(err.message || 'Không thể xóa tài khoản');
+            const errorMessage = translateError(err);
+            showError(errorMessage);
             setLoading(false);
         }
     };
@@ -93,7 +96,8 @@ const Profile = () => {
             setChangingPassword(false);
             setPasswordData({ old_password: '', new_password: '', confirm_password: '' });
         } catch (err) {
-            showError(err.message || 'Không thể đổi mật khẩu');
+            const errorMessage = translateError(err);
+            showError(errorMessage);
         } finally {
             setLoading(false);
         }

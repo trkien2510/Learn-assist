@@ -48,8 +48,8 @@ STATUS_MESSAGES = {
     StatusCode.CREATED: "Created successfully",
 
     StatusCode.BAD_REQUEST: "Invalid request data",
-    StatusCode.UNAUTHORIZED: "Authentication failed",
-    StatusCode.FORBIDDEN: "Permission denied",
+    StatusCode.UNAUTHORIZED: "Invalid username or password",
+    StatusCode.FORBIDDEN: "Forbidden",
     StatusCode.NOT_FOUND: "Resource not found",
     StatusCode.DUPLICATE_ENTRY: "Resource already exists",
     StatusCode.UNSUPPORTED_TYPE: "Unsupported data type",

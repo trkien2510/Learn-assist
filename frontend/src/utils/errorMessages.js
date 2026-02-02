@@ -4,7 +4,7 @@ const errorMessages = {
     'Invalid token': 'Token không hợp lệ',
     'Invalid or expired token': 'Token không hợp lệ hoặc đã hết hạn',
     'Token expired': 'Token đã hết hạn',
-    'Unauthorized': 'Không được phép truy cập',
+    'Unauthorized': 'Thông tin đăng nhập không chính xác hoặc phiên làm việc hết hạn',
     'Invalid credentials': 'Thông tin đăng nhập không chính xác',
     'Invalid username or password': 'Tên đăng nhập hoặc mật khẩu không đúng',
     'Email not verified': 'Email chưa được xác thực. Vui lòng xác thực email trước',
@@ -243,6 +243,8 @@ export const translateError = (error) => {
     let errorMsg = '';
     if (typeof error === 'string') {
         errorMsg = error;
+    } else if (error.response?.data?.message) {
+        errorMsg = error.response.data.message;
     } else if (error.response?.data?.detail) {
         errorMsg = error.response.data.detail;
     } else if (error.message) {
@@ -251,14 +253,14 @@ export const translateError = (error) => {
         errorMsg = String(error);
     }
 
-    if (errorMsg.includes('401')) return 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại';
+    if (errorMessages[errorMsg]) return errorMessages[errorMsg];
+
+    if (errorMsg.includes('401')) return 'Phiên đăng nhập đã hết hạn hoặc thông tin đăng nhập không đúng';
     if (errorMsg.includes('403')) return 'Bạn không có quyền thực hiện thao tác này';
     if (errorMsg.includes('404')) return 'Không tìm thấy tài nguyên yêu cầu';
     if (errorMsg.includes('429')) return 'Quá nhiều yêu cầu. Vui lòng thử lại sau';
     if (errorMsg.includes('500')) return 'Lỗi máy chủ. Vui lòng thử lại sau';
     if (errorMsg.includes('502') || errorMsg.includes('503') || errorMsg.includes('504')) return 'Dịch vụ tạm thời không khả dụng. Vui lòng thử lại sau';
-
-    if (errorMessages[errorMsg]) return errorMessages[errorMsg];
 
     let translatedMsg = errorMsg;
     let hasMatch = false;

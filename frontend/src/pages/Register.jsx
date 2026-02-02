@@ -128,175 +128,173 @@ const Register = () => {
                 <div className="absolute bottom-0 left-1/2 w-80 h-80 bg-orange-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float" style={{ animationDelay: '4s' }}></div>
             </div>
 
-            <div className="relative z-10 w-full max-w-md animate-fadeIn">
-                <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-linear-to-br from-blue-500 to-cyan-500 mb-4 glow-primary">
-                        <UserAddIcon className="w-8 h-8 text-gray-900" />
+            <div className="relative z-10 w-full max-w-2xl animate-fadeIn">
+                <div className="text-center mb-4">
+                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-linear-to-br from-blue-500 to-cyan-500 mb-2 glow-primary">
+                        <UserAddIcon className="w-6 h-6 text-gray-900" />
                     </div>
-                    <h1 className="text-3xl font-bold text-shadow-black mb-2">Đăng ký</h1>
-                    <p className="text-gray-500">Tạo tài khoản mới để bắt đầu</p>
+                    <h1 className="text-2xl font-bold text-shadow-black">Đăng ký tài khoản</h1>
                 </div>
 
-                <div className="glass rounded-3xl p-8 shadow-2xl">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Tạo tài khoản</h2>
-
+                <div className="glass rounded-2xl p-6 shadow-2xl">
                     {error && (
-                        <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm animate-fadeIn">
+                        <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm animate-fadeIn">
                             {error}
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-600 mb-2">Tên đăng nhập <span className="text-red-500">*</span></label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <UserIcon className="w-5 h-5 text-slate-500" />
+                    <form onSubmit={handleSubmit} className="space-y-3">
+                        <div className="grid grid-cols-2 gap-3">
+                            <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">Tên đăng nhập <span className="text-red-500">*</span></label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <UserIcon className="w-4 h-4 text-slate-500" />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={username}
+                                        onChange={(e) => setUsername(e.target.value)}
+                                        placeholder="username123"
+                                        className="input-glass pl-10 py-2 text-sm"
+                                    />
                                 </div>
-                                <input
-                                    type="text"
-                                    value={username}
-                                    onChange={(e) => setUsername(e.target.value)}
-                                    placeholder="username123"
-                                    className="input-glass pl-12"
-                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">Email <span className="text-red-500">*</span></label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <EmailIcon className="w-4 h-4 text-slate-500" />
+                                    </div>
+                                    <input
+                                        type="email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        placeholder="your@email.com"
+                                        className="input-glass pl-10 py-2 text-sm"
+                                    />
+                                </div>
                             </div>
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-600 mb-2">Email <span className="text-red-500">*</span></label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <EmailIcon className="w-5 h-5 text-slate-500" />
+                        <div className="grid grid-cols-2 gap-3">
+                            <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">Họ và tên <span className="text-red-500">*</span></label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <UserIcon className="w-4 h-4 text-slate-500" />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={fullName}
+                                        onChange={(e) => setFullName(e.target.value)}
+                                        placeholder="Nguyễn Văn A"
+                                        className="input-glass pl-10 py-2 text-sm"
+                                    />
                                 </div>
-                                <input
-                                    type="email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    placeholder="your@email.com"
-                                    className="input-glass pl-12"
-                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">Ngày sinh <span className="text-red-500">*</span></label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <CalendarIcon className="w-4 h-4 text-slate-500" />
+                                    </div>
+                                    <input
+                                        type="date"
+                                        value={dateOfBirth}
+                                        onChange={(e) => setDateOfBirth(e.target.value)}
+                                        className="input-glass pl-10 py-2 text-sm"
+                                        max={new Date().toISOString().split('T')[0]}
+                                    />
+                                </div>
                             </div>
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-600 mb-2">Tên đầy đủ <span className="text-red-500">*</span></label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <UserIcon className="w-5 h-5 text-slate-500" />
+                        <div className="grid grid-cols-2 gap-3">
+                            <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">Số điện thoại <span className="text-gray-400 text-xs">(Tùy chọn)</span></label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <PhoneIcon className="w-4 h-4 text-slate-500" />
+                                    </div>
+                                    <input
+                                        type="tel"
+                                        value={phoneNumber}
+                                        onChange={(e) => setPhoneNumber(e.target.value)}
+                                        placeholder="0123456789"
+                                        className="input-glass pl-10 py-2 text-sm"
+                                        maxLength={11}
+                                    />
                                 </div>
-                                <input
-                                    type="text"
-                                    value={fullName}
-                                    onChange={(e) => setFullName(e.target.value)}
-                                    placeholder="Nguyễn Văn A"
-                                    className="input-glass pl-12"
-                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">Mật khẩu <span className="text-red-500">*</span> <span className="text-gray-400">(≥8 ký tự)</span></label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <LockIcon className="w-4 h-4 text-slate-500" />
+                                    </div>
+                                    <input
+                                        type="password"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        placeholder="••••••••"
+                                        className="input-glass pl-10 py-2 text-sm"
+                                    />
+                                </div>
                             </div>
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-600 mb-2">Ngày sinh <span className="text-red-500">*</span></label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <CalendarIcon className="w-5 h-5 text-slate-500" />
+                        <div className="grid grid-cols-2 gap-3">
+                            <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">Xác nhận mật khẩu <span className="text-red-500">*</span></label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <LockIcon className="w-4 h-4 text-slate-500" />
+                                    </div>
+                                    <input
+                                        type="password"
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        placeholder="••••••••"
+                                        className="input-glass pl-10 py-2 text-sm"
+                                    />
                                 </div>
-                                <input
-                                    type="date"
-                                    value={dateOfBirth}
-                                    onChange={(e) => setDateOfBirth(e.target.value)}
-                                    className="input-glass pl-12"
-                                    max={new Date().toISOString().split('T')[0]}
-                                />
                             </div>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-600 mb-2">Số điện thoại <span className="text-gray-400 text-xs">(Không bắt buộc)</span></label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <PhoneIcon className="w-5 h-5 text-slate-500" />
+                            <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">Vai trò <span className="text-red-500">*</span></label>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {roles.map((role) => {
+                                        const IconComponent = role.icon;
+                                        const isSelected = selectedRole === role.id;
+                                        return (
+                                            <button
+                                                key={role.id}
+                                                type="button"
+                                                onClick={() => setSelectedRole(role.id)}
+                                                style={!isSelected ? { backgroundColor: theme === 'dark' ? 'rgb(30 41 59)' : 'rgb(249 250 251)' } : {}}
+                                                className={`
+                                                    relative p-2 rounded-lg border-2 transition-all duration-300 text-center
+                                                    ${isSelected
+                                                        ? `bg-linear-to-br/srgb ${role.color} border-transparent shadow-md`
+                                                        : `${role.borderColor} ${role.hoverBg} ${role.hoverBorder}`
+                                                    }
+                                                `}
+                                            >
+                                                <IconComponent className={`w-4 h-4 mx-auto ${isSelected ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-400'}`} />
+                                                <span className={`text-xs font-medium block ${isSelected ? 'text-gray-900 dark:text-white' : 'text-gray-800 dark:text-gray-300'}`}>
+                                                    {role.name}
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
                                 </div>
-                                <input
-                                    type="tel"
-                                    value={phoneNumber}
-                                    onChange={(e) => setPhoneNumber(e.target.value)}
-                                    placeholder="0123456789"
-                                    className="input-glass pl-12"
-                                    maxLength={11}
-                                />
-                            </div>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-600 mb-2">Mật khẩu <span className="text-red-500">*</span> <span className="text-gray-400 text-xs">(Tối thiểu 8 ký tự)</span></label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <LockIcon className="w-5 h-5 text-slate-500" />
-                                </div>
-                                <input
-                                    type={'password'}
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    placeholder="••••••••"
-                                    className="input-glass pl-12"
-                                />
-                            </div>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-600 mb-2">Xác nhận mật khẩu <span className="text-red-500">*</span></label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <LockIcon className="w-5 h-5 text-slate-500" />
-                                </div>
-                                <input
-                                    type={'password'}
-                                    value={confirmPassword}
-                                    onChange={(e) => setConfirmPassword(e.target.value)}
-                                    placeholder="••••••••"
-                                    className="input-glass pl-12"
-                                />
-                            </div>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-600 mb-3">Chọn vai trò <span className="text-red-500">*</span></label>
-                            <div className="grid grid-cols-2 gap-3">
-                                {roles.map((role) => {
-                                    const IconComponent = role.icon;
-                                    const isSelected = selectedRole === role.id;
-                                    return (
-                                        <button
-                                            key={role.id}
-                                            type="button"
-                                            onClick={() => setSelectedRole(role.id)}
-                                            style={!isSelected ? { backgroundColor: theme === 'dark' ? 'rgb(30 41 59)' : 'rgb(249 250 251)' } : {}}
-                                            className={`
-                        relative p-4 rounded-xl border-2 transition-all duration-300 text-center
-                        ${isSelected
-                                                    ? `bg-linear-to-br/srgb ${role.color} border-transparent shadow-lg`
-                                                    : `${role.borderColor} ${role.hoverBg} ${role.hoverBorder} hover:shadow-md`
-                                                }
-                      `}
-                                        >
-                                            <IconComponent className={`w-6 h-6 mx-auto mb-2 ${isSelected ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-400'}`} />
-                                            <span className={`text-sm font-medium block ${isSelected ? 'text-gray-900 dark:text-white' : 'text-gray-800 dark:text-gray-300'}`}>
-                                                {role.name}
-                                            </span>
-                                            <span className={`text-xs ${isSelected ? 'text-gray-800 dark:text-white/90' : 'text-gray-600 dark:text-gray-400'}`}>
-                                                {role.description}
-                                            </span>
-                                        </button>
-                                    );
-                                })}
                             </div>
                         </div>
 
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full btn-primary py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full btn-primary py-3 text-base disabled:opacity-50 disabled:cursor-not-allowed mt-2"
                         >
                             {isLoading ? (
                                 <span className="flex items-center justify-center gap-2">
@@ -307,13 +305,7 @@ const Register = () => {
                         </button>
                     </form>
 
-                    <div className="relative my-6">
-                        <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t border-gray-200"></div>
-                        </div>
-                    </div>
-
-                    <p className="pt-4 text-center text-gray-500">
+                    <p className="pt-4 text-center text-gray-500 text-sm">
                         Đã có tài khoản?{' '}
                         <Link to="/login" className="text-blue-400 hover:text-blue-300 font-medium transition-colors">
                             Đăng nhập
