@@ -1,6 +1,9 @@
 from motor.motor_asyncio import AsyncIOMotorClient
 from beanie import init_beanie
+from datetime import date
+
 from core.config import settings
+from core.security import get_password_hash
 from models.classroom_model import ClassroomModel
 from models.document_model import DocumentModel
 from models.exam_model import ExamModel
@@ -11,7 +14,35 @@ from models.notification_model import NotificationModel
 from models.otp_model import OTPModel
 from models.question_model import QuestionModel
 from models.result_model import ResultModel
-from models.user_model import UserModel
+from models.user_model import UserModel, UserRole
+
+
+DEFAULT_ADMIN_EMAIL = "admin@learnassist.com"
+DEFAULT_ADMIN_USERNAME = "admin"
+DEFAULT_ADMIN_PASSWORD = "Admin@123"
+DEFAULT_ADMIN_FULLNAME = "System Administrator"
+
+
+async def create_default_admin():
+    existing_admin = await UserModel.find_one(UserModel.role == UserRole.ADMIN)
+    
+    if existing_admin:
+        return
+    
+    hashed = get_password_hash(DEFAULT_ADMIN_PASSWORD)
+    
+    admin_user = UserModel(
+        username=DEFAULT_ADMIN_USERNAME.lower(),
+        email=DEFAULT_ADMIN_EMAIL,
+        full_name=DEFAULT_ADMIN_FULLNAME,
+        hashed_password=hashed,
+        role=UserRole.ADMIN,
+        dob=date(2000, 1, 1),
+        phone_number=None,
+        email_verified=True,
+        is_activate=True,
+    )
+    await admin_user.insert()
 
 
 async def init_db():
@@ -34,6 +65,8 @@ async def init_db():
             OTPModel,
         ]
     )
+
+    await create_default_admin()
 
     try:
         await db.logs.create_index(
