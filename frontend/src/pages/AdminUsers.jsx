@@ -156,7 +156,7 @@ const AdminUsers = () => {
         };
         const labels = {
             admin: 'Quản trị viên',
-            teacher: 'Giảng viên',
+            teacher: 'Giáo viên',
             student: 'Sinh viên'
         };
         return (
@@ -217,7 +217,7 @@ const AdminUsers = () => {
                     <div className="card-glass p-5 hover-lift">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-gray-500 text-sm font-medium">Giảng viên</p>
+                                <p className="text-gray-500 text-sm font-medium">Giáo viên</p>
                                 <p className="text-3xl font-bold text-blue-600 mt-1">{stats.users.teachers}</p>
                                 <p className="text-xs text-gray-500 mt-1">
                                     {((stats.users.teachers / stats.users.total) * 100).toFixed(1)}% tổng số
@@ -269,7 +269,7 @@ const AdminUsers = () => {
                     >
                         <option value="">Tất cả vai trò</option>
                         <option value="admin">Quản trị viên</option>
-                        <option value="teacher">Giảng viên</option>
+                        <option value="teacher">Giáo viên</option>
                         <option value="student">Sinh viên</option>
                     </select>
                     <select
@@ -564,7 +564,7 @@ const AdminUsers = () => {
                                     required
                                 >
                                     <option value="student">Sinh viên</option>
-                                    <option value="teacher">Giảng viên</option>
+                                    <option value="teacher">Giáo viên</option>
                                     <option value="admin">Quản trị viên</option>
                                 </select>
                             </div>

@@ -6,6 +6,7 @@ import { useDateFormat, useModal, useApi } from '../hooks';
 import { examService, classroomService, questionService } from '../services/apiServices';
 import { PlusIcon, ClockIcon, CalendarIcon, UsersIcon, BookIcon, CloseIcon, SearchIcon, EditIcon, RefreshIcon, CheckIcon } from '../components/icons/Icons';
 import Portal from '../components/common/Portal';
+import { translateError } from '../utils/errorMessages';
 
 const Exams = () => {
     const { user, hasRole } = useAuth();
@@ -122,7 +123,7 @@ const Exams = () => {
             setExcludedIds(data.questions?.map(q => q.id) || []);
             setStep(2);
         } catch (err) {
-            showError(err.message || 'Không thể tải danh sách câu hỏi');
+            showError(translateError(err));
         } finally {
             setLoading(false);
         }
@@ -146,7 +147,7 @@ const Exams = () => {
 
             setExcludedIds(prev => [...prev.filter(id => id !== questionId), newQuestion.id]);
         } catch (err) {
-            showError(err.message || 'Không thể thay thế câu hỏi');
+            showError(translateError(err));
         }
     };
 
@@ -176,7 +177,7 @@ const Exams = () => {
             resetForm();
             fetchExams();
         } catch (err) {
-            showError(err.message || 'Không thể tạo bài kiểm tra');
+            setError(translateError(err));
         } finally {
             setLoading(false);
         }
@@ -415,7 +416,7 @@ const Exams = () => {
                 <Portal>
                     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-100 p-4">
                         <div className="card-glass p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto animate-fadeIn relative">
-                            <div className="flex items-center justify-between mb-8 pb-4 border-b border-white/10">
+                            <div className="flex items-center justify-between pb-1 border-b border-white/10">
                                 <div>
                                     <h2 className="text-3xl font-black gradient-text">Thiết lập bài kiểm tra</h2>
                                     <p className="text-slate-400 font-medium">Bước {step}/2: {step === 1 ? 'Thông tin cơ bản' : 'Cấu hình câu hỏi'}</p>
@@ -428,15 +429,9 @@ const Exams = () => {
                                 </button>
                             </div>
 
-                            {error && (
-                                <div className="mx-6 mt-4 p-4 bg-red-500/10 border border-red-500/50 rounded-xl text-red-400 text-sm">
-                                    {error}
-                                </div>
-                            )}
-
-                            <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+                            <div className="flex-1 overflow-y-auto custom-scrollbar">
                                 {step === 1 ? (
-                                    <div className="space-y-6">
+                                    <div className="space-y-2">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-300 mb-2">
                                                 Tên bài kiểm tra *

@@ -29,7 +29,7 @@ const Register = () => {
     const roles = [
         {
             id: ROLES.TEACHER,
-            name: 'Giảng viên',
+            name: 'Giáo viên',
             description: 'Tạo đề, Thống kê',
             icon: TeacherIcon,
             color: 'from-orange-500 to-amber-500',

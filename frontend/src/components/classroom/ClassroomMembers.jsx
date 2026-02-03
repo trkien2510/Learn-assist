@@ -87,7 +87,7 @@ const ClassroomMembers = ({ classCode, classroom, isCreator }) => {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {members.map((member) => {
-                        const roleDisplay = member.role === 'teacher' ? 'Giảng viên' :
+                        const roleDisplay = member.role === 'teacher' ? 'Giáo viên' :
                             member.role === 'student' ? 'Sinh viên' :
                                 member.role || 'Thành viên';
 

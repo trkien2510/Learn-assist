@@ -86,7 +86,7 @@ const Sidebar = () => {
             case ROLES.ADMIN:
                 return { text: 'Admin', class: 'bg-blue-500/20 text-blue-400 border-blue-500/30' };
             case ROLES.TEACHER:
-                return { text: 'Giảng viên', class: 'bg-blue-500/20 text-blue-400 border-blue-500/30' };
+                return { text: 'Giáo viên', class: 'bg-blue-500/20 text-blue-400 border-blue-500/30' };
             case ROLES.STUDENT:
                 return { text: 'Sinh viên', class: 'bg-green-500/20 text-green-400 border-green-500/30' };
             default:

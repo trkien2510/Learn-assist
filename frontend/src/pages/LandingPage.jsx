@@ -34,7 +34,7 @@ const LandingPage = () => {
         {
             icon: <TeacherIcon className="w-8 h-8 text-white" />,
             title: 'Quản Lý Lớp Học Ảo',
-            description: 'Tạo lớp học với mã riêng, quản lý học viên, duyệt yêu cầu tham gia, và giao tiếp qua hệ thống tin nhắn tích hợp.',
+            description: 'Tạo lớp học với mã riêng, quản lý sinh viên, duyệt yêu cầu tham gia, và giao tiếp qua hệ thống tin nhắn tích hợp.',
             gradient: 'from-purple-500 to-pink-500',
             badge: 'Classroom'
         },
@@ -48,14 +48,14 @@ const LandingPage = () => {
         {
             icon: <BookIcon className="w-8 h-8 text-white" />,
             title: 'Luyện Tập Cá Nhân',
-            description: 'Học viên tự tạo đề ôn tập riêng từ tài liệu của mình, luyện tập không giới hạn và theo dõi tiến độ học tập.',
+            description: 'Sinh viên tự tạo đề ôn tập riêng từ tài liệu của mình, luyện tập không giới hạn và theo dõi tiến độ học tập.',
             gradient: 'from-cyan-500 to-teal-500',
             badge: 'Practice'
         },
         {
             icon: <ChartPieIcon className="w-8 h-8 text-white" />,
             title: 'Thống Kê Chi Tiết',
-            description: 'Dashboard trực quan với biểu đồ phân tích kết quả học tập, điểm trung bình, và báo cáo chi tiết theo lớp/học viên.',
+            description: 'Dashboard trực quan với biểu đồ phân tích kết quả học tập, điểm trung bình, và báo cáo chi tiết theo lớp/sinh viên.',
             gradient: 'from-green-500 to-emerald-500',
             badge: 'Analytics'
         },
@@ -74,10 +74,10 @@ const LandingPage = () => {
             { step: 2, title: 'Upload tài liệu', desc: 'Tải lên PDF/DOCX và chọn số lượng câu hỏi để AI tạo tự động' },
             { step: 3, title: 'Quản lý câu hỏi', desc: 'Xem, chỉnh sửa, phân loại câu hỏi theo chủ đề và độ khó' },
             { step: 4, title: 'Tạo đề kiểm tra', desc: 'Chọn câu hỏi, đặt thời gian, gán cho lớp học và phát đề' },
-            { step: 5, title: 'Xem kết quả', desc: 'Theo dõi điểm số, phân tích thống kê chi tiết của học viên' }
+            { step: 5, title: 'Xem kết quả', desc: 'Theo dõi điểm số, phân tích thống kê chi tiết của sinh viên' }
         ],
         student: [
-            { step: 1, title: 'Đăng ký & Tham gia lớp', desc: 'Tạo tài khoản học viên và gửi yêu cầu tham gia lớp bằng mã' },
+            { step: 1, title: 'Đăng ký & Tham gia lớp', desc: 'Tạo tài khoản sinh viên và gửi yêu cầu tham gia lớp bằng mã' },
             { step: 2, title: 'Làm bài kiểm tra', desc: 'Nhận thông báo, vào làm bài kiểm tra trong thời gian quy định' },
             { step: 3, title: 'Xem kết quả', desc: 'Xem điểm, đáp án đúng sau khi hoàn thành bài kiểm tra' },
             { step: 4, title: 'Luyện tập', desc: 'Tự upload tài liệu, tạo đề ôn tập cá nhân không giới hạn' },
@@ -136,7 +136,7 @@ const LandingPage = () => {
                         </h1>
                         <p className="text-xl text-(--text-muted) mb-8 max-w-3xl mx-auto leading-relaxed">
                             Nền tảng tự động tạo câu hỏi trắc nghiệm từ tài liệu,
-                            hỗ trợ giáo viên tạo bài kiểm tra và học viên ôn luyện hiệu quả.
+                            hỗ trợ giáo viên tạo bài kiểm tra và sinh viên ôn luyện hiệu quả.
                             Quản lý lớp học, theo dõi tiến độ với thống kê chi tiết.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -186,7 +186,7 @@ const LandingPage = () => {
                             <span className="gradient-text">Cách thức hoạt động</span>
                         </h2>
                         <p className="text-(--text-muted) text-lg max-w-2xl mx-auto">
-                            Quy trình đơn giản, hiệu quả cho cả giáo viên và học viên
+                            Quy trình đơn giản, hiệu quả cho cả giáo viên và sinh viên
                         </p>
                     </div>
 
@@ -222,7 +222,7 @@ const LandingPage = () => {
                                     <BookIcon className="w-7 h-7 text-white" />
                                 </div>
                                 <div>
-                                    <h3 className="text-2xl font-bold text-(--text-color)">Dành cho Học viên</h3>
+                                    <h3 className="text-2xl font-bold text-(--text-color)">Dành cho Sinh viên</h3>
                                     <p className="text-(--text-muted)">Học tập và ôn luyện hiệu quả</p>
                                 </div>
                             </div>
@@ -313,7 +313,7 @@ const LandingPage = () => {
                             <div className="w-16 h-16 rounded-2xl bg-linear-to-br/srgb from-teal-500 to-cyan-600 flex items-center justify-center mb-6 relative z-10">
                                 <BookIcon className="w-8 h-8 text-white" />
                             </div>
-                            <h3 className="text-2xl font-bold text-(--text-color) mb-4">Học viên</h3>
+                            <h3 className="text-2xl font-bold text-(--text-color) mb-4">Sinh viên</h3>
                             <ul className="space-y-3 text-(--text-muted)">
                                 <li className="flex items-center gap-2">
                                     <CheckIcon className="w-5 h-5 text-green-500" />

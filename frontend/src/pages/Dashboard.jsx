@@ -86,7 +86,7 @@ const Dashboard = () => {
                         color: 'from-blue-500 to-cyan-500'
                     },
                     {
-                        name: 'Học sinh',
+                        name: 'Sinh viên',
                         value: dashboardData.total_students || 0,
                         icon: UsersIcon,
                         color: 'from-blue-500 to-indigo-600'

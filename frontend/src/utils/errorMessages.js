@@ -179,7 +179,7 @@ const errorMessages = {
     'Could not upload or process document': 'Không thể tải lên hoặc xử lý tài liệu',
     'has been created successfully in class': 'đã được tạo thành công trong lớp',
     'There were': 'Có',
-    'students participated. You can view the statistics now': 'học sinh tham gia. Bạn có thể xem thống kê ngay bây giờ',
+    'students participated. You can view the statistics now': 'sinh viên tham gia. Bạn có thể xem thống kê ngay bây giờ',
     'Your practice exam': 'Bài thi thực hành của bạn',
     'has been created with': 'đã được tạo với',
     'questions. Duration:': 'câu hỏi. Thời gian:',

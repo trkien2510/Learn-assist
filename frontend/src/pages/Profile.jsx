@@ -108,7 +108,7 @@ const Profile = () => {
             case 'admin':
                 return { text: 'Admin', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' };
             case 'teacher':
-                return { text: 'Giảng viên', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' };
+                return { text: 'Giáo viên', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' };
             case 'student':
                 return { text: 'Sinh viên', color: 'bg-green-500/20 text-green-400 border-green-500/30' };
             default:
