@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { EmailIcon, SpinnerIcon } from '../components/icons/Icons';
+import { translateError } from '../utils/errorMessages';
 
 const OTPVerification = () => {
     const navigate = useNavigate();
@@ -85,7 +86,7 @@ const OTPVerification = () => {
                 }
             }, 1500);
         } catch (err) {
-            setError(err.message || 'Mã OTP không hợp lệ hoặc đã hết hạn');
+            setError(translateError(err));
             setLoading(false);
         }
     };
@@ -103,7 +104,7 @@ const OTPVerification = () => {
             setResendCooldown(60);
             setOtp(['', '', '', '', '', '']);
         } catch (err) {
-            setError(err.message || 'Không thể gửi lại mã OTP');
+            setError(translateError(err));
         } finally {
             setLoading(false);
         }

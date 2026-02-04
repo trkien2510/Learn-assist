@@ -1,0 +1,43 @@
+export const StatusCode = {
+    // Success codes (2xxx)
+    SUCCESS: 2000,
+    CREATED: 2001,
+
+    // Client/Authentication errors (4xxx)
+    BAD_REQUEST: 4000,
+    UNAUTHORIZED: 4001,
+    FORBIDDEN: 4003,
+    NOT_FOUND: 4004,
+    DUPLICATE_ENTRY: 4009,
+    UNSUPPORTED_TYPE: 4015,
+    VALIDATION_ERROR: 4220,
+    TOO_MANY_REQUESTS: 4290,
+
+    // Business logic errors (43xx)
+    ALREADY_MEMBER: 4301,
+    NOT_A_MEMBER: 4302,
+    JOIN_REQUEST_EXISTS: 4303,
+    INVALID_CLASS_CODE: 4304,
+    CLASSROOM_NOT_FOUND: 4305,
+    MESSAGE_NOT_FOUND: 4306,
+    DOCUMENT_ACCESS_DENIED: 4310,
+    EXAM_DELETED: 4311,
+    AI_GENERATION_FAILED: 4312,
+
+    // OTP errors (44xx)
+    OTP_INVALID: 4401,
+    OTP_EXPIRED: 4402,
+
+    // Server/System errors (5xxx)
+    INTERNAL_SERVER_ERROR: 5000,
+    DATABASE_ERROR: 5001,
+    FILE_PROCESSING_ERROR: 5002,
+    EXTERNAL_API_ERROR: 5003,
+
+    // Document validation errors (45xx)
+    DOCUMENT_TOO_SHORT: 4501,
+    DOCUMENT_INVALID_CONTENT: 4502,
+    DOCUMENT_INSUFFICIENT_FOR_QUESTIONS: 4503,
+};
+
+export default StatusCode;

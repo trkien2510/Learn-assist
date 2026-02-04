@@ -1,3 +1,5 @@
+import { StatusCode } from './statusCodes';
+
 const errorMessages = {
     // Authentication errors
     'Missing token': 'Thiếu token xác thực',
@@ -42,11 +44,16 @@ const errorMessages = {
     // OTP errors
     'OTP not found or already used': 'Mã OTP không tồn tại hoặc đã được sử dụng',
     'OTP expired': 'Mã OTP đã hết hạn',
+    'Invalid OTP.': 'Mã OTP không đúng.',
     'Invalid OTP': 'Mã OTP không đúng',
     'Too many attempts': 'Quá nhiều lần thử. Vui lòng yêu cầu mã OTP mới',
     'Email already registered and verified': 'Email đã được đăng ký và xác thực',
     'No account found with this email': 'Không tìm thấy tài khoản với email này',
     'Account already activated': 'Tài khoản đã được kích hoạt',
+    'Invalid OTP. Remaining attempts:': 'Mã OTP không đúng. Số lần thử còn lại:',
+    'Invalid OTP. Remaining attempts': 'Mã OTP không đúng. Số lần thử còn lại',
+    'Remaining attempts:': 'Số lần thử còn lại:',
+    'Remaining attempts': 'Số lần thử còn lại',
 
     // Classroom errors
     'Classroom not found': 'Không tìm thấy lớp học',
@@ -190,6 +197,41 @@ const errorMessages = {
     'Please check': 'Vui lòng kiểm tra',
 };
 
+const statusMessages = {
+    [StatusCode.SUCCESS]: 'Thành công',
+    [StatusCode.CREATED]: 'Đã tạo thành công',
+    [StatusCode.BAD_REQUEST]: 'Yêu cầu không hợp lệ',
+    [StatusCode.UNAUTHORIZED]: 'Tên đăng nhập hoặc mật khẩu không đúng',
+    [StatusCode.FORBIDDEN]: 'Không có quyền truy cập',
+    [StatusCode.NOT_FOUND]: 'Không tìm thấy tài nguyên',
+    [StatusCode.DUPLICATE_ENTRY]: 'Tài nguyên đã tồn tại',
+    [StatusCode.UNSUPPORTED_TYPE]: 'Loại dữ liệu không được hỗ trợ',
+    [StatusCode.VALIDATION_ERROR]: 'Lỗi xác thực dữ liệu',
+    [StatusCode.TOO_MANY_REQUESTS]: 'Quá nhiều yêu cầu. Vui lòng thử lại sau',
+
+    [StatusCode.ALREADY_MEMBER]: 'Người dùng đã là thành viên của lớp này',
+    [StatusCode.NOT_A_MEMBER]: 'Người dùng không phải là thành viên của lớp này',
+    [StatusCode.JOIN_REQUEST_EXISTS]: 'Yêu cầu tham gia đã tồn tại và đang chờ duyệt',
+    [StatusCode.INVALID_CLASS_CODE]: 'Mã lớp học không hợp lệ',
+    [StatusCode.CLASSROOM_NOT_FOUND]: 'Không tìm thấy lớp học',
+    [StatusCode.MESSAGE_NOT_FOUND]: 'Không tìm thấy ngữ cảnh tin nhắn',
+    [StatusCode.DOCUMENT_ACCESS_DENIED]: 'Truy cập tài liệu bị từ chối',
+    [StatusCode.EXAM_DELETED]: 'Bài thi đã bị giáo viên xóa',
+    [StatusCode.AI_GENERATION_FAILED]: 'Không thể sinh câu hỏi từ tài liệu',
+
+    [StatusCode.OTP_INVALID]: 'Mã OTP không hợp lệ',
+    [StatusCode.OTP_EXPIRED]: 'Mã OTP đã hết hạn',
+
+    [StatusCode.INTERNAL_SERVER_ERROR]: 'Lỗi hệ thống',
+    [StatusCode.DATABASE_ERROR]: 'Lỗi cơ sở dữ liệu',
+    [StatusCode.FILE_PROCESSING_ERROR]: 'Lỗi xử lý tệp tin',
+    [StatusCode.EXTERNAL_API_ERROR]: 'Lỗi kết nối dịch vụ bên ngoài',
+
+    [StatusCode.DOCUMENT_TOO_SHORT]: 'Tài liệu quá ngắn để sinh câu hỏi',
+    [StatusCode.DOCUMENT_INVALID_CONTENT]: 'Nội dung tài liệu không phù hợp để sinh câu hỏi',
+    [StatusCode.DOCUMENT_INSUFFICIENT_FOR_QUESTIONS]: 'Tài liệu không đủ nội dung cho số lượng câu hỏi yêu cầu',
+};
+
 const successMessages = {
     // Auth success
     'Registration successful': 'Đăng ký thành công',
@@ -241,16 +283,23 @@ export const translateError = (error) => {
     if (!error) return 'Đã xảy ra lỗi không xác định';
 
     let errorMsg = '';
-    if (typeof error === 'string') {
+    let errorCode = null;
+
+    if (error.response?.data) {
+        errorMsg = error.response.data.message || error.response.data.detail || '';
+        errorCode = error.response.data.code;
+    } else if (typeof error === 'string') {
         errorMsg = error;
-    } else if (error.response?.data?.message) {
-        errorMsg = error.response.data.message;
-    } else if (error.response?.data?.detail) {
-        errorMsg = error.response.data.detail;
     } else if (error.message) {
         errorMsg = error.message;
     } else {
         errorMsg = String(error);
+    }
+
+    if (errorCode && statusMessages[errorCode]) {
+        if (!errorMsg || errorMsg.length < 5) {
+            return statusMessages[errorCode];
+        }
     }
 
     if (errorMessages[errorMsg]) return errorMessages[errorMsg];
@@ -262,7 +311,7 @@ export const translateError = (error) => {
     if (errorMsg.includes('500')) return 'Lỗi máy chủ. Vui lòng thử lại sau';
     if (errorMsg.includes('502') || errorMsg.includes('503') || errorMsg.includes('504')) return 'Dịch vụ tạm thời không khả dụng. Vui lòng thử lại sau';
 
-    let translatedMsg = errorMsg;
+    let translatedMsg = String(errorMsg);
     let hasMatch = false;
 
     const sortedKeys = Object.keys(errorMessages).sort((a, b) => b.length - a.length);
@@ -272,19 +321,44 @@ export const translateError = (error) => {
 
         const lowerKey = key.toLowerCase();
         if (translatedMsg.toLowerCase().includes(lowerKey)) {
-            const regex = new RegExp(key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-            translatedMsg = translatedMsg.replace(regex, errorMessages[key]);
-            hasMatch = true;
+            try {
+                const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const regex = new RegExp(escapedKey, 'gi');
+                const newMsg = translatedMsg.replace(regex, errorMessages[key]);
+
+                if (newMsg !== translatedMsg) {
+                    translatedMsg = newMsg;
+                    hasMatch = true;
+                }
+            } catch (e) {
+                // Ignore regex errors
+            }
         }
     }
 
     return hasMatch ? translatedMsg : errorMsg;
 };
 
-export const translateSuccess = (message) => {
-    if (!message) return 'Thành công';
+export const translateSuccess = (response) => {
+    if (!response) return 'Thành công';
 
-    const msg = typeof message === 'string' ? message : String(message);
+    let msg = '';
+    let code = null;
+
+    if (response.data && typeof response.data === 'object' && 'code' in response.data) {
+        msg = response.data.message || '';
+        code = response.data.code;
+    } else if (typeof response === 'string') {
+        msg = response;
+    } else if (response.message) {
+        msg = response.message;
+    } else {
+        msg = String(response);
+    }
+
+    if (code && statusMessages[code]) {
+        return statusMessages[code];
+    }
 
     if (successMessages[msg]) return successMessages[msg];
 

@@ -958,11 +958,11 @@ async def preview_exam_questions(class_code: str, total_questions: int, easy_cou
     }
     
     if len(questions_by_diff["Easy"]) < easy_count:
-        raise AppException(StatusCode.BAD_REQUEST, f"Không đủ câu hỏi dễ. Hiện có: {len(questions_by_diff['Easy'])}, Yêu cầu: {easy_count}")
+        raise AppException(StatusCode.BAD_REQUEST, f"Not enough easy questions. Available: {len(questions_by_diff['Easy'])}, Requested: {easy_count}")
     if len(questions_by_diff["Medium"]) < medium_count:
-        raise AppException(StatusCode.BAD_REQUEST, f"Không đủ câu hỏi trung bình. Hiện có: {len(questions_by_diff['Medium'])}, Yêu cầu: {medium_count}")
+        raise AppException(StatusCode.BAD_REQUEST, f"Not enough medium questions. Available: {len(questions_by_diff['Medium'])}, Requested: {medium_count}")
     if len(questions_by_diff["Hard"]) < hard_count:
-        raise AppException(StatusCode.BAD_REQUEST, f"Không đủ câu hỏi khó. Hiện có: {len(questions_by_diff['Hard'])}, Yêu cầu: {hard_count}")
+        raise AppException(StatusCode.BAD_REQUEST, f"Not enough hard questions. Available: {len(questions_by_diff['Hard'])}, Requested: {hard_count}")
     
     selected_easy = random.sample(questions_by_diff["Easy"], easy_count) if easy_count > 0 else []
     selected_medium = random.sample(questions_by_diff["Medium"], medium_count) if medium_count > 0 else []
@@ -1024,7 +1024,7 @@ async def replace_question_in_preview(class_code: str, question_id: str, exclude
     available_questions = [q for q in available_questions if str(q.id) not in excluded_set]
     
     if not available_questions:
-        raise AppException(StatusCode.BAD_REQUEST, f"Không còn câu hỏi độ khó {difficulty} nào khả dụng")
+        raise AppException(StatusCode.BAD_REQUEST, f"No more available questions with difficulty {difficulty}")
     
     new_question = random.choice(available_questions)
     

@@ -5,6 +5,7 @@ from enum import Enum
 import tiktoken
 import math
 import re
+import random
 import asyncio
 
 from core.config import settings
@@ -135,7 +136,7 @@ def create_prompt(text: str, num_questions: int, mode: GenerationMode) -> str:
 Có thể bổ sung kiến thức liên quan TRỰC TIẾP đến nội dung tài liệu.
 KHÔNG tạo câu hỏi về chủ đề không được đề cập."""
     
-    return f"""Tạo {num_questions} câu trắc nghiệm.
+    return f"""Bạn là một chuyên gia khảo thí. Nhiệm vụ của bạn là tạo {num_questions} câu trắc nghiệm dựa trên văn bản được cung cấp.
 Chế độ: {mode_desc}
 
 [NỘI DUNG]
@@ -144,6 +145,7 @@ Chế độ: {mode_desc}
 
 Yêu cầu:
 • {num_questions} câu, mỗi câu 4 đáp án
+• Phân bổ vị trí đáp án đúng một cách ngẫu nhiên (không tập trung quá nhiều vào một vị trí cụ thể như A hay B)
 • 'answer' = nội dung chính xác của đáp án đúng
 • 'difficulty': "dễ"|"trung bình"|"khó"
 • Câu hỏi phải liên quan đến nội dung tài liệu
@@ -229,6 +231,12 @@ def deduplicate_questions(questions: List[dict]) -> List[dict]:
             unique_questions.append(q)
     return unique_questions
 
+def shuffle_options(questions: List[dict]) -> List[dict]:
+    for q in questions:
+        if 'options' in q and isinstance(q['options'], list):
+            random.shuffle(q['options'])
+    return questions
+
 def validate_questions(questions: List[dict]) -> List[dict]:
     valid_questions = []
     for q in questions:
@@ -304,6 +312,7 @@ async def generate_questions(
                     break
         
         all_questions = deduplicate_questions(all_questions)
+        all_questions = shuffle_options(all_questions)
         retry_count += 1
 
     if not all_questions:

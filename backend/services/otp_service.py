@@ -63,7 +63,7 @@ async def verify_otp(email: str, otp_code: str, purpose: OTPPurpose) -> bool:
     )
 
     if not otp:
-        raise AppException(StatusCode.BAD_REQUEST, "OTP not found or already used")
+        raise AppException(StatusCode.OTP_INVALID, "OTP not found or already used")
 
     expires_at = otp.expires_at
     if expires_at.tzinfo is None:
@@ -72,7 +72,7 @@ async def verify_otp(email: str, otp_code: str, purpose: OTPPurpose) -> bool:
     if datetime.now(timezone.utc) > expires_at:
         otp.is_used = True
         await otp.save()
-        raise AppException(StatusCode.BAD_REQUEST, "OTP expired")
+        raise AppException(StatusCode.OTP_EXPIRED, "OTP code has expired")
 
     if otp.attempts >= otp.max_attempts:
         otp.is_used = True
@@ -83,7 +83,7 @@ async def verify_otp(email: str, otp_code: str, purpose: OTPPurpose) -> bool:
         otp.attempts += 1
         await otp.save()
         remaining = otp.max_attempts - otp.attempts
-        raise AppException(StatusCode.BAD_REQUEST, f"Invalid OTP. {remaining} attempts remaining")
+        raise AppException(StatusCode.OTP_INVALID, f"Invalid OTP. Remaining attempts: {remaining}")
 
     otp.is_used = True
     await otp.save()

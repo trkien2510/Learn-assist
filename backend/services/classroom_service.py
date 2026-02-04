@@ -135,11 +135,11 @@ async def request_join_classroom(class_code: str, current_user):
 
 async def accept_join_request(class_code: str, request_id: str, current_user):
     if current_user.role != UserRole.TEACHER:
-        raise AppException(StatusCode.FORBIDDEN, "Chỉ giáo viên mới có quyền duyệt yêu cầu")
+        raise AppException(StatusCode.FORBIDDEN, "Only teachers can approve requests")
 
     classroom = await ClassroomModel.find_one(ClassroomModel.class_code == class_code)
     if not classroom:
-        raise AppException(StatusCode.NOT_FOUND, "Không tìm thấy lớp học")
+        raise AppException(StatusCode.NOT_FOUND, "Classroom not found")
 
     try:
         request_obj_id = PydanticObjectId(request_id)
