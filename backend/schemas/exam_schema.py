@@ -1,7 +1,6 @@
 from datetime import datetime
 from typing import List, Optional, Dict
 from pydantic import BaseModel, Field
-from beanie import PydanticObjectId
 
 class CreateExamSchema(BaseModel):
     title: str
@@ -17,22 +16,15 @@ class CreatePersonalExamSchema(BaseModel):
     duration: int
     question_ids: Optional[List[str]] = Field(default=[], max_length=50)
     num_questions: Optional[int] = Field(None, le=50)
-    difficulty: Optional[str] = None
+    easy_count: Optional[int] = Field(None, ge=0)
+    medium_count: Optional[int] = Field(None, ge=0)
+    hard_count: Optional[int] = Field(None, ge=0)
     subject: Optional[str] = None
-
-
-class ExamResponseSchema(BaseModel):
-    id: PydanticObjectId = Field(alias="_id")
-    title: str
-    duration: int
-    start_at: datetime
-    end_at: datetime
-    class_id: Optional[PydanticObjectId] = None
-    creator_id: PydanticObjectId
-    is_personal: bool = False
+    document_ids: Optional[List[str]] = Field(default=[], max_length=10)
 
 
 class SubmitExamSchema(BaseModel):
+
     answers: Dict[str, str] = Field(default_factory=dict)
 
 
@@ -46,6 +38,7 @@ class PreviewExamSchema(BaseModel):
     easy_count: int
     medium_count: int
     hard_count: int
+    document_ids: Optional[List[str]] = Field(default=[], max_length=10)
 
 
 class ReplaceQuestionSchema(BaseModel):

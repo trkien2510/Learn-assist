@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../contexts/ToastContext';
-import { practiceService, questionService } from '../services/apiServices';
+import { practiceService, questionService, documentService } from '../services/apiServices';
 import {
     ExamIcon,
     DocumentIcon,
@@ -10,8 +10,12 @@ import {
     PlusIcon,
     TrashIcon,
     PlayIcon,
+    CloseIcon,
+    BookIcon,
+    AlertTriangleIcon,
 } from '../components/icons/Icons';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
+import Portal from '../components/common/Portal';
 
 const Practice = () => {
     const navigate = useNavigate();
@@ -21,14 +25,19 @@ const Practice = () => {
     const [exams, setExams] = useState([]);
     const [stats, setStats] = useState(null);
     const [questions, setQuestions] = useState([]);
+    const [documents, setDocuments] = useState([]);
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [documentQuestionCount, setDocumentQuestionCount] = useState(null);
 
     const [formData, setFormData] = useState({
         title: '',
         num_questions: 10,
-        difficulty: '',
         duration: 30,
-        subject: ''
+        subject: '',
+        document_ids: [],
+        easy_count: 0,
+        medium_count: 0,
+        hard_count: 0
     });
 
     useEffect(() => {
@@ -38,10 +47,11 @@ const Practice = () => {
     const fetchData = async () => {
         try {
             setLoading(true);
-            const [examsRes, statsRes, questionsRes] = await Promise.all([
+            const [examsRes, statsRes, questionsRes, docsRes] = await Promise.all([
                 practiceService.getExams(1, 50),
                 practiceService.getStats(),
-                questionService.getMyQuestions(1, 100)
+                questionService.getMyQuestions(1, 100),
+                documentService.getAll(1, 100)
             ]);
 
             const examsData = examsRes.data || examsRes;
@@ -50,10 +60,39 @@ const Practice = () => {
 
             const questionsData = questionsRes.data || questionsRes;
             setQuestions(questionsData.items || []);
+
+            const docsData = docsRes.data || docsRes;
+            setDocuments(docsData.items || []);
         } catch (err) {
             showError(err.message);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleDocumentToggle = async (documentId) => {
+        const isSelected = formData.document_ids.includes(documentId);
+        const newIds = isSelected
+            ? formData.document_ids.filter(id => id !== documentId)
+            : [...formData.document_ids, documentId];
+        setFormData(prev => ({ ...prev, document_ids: newIds }));
+        setDocumentQuestionCount(null);
+
+        if (newIds.length > 0) {
+            try {
+                let totalCount = { total: 0, by_difficulty: { Easy: 0, Medium: 0, Hard: 0 } };
+                for (const did of newIds) {
+                    const res = await documentService.getQuestionCount(did);
+                    const data = res.data || res;
+                    totalCount.total += data.total || 0;
+                    totalCount.by_difficulty.Easy += data.by_difficulty?.Easy || 0;
+                    totalCount.by_difficulty.Medium += data.by_difficulty?.Medium || 0;
+                    totalCount.by_difficulty.Hard += data.by_difficulty?.Hard || 0;
+                }
+                setDocumentQuestionCount(totalCount);
+            } catch (err) {
+                showError('Không thể lấy số lượng câu hỏi của tài liệu');
+            }
         }
     };
 
@@ -65,9 +104,12 @@ const Practice = () => {
             const examData = {
                 title: formData.title || `Bài tự luyện ${new Date().toLocaleDateString('vi-VN')}`,
                 num_questions: formData.num_questions,
-                difficulty: formData.difficulty || null,
                 duration: formData.duration,
-                subject: formData.subject || null
+                subject: formData.subject || null,
+                document_ids: formData.document_ids.length > 0 ? formData.document_ids : [],
+                easy_count: formData.easy_count,
+                medium_count: formData.medium_count,
+                hard_count: formData.hard_count
             };
 
             const response = await practiceService.createExam(examData);
@@ -77,10 +119,14 @@ const Practice = () => {
             setFormData({
                 title: '',
                 num_questions: 10,
-                difficulty: '',
                 duration: 30,
-                subject: ''
+                subject: '',
+                document_ids: [],
+                easy_count: 0,
+                medium_count: 0,
+                hard_count: 0
             });
+            setDocumentQuestionCount(null);
 
             await fetchData();
 
@@ -93,6 +139,27 @@ const Practice = () => {
             showError(err.message || 'Không thể tạo bài tự luyện. Hãy đảm bảo bạn có đủ câu hỏi trong ngân hàng.');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleTotalQuestionsChange = (value) => {
+        const total = parseInt(value) || 0;
+        setFormData(prev => ({
+            ...prev,
+            num_questions: total,
+            easy_count: 0,
+            medium_count: 0,
+            hard_count: 0
+        }));
+    };
+
+    const handleDifficultyChange = (type, value) => {
+        const newValue = parseInt(value) || 0;
+        const newFormData = { ...formData, [type]: newValue };
+
+        const sum = newFormData.easy_count + newFormData.medium_count + newFormData.hard_count;
+        if (sum <= newFormData.num_questions) {
+            setFormData(newFormData);
         }
     };
 
@@ -197,7 +264,7 @@ const Practice = () => {
             {questions.length === 0 && (
                 <div className="card-glass p-8 text-center">
                     <div className="w-16 h-16 rounded-full bg-orange-500/20 flex items-center justify-center mx-auto mb-4">
-                        <span className="text-3xl">📚</span>
+                        <BookIcon className="w-8 h-8 text-orange-400" />
                     </div>
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                         Chưa có câu hỏi nào
@@ -390,95 +457,221 @@ const Practice = () => {
             )}
 
             {showCreateModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="card-glass max-w-md w-full p-6 animate-fadeIn">
-                        <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-xl font-bold text-gray-900 dark:text-white">Tạo bài tự luyện</h3>
-                            <button
-                                onClick={() => setShowCreateModal(false)}
-                                className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg"
-                            >
-                                ✕
-                            </button>
-                        </div>
-
-                        <form onSubmit={handleCreateExam} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                                    Tiêu đề (tùy chọn)
-                                </label>
-                                <input
-                                    type="text"
-                                    value={formData.title}
-                                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                    className="input-glass"
-                                    placeholder="VD: Ôn tập Chương 1"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                                    Số câu hỏi (tối đa: {Math.min(questions.length, 50)})
-                                </label>
-                                <input
-                                    type="number"
-                                    min="1"
-                                    max={Math.min(questions.length, 50)}
-                                    value={formData.num_questions}
-                                    onChange={(e) => setFormData({ ...formData, num_questions: parseInt(e.target.value) || 1 })}
-                                    className="input-glass"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                                    Thời gian (phút)
-                                </label>
-                                <input
-                                    type="number"
-                                    min="5"
-                                    max="180"
-                                    value={formData.duration}
-                                    onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) || 30 })}
-                                    className="input-glass"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                                    Độ khó (tùy chọn)
-                                </label>
-                                <select
-                                    value={formData.difficulty}
-                                    onChange={(e) => setFormData({ ...formData, difficulty: e.target.value })}
-                                    className="input-glass"
+                <Portal>
+                    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-100 p-4">
+                        <div className="card-glass max-w-2xl w-full my-8 max-h-[90vh] overflow-hidden flex flex-col animate-fadeIn shadow-2xl">
+                            <div className="flex items-center justify-between p-6 border-b border-gray-200/10">
+                                <div>
+                                    <h2 className="text-2xl font-bold gradient-text">Tạo bài tự luyện</h2>
+                                    <p className="text-gray-500 text-sm mt-1">Thiết lập bài kiểm tra cá nhân</p>
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        setShowCreateModal(false);
+                                        setDocumentQuestionCount(null);
+                                    }}
+                                    className="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-xl transition-all group"
                                 >
-                                    <option value="">Tất cả</option>
-                                    <option value="easy">Dễ</option>
-                                    <option value="medium">Trung bình</option>
-                                    <option value="hard">Khó</option>
-                                </select>
+                                    <CloseIcon className="w-6 h-6 text-gray-400 group-hover:rotate-90 transition-transform" />
+                                </button>
                             </div>
 
-                            <div className="flex gap-3 pt-4">
+                            <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+                                <form id="practice-form" onSubmit={handleCreateExam} className="space-y-6">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                                            Tiêu đề (tùy chọn)
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={formData.title}
+                                            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                            className="input-glass w-full"
+                                            placeholder="VD: Ôn tập Chương 1"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                                            Chọn tài liệu (tùy chọn - có thể chọn nhiều)
+                                        </label>
+                                        <div className="space-y-2 max-h-40 overflow-y-auto p-3 card-glass">
+                                            {documents.length === 0 ? (
+                                                <p className="text-sm text-gray-500 text-center py-2">Chưa có tài liệu nào</p>
+                                            ) : (
+                                                documents.map(doc => {
+                                                    const docId = doc._id || doc.id;
+                                                    const isChecked = formData.document_ids.includes(docId);
+                                                    return (
+                                                        <label
+                                                            key={docId}
+                                                            className={`flex items-center gap-3 p-2.5 rounded-lg cursor-pointer transition-all ${isChecked
+                                                                ? 'bg-blue-500/15 border border-blue-500/30'
+                                                                : 'hover:bg-white/5 border border-transparent'
+                                                                }`}
+                                                        >
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={isChecked}
+                                                                onChange={() => handleDocumentToggle(docId)}
+                                                                className="w-4 h-4 rounded border-gray-400 text-blue-500 focus:ring-blue-500"
+                                                            />
+                                                            <span className={`text-sm font-medium ${isChecked ? 'text-blue-400' : 'text-gray-700'}`}>
+                                                                {doc.name}
+                                                            </span>
+                                                            <span className="text-xs text-gray-500 ml-auto">
+                                                                {doc.file_type?.toUpperCase()}
+                                                            </span>
+                                                        </label>
+                                                    );
+                                                })
+                                            )}
+                                        </div>
+                                        <p className="text-xs text-gray-500 mt-1.5">
+                                            {formData.document_ids.length > 0
+                                                ? `Đã chọn ${formData.document_ids.length} tài liệu`
+                                                : 'Câu hỏi sẽ được lấy từ toàn bộ ngân hàng của bạn'}
+                                        </p>
+                                        {documentQuestionCount && (
+                                            <div className="mt-2 p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+                                                <p className="text-sm font-medium text-blue-400 mb-1.5">
+                                                    <BookIcon className="w-4 h-4 text-blue-400 inline mr-1" /> Tổng cộng {documentQuestionCount.total} câu hỏi từ {formData.document_ids.length} tài liệu
+                                                </p>
+                                                <div className="flex gap-4 text-xs">
+                                                    <span className="text-green-400">
+                                                        Dễ: {documentQuestionCount.by_difficulty?.Easy || 0}
+                                                    </span>
+                                                    <span className="text-yellow-400">
+                                                        TB: {documentQuestionCount.by_difficulty?.Medium || 0}
+                                                    </span>
+                                                    <span className="text-red-400">
+                                                        Khó: {documentQuestionCount.by_difficulty?.Hard || 0}
+                                                    </span>
+                                                </div>
+                                                {documentQuestionCount.total === 0 && (
+                                                    <p className="text-xs text-orange-400 mt-1">
+                                                        <AlertTriangleIcon className="w-4 h-4 text-orange-400 inline mr-1" /> Các tài liệu đã chọn chưa có câu hỏi nào được lưu
+                                                    </p>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                                                Số câu hỏi *
+                                            </label>
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                max={formData.document_ids.length > 0 && documentQuestionCount
+                                                    ? Math.min(documentQuestionCount.total, 50)
+                                                    : Math.min(questions.length, 50)}
+                                                value={formData.num_questions}
+                                                onChange={(e) => handleTotalQuestionsChange(e.target.value)}
+                                                className="input-glass w-full"
+                                            />
+                                            <p className="text-[10px] text-gray-500 mt-1">
+                                                * Tối đa: {formData.document_ids.length > 0 && documentQuestionCount
+                                                    ? Math.min(documentQuestionCount.total, 50)
+                                                    : Math.min(questions.length, 50)} câu
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                                                Thời gian (phút) *
+                                            </label>
+                                            <input
+                                                type="number"
+                                                min="5"
+                                                max="180"
+                                                value={formData.duration}
+                                                onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) || 30 })}
+                                                className="input-glass w-full"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="card-glass p-4 bg-blue-500/5">
+                                        <h3 className="font-semibold text-gray-900 mb-4">Phân bổ độ khó</h3>
+                                        <div className="grid grid-cols-3 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-medium text-green-400 mb-2">
+                                                    Câu dễ
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    value={formData.easy_count}
+                                                    onChange={(e) => handleDifficultyChange('easy_count', e.target.value)}
+                                                    className="input-glass w-full"
+                                                    min="0"
+                                                    max={formData.num_questions}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-yellow-400 mb-2">
+                                                    Câu trung bình
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    value={formData.medium_count}
+                                                    onChange={(e) => handleDifficultyChange('medium_count', e.target.value)}
+                                                    className="input-glass w-full"
+                                                    min="0"
+                                                    max={formData.num_questions}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-red-400 mb-2">
+                                                    Câu khó
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    value={formData.hard_count}
+                                                    onChange={(e) => handleDifficultyChange('hard_count', e.target.value)}
+                                                    className="input-glass w-full"
+                                                    min="0"
+                                                    max={formData.num_questions}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="mt-3 text-sm">
+                                            <span className="text-gray-500">Đã phân bổ: </span>
+                                            <span className={`font-semibold ${formData.easy_count + formData.medium_count + formData.hard_count === formData.num_questions
+                                                ? 'text-green-400'
+                                                : 'text-red-400'
+                                                }`}>
+                                                {formData.easy_count + formData.medium_count + formData.hard_count} / {formData.num_questions}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200/10">
                                 <button
                                     type="button"
-                                    onClick={() => setShowCreateModal(false)}
-                                    className="flex-1 btn-secondary"
+                                    onClick={() => {
+                                        setShowCreateModal(false);
+                                        setDocumentQuestionCount(null);
+                                    }}
+                                    className="btn-secondary"
                                 >
                                     Hủy
                                 </button>
                                 <button
                                     type="submit"
-                                    disabled={loading || formData.num_questions > questions.length}
-                                    className="flex-1 btn-primary disabled:opacity-50"
+                                    form="practice-form"
+                                    disabled={loading || formData.easy_count + formData.medium_count + formData.hard_count !== formData.num_questions}
+                                    className={`btn-primary ${loading || formData.easy_count + formData.medium_count + formData.hard_count !== formData.num_questions ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 >
-                                    {loading ? 'Đang tạo...' : 'Tạo bài'}
+                                    {loading ? 'Đang tạo...' : 'Tạo bài tự luyện'}
                                 </button>
                             </div>
-                        </form>
+                        </div>
                     </div>
-                </div>
+                </Portal>
             )}
         </div>
     );

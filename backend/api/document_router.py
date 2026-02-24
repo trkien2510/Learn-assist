@@ -33,5 +33,11 @@ async def save_questions(document_id: str, list_question: ListQuestionSchema, cu
 
 @router.delete("/{document_id}", response_model=BaseResponse)
 async def delete_document(document_id: str, current_user: UserModel = Depends(get_current_user)):
-    await document_service.delete_document(document_id, current_user)
-    return BaseResponse()
+    data = await document_service.delete_document(document_id, current_user)
+    return BaseResponse(data=data)
+
+
+@router.get("/{document_id}/question-count", response_model=BaseResponse)
+async def get_document_question_count(document_id: str, current_user: UserModel = Depends(get_current_user)):
+    data = await document_service.get_document_question_count(document_id, current_user)
+    return BaseResponse(data=data)

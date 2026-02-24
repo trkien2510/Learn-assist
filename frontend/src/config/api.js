@@ -40,6 +40,7 @@ export const API_ENDPOINTS = {
   DOCUMENT_UPLOAD: (numQuestions, mode) => `/document/upload/${numQuestions}?mode=${mode}`,
   DOCUMENT_SAVE_QUESTIONS: (documentId) => `/document/save-questions/${documentId}`,
   DOCUMENT_DELETE: (documentId) => `/document/${documentId}`,
+  DOCUMENT_QUESTION_COUNT: (documentId) => `/document/${documentId}/question-count`,
 
   QUESTION_CREATE: '/question/create',
   QUESTION_ALL: '/question/all',

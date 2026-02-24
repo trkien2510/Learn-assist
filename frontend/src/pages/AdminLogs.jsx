@@ -24,7 +24,7 @@ import {
 } from '../components/icons/Icons';
 
 const AdminLogs = () => {
-    const { showError } = useToast();
+    const { showError, showSuccess } = useToast();
     const [logs, setLogs] = useState([]);
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);

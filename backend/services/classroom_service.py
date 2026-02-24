@@ -77,28 +77,8 @@ async def get_classrooms(page: int, page_size: int, current_user: UserModel):
             }
 
 
-async def get_all_classrooms_admin(page: int = 1, page_size: int = 20):
-    if page < 1:
-        page = 1
-    if page_size < 1 or page_size > 100:
-        page_size = 20
 
-    skip = (page - 1) * page_size
 
-    total = await ClassroomModel.find_all().count()
-    items = await ClassroomModel.find_all().skip(skip).limit(page_size).to_list()
-
-    total_pages = (total + page_size - 1) // page_size
-
-    return {
-        "items": items,
-        "total": total,
-        "page": page,
-        "page_size": page_size,
-        "total_pages": total_pages,
-        "has_next": page < total_pages,
-        "has_previous": page > 1
-    }
 
 
 async def request_join_classroom(class_code: str, current_user):

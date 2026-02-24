@@ -68,7 +68,8 @@ async def preview_exam_questions(
         preview_data.easy_count,
         preview_data.medium_count,
         preview_data.hard_count,
-        current_user
+        current_user,
+        preview_data.document_ids
     )
     return BaseResponse(data=data)
 

@@ -180,10 +180,12 @@ const ClassroomExams = ({ classCode, classroom, onRefresh }) => {
                                         <ClockIcon className="w-4 h-4" />
                                         <span>{exam.duration} phút</span>
                                     </div>
-                                    <div className="flex items-center gap-2 text-gray-600">
-                                        <EditIcon className="w-4 h-4" />
-                                        <span>{exam.questions?.length || 0} câu hỏi</span>
-                                    </div>
+                                    {(isTeacher || isAdmin) && (
+                                        <div className="flex items-center gap-2 text-gray-600">
+                                            <EditIcon className="w-4 h-4" />
+                                            <span>{exam.questions?.length || 0} câu hỏi</span>
+                                        </div>
+                                    )}
                                     <div className="pt-2 border-t border-gray-200/10">
                                         <p className="text-gray-500 text-xs">
                                             Bắt đầu: {formatDateTime(exam.start_at)}

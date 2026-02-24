@@ -10,10 +10,8 @@ from models.document_model import DocumentModel
 from services import log_service, notification_service
 from utils.query_helpers import (
     batch_fetch_questions,
-    batch_fetch_users_from_links,
     get_questions_data_optimized,
-    get_id_from_link,
-    get_submitted_exam_ids_for_user
+    get_id_from_link
 )
 import logging
 
@@ -564,21 +562,29 @@ async def create_personal_exam(exam_data, current_user):
                 pass
     
     elif exam_data.num_questions and exam_data.num_questions > 0:
-        query_filter = {
-            "$or": [
-                {"creator_id.$id": current_user.id}
-            ]
-        }
+        from models.question_model import Difficulty
         
-        if exam_data.difficulty:
-            query_filter["difficulty"] = exam_data.difficulty.upper()
-        
-        available_questions = await QuestionModel.find(query_filter).to_list()
-        
-        if not exam_data.difficulty:
+        if exam_data.document_ids and len(exam_data.document_ids) > 0:
+            doc_obj_ids = []
+            for did in exam_data.document_ids:
+                try:
+                    doc_obj_ids.append(PydanticObjectId(did))
+                except:
+                    raise AppException(StatusCode.BAD_REQUEST, f"Invalid document ID: {did}")
+            
+            for doc_obj_id in doc_obj_ids:
+                doc = await DocumentModel.get(doc_obj_id)
+                if not doc:
+                    raise AppException(StatusCode.NOT_FOUND, f"Document not found: {doc_obj_id}")
+                if doc.creator.ref.id != current_user.id:
+                    raise AppException(StatusCode.FORBIDDEN, "You can only use your own documents")
+            
+            available_questions = await QuestionModel.find({"document_id.$id": {"$in": doc_obj_ids}}).to_list()
+        else:
+            available_questions = await QuestionModel.find({"creator_id.$id": current_user.id}).to_list()
+            
             user_docs = await DocumentModel.find({"creator.$id": current_user.id}).to_list()
             doc_ids = [doc.id for doc in user_docs]
-            
             if doc_ids:
                 doc_questions = await QuestionModel.find({
                     "document_id.$id": {"$in": doc_ids}
@@ -587,27 +593,39 @@ async def create_personal_exam(exam_data, current_user):
                 for dq in doc_questions:
                     if dq.id not in existing_ids:
                         available_questions.append(dq)
-        else:
-            user_docs = await DocumentModel.find({"creator.$id": current_user.id}).to_list()
-            doc_ids = [doc.id for doc in user_docs]
+        
+        easy = exam_data.easy_count or 0
+        medium = exam_data.medium_count or 0
+        hard = exam_data.hard_count or 0
+        has_difficulty_counts = (easy + medium + hard) == exam_data.num_questions and (easy + medium + hard) > 0
+        
+        if has_difficulty_counts:
+            questions_by_diff = {
+                "Easy": [q for q in available_questions if q.difficulty == Difficulty.EASY],
+                "Medium": [q for q in available_questions if q.difficulty == Difficulty.MEDIUM],
+                "Hard": [q for q in available_questions if q.difficulty == Difficulty.HARD]
+            }
             
-            if doc_ids:
-                doc_questions = await QuestionModel.find({
-                    "document_id.$id": {"$in": doc_ids},
-                    "difficulty": exam_data.difficulty.upper()
-                }).to_list()
-                existing_ids = {q.id for q in available_questions}
-                for dq in doc_questions:
-                    if dq.id not in existing_ids:
-                        available_questions.append(dq)
-        
-        if len(available_questions) < exam_data.num_questions:
-            raise AppException(
-                StatusCode.BAD_REQUEST, 
-                f"Not enough questions available. You have {len(available_questions)} questions but requested {exam_data.num_questions}"
-            )
-        
-        question_links = random.sample(available_questions, exam_data.num_questions)
+            if len(questions_by_diff["Easy"]) < easy:
+                raise AppException(StatusCode.BAD_REQUEST, f"Not enough easy questions. Available: {len(questions_by_diff['Easy'])}, Requested: {easy}")
+            if len(questions_by_diff["Medium"]) < medium:
+                raise AppException(StatusCode.BAD_REQUEST, f"Not enough medium questions. Available: {len(questions_by_diff['Medium'])}, Requested: {medium}")
+            if len(questions_by_diff["Hard"]) < hard:
+                raise AppException(StatusCode.BAD_REQUEST, f"Not enough hard questions. Available: {len(questions_by_diff['Hard'])}, Requested: {hard}")
+            
+            selected_easy = random.sample(questions_by_diff["Easy"], easy) if easy > 0 else []
+            selected_medium = random.sample(questions_by_diff["Medium"], medium) if medium > 0 else []
+            selected_hard = random.sample(questions_by_diff["Hard"], hard) if hard > 0 else []
+            
+            question_links = selected_easy + selected_medium + selected_hard
+            random.shuffle(question_links)
+        else:
+            if len(available_questions) < exam_data.num_questions:
+                raise AppException(
+                    StatusCode.BAD_REQUEST, 
+                    f"Not enough questions available. You have {len(available_questions)} questions but requested {exam_data.num_questions}"
+                )
+            question_links = random.sample(available_questions, exam_data.num_questions)
 
     if not question_links:
         raise AppException(StatusCode.BAD_REQUEST, "No valid questions provided")
@@ -935,7 +953,7 @@ async def get_user_document_statistics(current_user):
     }
 
 
-async def preview_exam_questions(class_code: str, total_questions: int, easy_count: int, medium_count: int, hard_count: int, current_user):
+async def preview_exam_questions(class_code: str, total_questions: int, easy_count: int, medium_count: int, hard_count: int, current_user, document_ids: list = None):
     from models.question_model import Difficulty
     import random
     
@@ -949,7 +967,35 @@ async def preview_exam_questions(class_code: str, total_questions: int, easy_cou
     if easy_count + medium_count + hard_count != total_questions:
         raise AppException(StatusCode.BAD_REQUEST, "Sum of difficulty counts must equal total questions")
     
-    all_questions = await QuestionModel.find({"creator_id.$id": current_user.id}).to_list()
+    if document_ids and len(document_ids) > 0:
+        doc_obj_ids = []
+        for did in document_ids:
+            try:
+                doc_obj_ids.append(PydanticObjectId(did))
+            except:
+                raise AppException(StatusCode.BAD_REQUEST, f"Invalid document ID: {did}")
+        
+        for doc_obj_id in doc_obj_ids:
+            doc = await DocumentModel.get(doc_obj_id)
+            if not doc:
+                raise AppException(StatusCode.NOT_FOUND, f"Document not found: {doc_obj_id}")
+            if doc.creator.ref.id != current_user.id:
+                raise AppException(StatusCode.FORBIDDEN, "You can only use your own documents")
+        
+        all_questions = await QuestionModel.find({"document_id.$id": {"$in": doc_obj_ids}}).to_list()
+    else:
+        all_questions = await QuestionModel.find({"creator_id.$id": current_user.id}).to_list()
+        
+        user_docs = await DocumentModel.find({"creator.$id": current_user.id}).to_list()
+        doc_ids = [doc.id for doc in user_docs]
+        if doc_ids:
+            doc_questions = await QuestionModel.find({
+                "document_id.$id": {"$in": doc_ids}
+            }).to_list()
+            existing_ids = {q.id for q in all_questions}
+            for dq in doc_questions:
+                if dq.id not in existing_ids:
+                    all_questions.append(dq)
     
     questions_by_diff = {
         "Easy": [q for q in all_questions if q.difficulty == Difficulty.EASY],

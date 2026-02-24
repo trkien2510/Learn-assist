@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { documentService } from '../services/apiServices';
 import { useToast } from '../contexts/ToastContext';
-import { UploadIcon, FileIcon, TrashIcon, EditIcon, CloseIcon, CalendarIcon, SaveIcon } from '../components/icons/Icons';
+import { useAuth, ROLES } from '../contexts/AuthContext';
+import { UploadIcon, FileIcon, TrashIcon, EditIcon, CloseIcon, CalendarIcon, SaveIcon, AlertTriangleIcon } from '../components/icons/Icons';
 
 const Documents = () => {
+    const { hasRole } = useAuth();
+    const isStudent = hasRole([ROLES.STUDENT]);
+
     const [documents, setDocuments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
@@ -19,6 +23,9 @@ const Documents = () => {
     const [selectedQuestions, setSelectedQuestions] = useState([]);
     const [currentDocumentId, setCurrentDocumentId] = useState(null);
     const [editingQuestion, setEditingQuestion] = useState(null);
+
+    const [deleteConfirm, setDeleteConfirm] = useState({ show: false, documentId: null, documentName: '' });
+    const [deleting, setDeleting] = useState(false);
 
     useEffect(() => {
         fetchDocuments();
@@ -105,11 +112,24 @@ const Documents = () => {
                 : [];
             setSelectedQuestions(allIndices);
 
-            showSuccess('Upload và sinh câu hỏi thành công!');
-            setShowUploadModal(false);
-            setShowPreviewModal(true);
-            setUploading(false);
-            fetchDocuments();
+            if (isStudent) {
+                if (questions.length > 0) {
+                    await documentService.saveQuestions(responseData.document_id, questions);
+                    showSuccess(`Upload thành công! Đã tự động lưu ${questions.length} câu hỏi vào ngân hàng.`);
+                } else {
+                    showSuccess('Upload thành công nhưng không tìm thấy câu hỏi nào.');
+                }
+                setShowUploadModal(false);
+                setUploading(false);
+                fetchDocuments();
+                resetUploadForm();
+            } else {
+                showSuccess('Upload và sinh câu hỏi thành công!');
+                setShowUploadModal(false);
+                setShowPreviewModal(true);
+                setUploading(false);
+                fetchDocuments();
+            }
         } catch (err) {
             showError(err.message || 'Upload thất bại. Vui lòng thử lại.');
             setUploading(false);
@@ -164,15 +184,32 @@ const Documents = () => {
         setEditingQuestion(null);
     };
 
-    const handleDeleteDocument = async (documentId) => {
-        if (!confirm('Bạn có chắc muốn xóa tài liệu này?')) return;
+    const handleDeleteDocument = (doc) => {
+        setDeleteConfirm({
+            show: true,
+            documentId: doc._id || doc.id,
+            documentName: doc.name
+        });
+    };
 
+    const confirmDeleteDocument = async () => {
         try {
-            await documentService.delete(documentId);
-            showSuccess('Đã xóa tài liệu!');
+            setDeleting(true);
+            const response = await documentService.delete(deleteConfirm.documentId);
+            const data = response.data || response;
+            const deletedCount = data.deleted_questions_count || 0;
+
+            if (deletedCount > 0) {
+                showSuccess(`Đã xóa tài liệu và ${deletedCount} câu hỏi liên quan!`);
+            } else {
+                showSuccess('Đã xóa tài liệu!');
+            }
+            setDeleteConfirm({ show: false, documentId: null, documentName: '' });
             fetchDocuments();
         } catch (err) {
             showError(err.message || 'Không thể xóa tài liệu');
+        } finally {
+            setDeleting(false);
         }
     };
 
@@ -271,7 +308,7 @@ const Documents = () => {
                                     </div>
                                 </div>
                                 <button
-                                    onClick={() => handleDeleteDocument(doc._id || doc.id)}
+                                    onClick={() => handleDeleteDocument(doc)}
                                     className="p-2 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20 transition-colors shrink-0"
                                 >
                                     <TrashIcon className="w-5 h-5" />
@@ -363,8 +400,8 @@ const Documents = () => {
                                         type="button"
                                         onClick={() => setGenerationMode('strict')}
                                         className={`flex-1 p-3 rounded-xl border-2 transition-all text-left ${generationMode === 'strict'
-                                                ? 'border-blue-500 bg-blue-500/10'
-                                                : 'border-gray-200 bg-white/5 hover:border-gray-300'
+                                            ? 'border-blue-500 bg-blue-500/10'
+                                            : 'border-gray-200 bg-white/5 hover:border-gray-300'
                                             }`}
                                     >
                                         <div className="flex items-center gap-2 mb-1">
@@ -384,8 +421,8 @@ const Documents = () => {
                                         type="button"
                                         onClick={() => setGenerationMode('expanded')}
                                         className={`flex-1 p-3 rounded-xl border-2 transition-all text-left ${generationMode === 'expanded'
-                                                ? 'border-blue-500 bg-blue-500/10'
-                                                : 'border-gray-200 bg-white/5 hover:border-gray-300'
+                                            ? 'border-blue-500 bg-blue-500/10'
+                                            : 'border-gray-200 bg-white/5 hover:border-gray-300'
                                             }`}
                                     >
                                         <div className="flex items-center gap-2 mb-1">
@@ -689,6 +726,55 @@ const Documents = () => {
                                 className="btn-primary px-6"
                             >
                                 Lưu thay đổi
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {deleteConfirm.show && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-100 p-4">
+                    <div className="card-glass p-6 max-w-md w-full animate-fadeIn">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
+                                <TrashIcon className="w-6 h-6 text-red-400" />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-bold text-gray-900">Xác nhận xóa tài liệu</h3>
+                                <p className="text-sm text-gray-500">Hành động này không thể hoàn tác</p>
+                            </div>
+                        </div>
+
+                        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl mb-4">
+                            <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                                Bạn có chắc chắn muốn xóa tài liệu <strong className="text-gray-900 dark:text-white">"{deleteConfirm.documentName}"</strong>?
+                            </p>
+                            <p className="text-sm text-red-500 font-medium">
+                                <AlertTriangleIcon className="w-4 h-4 text-red-500 inline mr-1" /> Tất cả câu hỏi được sinh từ tài liệu này cũng sẽ bị xóa!
+                            </p>
+                        </div>
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setDeleteConfirm({ show: false, documentId: null, documentName: '' })}
+                                disabled={deleting}
+                                className="flex-1 btn-secondary disabled:opacity-50"
+                            >
+                                Hủy
+                            </button>
+                            <button
+                                onClick={confirmDeleteDocument}
+                                disabled={deleting}
+                                className="flex-1 bg-red-500 hover:bg-red-600 text-white font-medium py-2.5 px-4 rounded-xl transition-colors disabled:opacity-50"
+                            >
+                                {deleting ? (
+                                    <span className="flex items-center justify-center gap-2">
+                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                        Đang xóa...
+                                    </span>
+                                ) : (
+                                    'Xóa tài liệu'
+                                )}
                             </button>
                         </div>
                     </div>

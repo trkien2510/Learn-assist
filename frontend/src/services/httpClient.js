@@ -130,7 +130,7 @@ class HttpClient {
         });
     }
 
-    async upload(endpoint, formData) {
+    async upload(endpoint, formData, options = {}) {
         const token = cookieUtils.get('access_token');
 
         const headers = {};
@@ -144,6 +144,16 @@ class HttpClient {
                 headers,
                 body: formData,
             });
+
+            if (response.status === 401 && !options.skipRefresh) {
+                const refreshed = await this.refreshToken();
+                if (refreshed) {
+                    return this.upload(endpoint, formData, { ...options, skipRefresh: true });
+                } else {
+                    this.handleLogout();
+                    throw new Error('Session expired. Please login again.');
+                }
+            }
 
             const data = await response.json();
 

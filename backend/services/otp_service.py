@@ -168,7 +168,4 @@ async def reset_password(email: str, otp_code: str, new_password: str, confirm_p
     return {"message": "Password reset successful"}
 
 
-async def cleanup_expired_otps():
-    await OTPModel.find(
-        OTPModel.expires_at < datetime.now(timezone.utc)
-    ).delete()
+

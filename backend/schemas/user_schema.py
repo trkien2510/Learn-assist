@@ -1,4 +1,4 @@
-from datetime import datetime, date
+from datetime import date
 from pydantic import BaseModel, EmailStr, Field, field_validator
 from models.user_model import UserRole
 import re
@@ -29,14 +29,6 @@ class UserLogin(BaseModel):
 class UserDeactivate(BaseModel):
     password: str
 
-class UserProfile(BaseModel):
-    id: str
-    email: EmailStr
-    full_name: str
-    role: UserRole
-    dob: date
-    phone_number: str | None
-    created_at: datetime
 
 class UserUpdate(BaseModel):
     full_name: str | None = Field(None, min_length=1)

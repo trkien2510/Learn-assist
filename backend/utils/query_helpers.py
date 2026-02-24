@@ -1,4 +1,4 @@
-from typing import List, Dict, Any, Optional, Set
+from typing import List, Dict, Any, Set
 from beanie import PydanticObjectId
 
 from models.question_model import QuestionModel
@@ -6,7 +6,6 @@ from models.user_model import UserModel
 from models.exam_model import ExamModel
 from models.classroom_model import ClassroomModel
 from models.result_model import ResultModel
-from models.document_model import DocumentModel
 
 
 def get_id_from_link(link_obj) -> PydanticObjectId:
@@ -73,18 +72,6 @@ async def batch_fetch_classrooms(class_ids: List[PydanticObjectId]) -> Dict[Pyda
     return {c.id: c for c in classrooms}
 
 
-async def batch_fetch_documents(doc_ids: List[PydanticObjectId]) -> Dict[PydanticObjectId, DocumentModel]:
-    if not doc_ids:
-        return {}
-    
-    unique_ids = list(set(doc_ids))
-    documents = await DocumentModel.find(
-        {"_id": {"$in": unique_ids}}
-    ).to_list()
-    
-    return {d.id: d for d in documents}
-
-
 def format_question_for_response(question: QuestionModel, include_answer: bool = True) -> Dict[str, Any]:
     result = {
         "id": str(question.id),
@@ -112,41 +99,6 @@ async def get_questions_data_optimized(question_links: List, include_answer: boo
             questions_data.append(format_question_for_response(question, include_answer))
     
     return questions_data
-
-
-async def paginate_query_optimized(query, page: int, page_size: int) -> tuple:
-    if page < 1:
-        page = 1
-    if page_size < 1 or page_size > 100:
-        page_size = 20
-    
-    skip = (page - 1) * page_size
-    
-    pipeline = [
-        {"$facet": {
-            "items": [
-                {"$skip": skip},
-                {"$limit": page_size}
-            ],
-            "total": [
-                {"$count": "count"}
-            ]
-        }}
-    ]
-    
-    result = await query.aggregate(pipeline).to_list()
-    
-    if result and len(result) > 0:
-        items = result[0].get("items", [])
-        total_data = result[0].get("total", [])
-        total = total_data[0]["count"] if total_data else 0
-    else:
-        items = []
-        total = 0
-    
-    total_pages = (total + page_size - 1) // page_size if total > 0 else 0
-    
-    return items, total, total_pages
 
 
 async def get_submitted_exam_ids_for_user(exam_ids: List[PydanticObjectId], user_id: PydanticObjectId) -> Set[str]:

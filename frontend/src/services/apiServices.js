@@ -80,6 +80,10 @@ export const documentService = {
 
     async delete(documentId) {
         return httpClient.delete(API_ENDPOINTS.DOCUMENT_DELETE(documentId));
+    },
+
+    async getQuestionCount(documentId) {
+        return httpClient.get(API_ENDPOINTS.DOCUMENT_QUESTION_COUNT(documentId));
     }
 };
 
@@ -142,14 +146,18 @@ export const examService = {
         return httpClient.post(API_ENDPOINTS.EXAM_SUBMIT(examId), { answers });
     },
 
-    async previewQuestions(classCode, totalQuestions, easyCount, mediumCount, hardCount) {
-        return httpClient.post(API_ENDPOINTS.EXAM_PREVIEW, {
+    async previewQuestions(classCode, totalQuestions, easyCount, mediumCount, hardCount, documentIds = []) {
+        const payload = {
             class_code: classCode,
             total_questions: totalQuestions,
             easy_count: easyCount,
             medium_count: mediumCount,
             hard_count: hardCount
-        });
+        };
+        if (documentIds && documentIds.length > 0) {
+            payload.document_ids = documentIds;
+        }
+        return httpClient.post(API_ENDPOINTS.EXAM_PREVIEW, payload);
     },
 
     async replaceQuestion(classCode, questionId, excludedIds, difficulty) {

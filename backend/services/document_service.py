@@ -191,6 +191,7 @@ async def get_my_documents(page: int, page_size: int, current_user):
 
 async def delete_document(document_id: str, current_user):
     from beanie import PydanticObjectId
+    from models.question_model import QuestionModel
 
     try:
         obj_id = PydanticObjectId(document_id)
@@ -204,10 +205,18 @@ async def delete_document(document_id: str, current_user):
     if document.creator.ref.id != current_user.id and current_user.role.value != "admin":
         raise AppException(StatusCode.FORBIDDEN, "Permission denied")
 
-    await log_service.log_document("delete_document", document_id, current_user)
+    related_questions = await QuestionModel.find({"document_id.$id": obj_id}).to_list()
+    deleted_question_count = len(related_questions)
+    
+    if related_questions:
+        await QuestionModel.find({"document_id.$id": obj_id}).delete()
+
+    await log_service.log_document("delete_document", document_id, current_user, {
+        "deleted_questions_count": deleted_question_count
+    })
 
     await document.delete()
-    return {}
+    return {"deleted_questions_count": deleted_question_count}
 
 
 async def save_questions(list_question_data, document_id: str, current_user):
@@ -263,4 +272,34 @@ async def save_questions(list_question_data, document_id: str, current_user):
     return {
         "saved_count": len(saved_questions),
         "questions": saved_questions
+    }
+
+
+async def get_document_question_count(document_id: str, current_user):
+    from beanie import PydanticObjectId
+    from models.question_model import QuestionModel
+
+    try:
+        obj_id = PydanticObjectId(document_id)
+    except:
+        raise AppException(StatusCode.BAD_REQUEST, "Invalid document ID")
+
+    document = await DocumentModel.get(obj_id)
+    if not document:
+        raise AppException(StatusCode.NOT_FOUND, "Document not found")
+
+    if document.creator.ref.id != current_user.id and current_user.role.value != "admin":
+        raise AppException(StatusCode.FORBIDDEN, "Permission denied")
+
+    questions = await QuestionModel.find({"document_id.$id": obj_id}).to_list()
+    
+    difficulty_counts = {"Easy": 0, "Medium": 0, "Hard": 0}
+    for q in questions:
+        diff = q.difficulty.value if hasattr(q.difficulty, 'value') else str(q.difficulty)
+        if diff in difficulty_counts:
+            difficulty_counts[diff] += 1
+
+    return {
+        "total": len(questions),
+        "by_difficulty": difficulty_counts
     }

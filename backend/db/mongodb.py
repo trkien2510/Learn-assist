@@ -17,6 +17,7 @@ from models.result_model import ResultModel
 from models.user_model import UserModel, UserRole
 
 
+
 DEFAULT_ADMIN_EMAIL = "admin@learnassist.com"
 DEFAULT_ADMIN_USERNAME = "admin"
 DEFAULT_ADMIN_PASSWORD = "Admin@123"

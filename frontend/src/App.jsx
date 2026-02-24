@@ -76,26 +76,30 @@ function App() {
                       <Route path="logs" element={<AdminLogs />} />
                     </Route>
 
-                    <Route element={<RoleRoute allowedRoles={[ROLES.ADMIN, ROLES.TEACHER]} />}>
-                      <Route path="exams/create" element={<PlaceholderPage title="Tạo đề kiểm tra" />} />
-                    </Route>
-
-                    <Route path="documents" element={<Documents />} />
-                    <Route path="questions" element={<Questions />} />
                     <Route path="classrooms" element={<Classrooms />} />
                     <Route path="classroom/:classCode" element={<ClassroomDetail />} />
-                    <Route path="exams" element={<Exams />} />
-                    <Route path="exams/:id" element={<PlaceholderPage title="Chi tiết bài kiểm tra" />} />
-                    <Route path="exams/:id/statistics" element={<ExamStatistics />} />
-                    <Route path="take-exam/:id" element={<TakeExam />} />
-                    <Route path="statistics" element={<Statistics />} />
-
-                    <Route path="results" element={<Results />} />
-                    <Route path="results/:id" element={<Results />} />
-                    <Route path="practice" element={<Practice />} />
-
-                    <Route path="profile" element={<Profile />} />
                     <Route path="notifications" element={<Notifications />} />
+                    <Route path="profile" element={<Profile />} />
+
+                    <Route element={<RoleRoute allowedRoles={[ROLES.TEACHER, ROLES.STUDENT]} />}>
+                      <Route path="documents" element={<Documents />} />
+                      <Route path="questions" element={<Questions />} />
+                      <Route path="exams" element={<Exams />} />
+                      <Route path="exams/:id" element={<PlaceholderPage title="Chi tiết bài kiểm tra" />} />
+                    </Route>
+
+                    <Route element={<RoleRoute allowedRoles={[ROLES.ADMIN, ROLES.TEACHER]} />}>
+                      <Route path="exams/create" element={<PlaceholderPage title="Tạo đề kiểm tra" />} />
+                      <Route path="exams/:id/statistics" element={<ExamStatistics />} />
+                      <Route path="statistics" element={<Statistics />} />
+                    </Route>
+
+                    <Route element={<RoleRoute allowedRoles={[ROLES.STUDENT]} />}>
+                      <Route path="take-exam/:id" element={<TakeExam />} />
+                      <Route path="results" element={<Results />} />
+                      <Route path="results/:id" element={<Results />} />
+                      <Route path="practice" element={<Practice />} />
+                    </Route>
                   </Route>
                 </Route>
 

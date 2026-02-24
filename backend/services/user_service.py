@@ -268,24 +268,24 @@ async def _cleanup_user_data(user_id: str, user_email: str):
     try:
         obj_id = PydanticObjectId(user_id)
         
-        await DocumentModel.find(DocumentModel.creator.id == obj_id).delete()
+        await DocumentModel.find({"creator.$id": obj_id}).delete()
         
-        await QuestionModel.find(QuestionModel.creator_id.id == obj_id).delete()
+        await QuestionModel.find({"creator_id.$id": obj_id}).delete()
         
-        await ExamModel.find(ExamModel.creator_id.id == obj_id).delete()
+        await ExamModel.find({"creator_id.$id": obj_id}).delete()
         
-        await ClassroomModel.find(ClassroomModel.creator.id == obj_id).delete()
+        await ClassroomModel.find({"creator.$id": obj_id}).delete()
         
         await ClassroomModel.get_motor_collection().update_many(
             {"members.$id": obj_id},
             {"$pull": {"members": {"$id": obj_id}}}
         )
         
-        await MessageModel.find(MessageModel.sender.id == obj_id).delete()
+        await MessageModel.find({"sender.$id": obj_id}).delete()
         
-        await ResultModel.find(ResultModel.user_id.id == obj_id).delete()
+        await ResultModel.find({"user_id.$id": obj_id}).delete()
         
-        await NotificationModel.find(NotificationModel.user_id.id == obj_id).delete()
+        await NotificationModel.find({"user_id.$id": obj_id}).delete()
         
         await LogModel.find(LogModel.user_id == user_id).delete()
         

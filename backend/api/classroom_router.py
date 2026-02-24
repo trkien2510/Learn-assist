@@ -20,6 +20,12 @@ async def get_all_classrooms(page: int = 1, page_size: int = 20, current_user: U
     return BaseResponse(data=data)
 
 
+@router.get("/pending-requests", response_model=BaseResponse)
+async def get_pending_requests(current_user: UserModel = Depends(get_current_user)):
+    data = await classroom_service.get_my_pending_requests(current_user)
+    return BaseResponse(data=data)
+
+
 @router.get("/{class_code}", response_model=BaseResponse)
 async def get_classroom_detail(class_code: str, current_user: UserModel = Depends(get_current_user)):
     data = await classroom_service.get_classroom_detail(class_code, current_user)
@@ -38,11 +44,6 @@ async def delete_classroom(class_code: str, current_user: UserModel = Depends(ge
     await classroom_service.delete_classroom(class_code, current_user)
     return BaseResponse()
 
-
-@router.get("/pending-requests", response_model=BaseResponse)
-async def get_pending_requests(current_user: UserModel = Depends(get_current_user)):
-    data = await classroom_service.get_my_pending_requests(current_user)
-    return BaseResponse(data=data)
 
 
 @router.post("/{class_code}/join-request", response_model=BaseResponse)

@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { examService } from '../../services/apiServices';
-import { CloseIcon, RefreshIcon, CheckIcon, AlertIcon } from '../icons/Icons';
+import React, { useState, useEffect } from 'react';
+import { examService, documentService } from '../../services/apiServices';
+import { CloseIcon, RefreshIcon, CheckIcon, AlertIcon, BookIcon, AlertTriangleIcon } from '../icons/Icons';
 import Portal from '../common/Portal';
 
 const ExamCreationModal = ({ isOpen, onClose, classCode, onSuccess }) => {
@@ -10,6 +10,7 @@ const ExamCreationModal = ({ isOpen, onClose, classCode, onSuccess }) => {
 
     const [config, setConfig] = useState({
         title: '',
+        document_ids: [],
         duration: 60,
         start_at: '',
         end_at: '',
@@ -21,6 +22,50 @@ const ExamCreationModal = ({ isOpen, onClose, classCode, onSuccess }) => {
 
     const [previewQuestions, setPreviewQuestions] = useState([]);
     const [excludedIds, setExcludedIds] = useState([]);
+    const [documents, setDocuments] = useState([]);
+    const [documentQuestionCount, setDocumentQuestionCount] = useState(null);
+
+    useEffect(() => {
+        if (isOpen) {
+            fetchDocuments();
+        }
+    }, [isOpen]);
+
+    const fetchDocuments = async () => {
+        try {
+            const response = await documentService.getAll(1, 100);
+            const data = response.data || response;
+            setDocuments(data.items || data || []);
+        } catch (err) {
+            // silent fail
+        }
+    };
+
+    const handleDocumentToggle = async (documentId) => {
+        const isSelected = config.document_ids.includes(documentId);
+        const newIds = isSelected
+            ? config.document_ids.filter(id => id !== documentId)
+            : [...config.document_ids, documentId];
+        setConfig(prev => ({ ...prev, document_ids: newIds }));
+        setDocumentQuestionCount(null);
+
+        if (newIds.length > 0) {
+            try {
+                let totalCount = { total: 0, by_difficulty: { Easy: 0, Medium: 0, Hard: 0 } };
+                for (const did of newIds) {
+                    const res = await documentService.getQuestionCount(did);
+                    const data = res.data || res;
+                    totalCount.total += data.total || 0;
+                    totalCount.by_difficulty.Easy += data.by_difficulty?.Easy || 0;
+                    totalCount.by_difficulty.Medium += data.by_difficulty?.Medium || 0;
+                    totalCount.by_difficulty.Hard += data.by_difficulty?.Hard || 0;
+                }
+                setDocumentQuestionCount(totalCount);
+            } catch (err) {
+                setError('Không thể lấy số lượng câu hỏi của tài liệu');
+            }
+        }
+    };
 
     if (!isOpen) return null;
 
@@ -63,7 +108,8 @@ const ExamCreationModal = ({ isOpen, onClose, classCode, onSuccess }) => {
                 config.total_questions,
                 config.easy_count,
                 config.medium_count,
-                config.hard_count
+                config.hard_count,
+                config.document_ids.length > 0 ? config.document_ids : []
             );
             const data = response.data || response;
             setPreviewQuestions(data.questions || []);
@@ -208,6 +254,72 @@ const ExamCreationModal = ({ isOpen, onClose, classCode, onSuccess }) => {
                                         className="input-glass w-full"
                                         placeholder="VD: Kiểm tra giữa kỳ"
                                     />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                                        Chọn tài liệu (tùy chọn - có thể chọn nhiều)
+                                    </label>
+                                    <div className="space-y-2 max-h-40 overflow-y-auto p-3 card-glass">
+                                        {documents.length === 0 ? (
+                                            <p className="text-sm text-gray-500 text-center py-2">Chưa có tài liệu nào</p>
+                                        ) : (
+                                            documents.map(doc => {
+                                                const docId = doc._id || doc.id;
+                                                const isChecked = config.document_ids.includes(docId);
+                                                return (
+                                                    <label
+                                                        key={docId}
+                                                        className={`flex items-center gap-3 p-2.5 rounded-lg cursor-pointer transition-all ${isChecked
+                                                            ? 'bg-blue-500/15 border border-blue-500/30'
+                                                            : 'hover:bg-white/5 border border-transparent'
+                                                            }`}
+                                                    >
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={isChecked}
+                                                            onChange={() => handleDocumentToggle(docId)}
+                                                            className="w-4 h-4 rounded border-gray-400 text-blue-500 focus:ring-blue-500"
+                                                        />
+                                                        <span className={`text-sm font-medium ${isChecked ? 'text-blue-400' : 'text-gray-700'}`}>
+                                                            {doc.name}
+                                                        </span>
+                                                        <span className="text-xs text-gray-500 ml-auto">
+                                                            {doc.file_type?.toUpperCase()}
+                                                        </span>
+                                                    </label>
+                                                );
+                                            })
+                                        )}
+                                    </div>
+                                    <p className="text-xs text-gray-500 mt-1.5">
+                                        {config.document_ids.length > 0
+                                            ? `Đã chọn ${config.document_ids.length} tài liệu`
+                                            : 'Câu hỏi sẽ được lấy từ toàn bộ ngân hàng của bạn'}
+                                    </p>
+                                    {documentQuestionCount && (
+                                        <div className="mt-2 p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+                                            <p className="text-sm font-medium text-blue-400 mb-1.5">
+                                                <BookIcon className="w-4 h-4 text-blue-400 inline mr-1" /> Tổng cộng {documentQuestionCount.total} câu hỏi từ {config.document_ids.length} tài liệu
+                                            </p>
+                                            <div className="flex gap-4 text-xs">
+                                                <span className="text-green-400">
+                                                    Dễ: {documentQuestionCount.by_difficulty?.Easy || 0}
+                                                </span>
+                                                <span className="text-yellow-400">
+                                                    TB: {documentQuestionCount.by_difficulty?.Medium || 0}
+                                                </span>
+                                                <span className="text-red-400">
+                                                    Khó: {documentQuestionCount.by_difficulty?.Hard || 0}
+                                                </span>
+                                            </div>
+                                            {documentQuestionCount.total === 0 && (
+                                                <p className="text-xs text-orange-400 mt-1">
+                                                    <AlertTriangleIcon className="w-4 h-4 text-orange-400 inline mr-1" /> Các tài liệu đã chọn chưa có câu hỏi nào được lưu
+                                                </p>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">

@@ -79,28 +79,8 @@ async def delete_question(question_id: str, current_user):
     return {}
 
 
-async def get_all_questions(page: int = 1, page_size: int = 20):
-    if page < 1:
-        page = 1
-    if page_size < 1 or page_size > 100:
-        page_size = 20
 
-    skip = (page - 1) * page_size
 
-    total = await QuestionModel.find_all().count()
-    items = await QuestionModel.find_all().skip(skip).limit(page_size).to_list()
-
-    total_pages = (total + page_size - 1) // page_size
-
-    return {
-        "items": items,
-        "total": total,
-        "page": page,
-        "page_size": page_size,
-        "total_pages": total_pages,
-        "has_next": page < total_pages,
-        "has_previous": page > 1
-    }
 
 
 async def get_available_subjects():

@@ -83,7 +83,6 @@ const ForgotPassword = () => {
                 setError(errorMessage);
             } else if (err.response?.data?.remaining_attempts !== undefined) {
                 const attempts = err.response.data.remaining_attempts;
-                setRemainingAttempts(attempts);
                 if (attempts === 0) {
                     setError('Mã OTP đã hết lượt thử. Vui lòng yêu cầu mã mới.');
                 } else {

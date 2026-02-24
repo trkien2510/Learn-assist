@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import asyncio
 
+from core.exception_handler import AppException, app_exception_handler, generic_exception_handler
 from api.admin import admin_router
 from core.config import settings
 from db.mongodb import init_db
@@ -27,8 +28,6 @@ async def lifespan(app: FastAPI):
         pass
 
 
-
-from core.exception_handler import AppException, app_exception_handler, generic_exception_handler
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
