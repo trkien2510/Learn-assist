@@ -169,8 +169,10 @@ export const examService = {
 };
 
 export const resultService = {
-    async getAll(page = 1, pageSize = 10) {
-        return httpClient.get(API_ENDPOINTS.RESULT_ALL, { page, page_size: pageSize });
+    async getAll(page = 1, pageSize = 10, examType = null) {
+        const params = { page, page_size: pageSize };
+        if (examType) params.exam_type = examType;
+        return httpClient.get(API_ENDPOINTS.RESULT_ALL, params);
     },
 
     async getByExam(examId, page = 1, pageSize = 10) {

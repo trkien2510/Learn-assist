@@ -746,11 +746,12 @@ const Documents = () => {
                         </div>
 
                         <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl mb-4">
-                            <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
-                                Bạn có chắc chắn muốn xóa tài liệu <strong className="text-gray-900 dark:text-white">"{deleteConfirm.documentName}"</strong>?
+                            <p className="text-sm text-gray-500 dark:text-gray-500 mb-2">
+                                Bạn có chắc chắn muốn xóa tài liệu <strong className="text-gray-900 dark:text-gray-900">"{deleteConfirm.documentName}"</strong>?
                             </p>
                             <p className="text-sm text-red-500 font-medium">
-                                <AlertTriangleIcon className="w-4 h-4 text-red-500 inline mr-1" /> Tất cả câu hỏi được sinh từ tài liệu này cũng sẽ bị xóa!
+                                <AlertTriangleIcon className="w-4 h-4 text-red-500 inline mr-1" />
+                                Hệ thống sẽ xóa các câu hỏi thuộc tài liệu này khỏi ngân hàng. Các bài kiểm tra cũ sẽ không bị ảnh hưởng.
                             </p>
                         </div>
 

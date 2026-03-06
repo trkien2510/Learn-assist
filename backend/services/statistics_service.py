@@ -564,7 +564,7 @@ async def get_exam_detailed_statistics(exam_id: str, current_user) -> Dict[str, 
                 "correct_count": correct_count,
                 "correct_rate": round(correct_count / answered_count * 100, 2) if answered_count > 0 else 0,
                 "answer_distribution": dict(answer_distribution),
-                "is_difficult": correct_count / answered_count < 0.5 if answered_count > 0 else False
+                "is_difficult": correct_count / answered_count < 0.4 if answered_count >= 10 else False
             })
     
     user_ids = [get_id_from_other(r.user_id) for r in results]

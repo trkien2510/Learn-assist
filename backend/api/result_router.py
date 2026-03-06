@@ -8,8 +8,8 @@ router = APIRouter()
 
 
 @router.get("/all", response_model=BaseResponse)
-async def get_all_results(page: int = 1, page_size: int = 20, current_user: UserModel = Depends(get_current_user)):
-    data = await result_service.get_my_results(page, page_size, current_user)
+async def get_all_results(page: int = 1, page_size: int = 20, exam_type: str = None, current_user: UserModel = Depends(get_current_user)):
+    data = await result_service.get_my_results(page, page_size, current_user, exam_type)
     return BaseResponse(data=data)
 
 

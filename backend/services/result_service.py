@@ -164,7 +164,7 @@ async def get_results_by_class_id(class_id: str, page: int, page_size: int, curr
     }
 
 
-async def get_my_results(page: int, page_size: int, current_user):
+async def get_my_results(page: int, page_size: int, current_user, exam_type: str = None):
     if page < 1:
         page = 1
     if page_size < 1 or page_size > 100:
@@ -199,9 +199,25 @@ async def get_my_results(page: int, page_size: int, current_user):
                 items = await query.skip(skip).limit(page_size).to_list()
 
     elif current_user.role == "student":
-        query = ResultModel.find({"user_id.$id": current_user.id})
+        personal_exams = await ExamModel.find({
+            "creator_id.$id": current_user.id,
+            "is_personal": True
+        }).to_list()
+        personal_exam_ids = [e.id for e in personal_exams]
+
+        query_cond = {"user_id.$id": current_user.id}
+        if exam_type == "regular" and personal_exam_ids:
+            query_cond["exam_id.$id"] = {"$nin": personal_exam_ids}
+        elif exam_type == "personal":
+            if personal_exam_ids:
+                query_cond["exam_id.$id"] = {"$in": personal_exam_ids}
+            else:
+                # Force empty result if personal exams requested but none exist
+                query_cond["_id"] = PydanticObjectId()
+
+        query = ResultModel.find(query_cond)
         total = await query.count()
-        items = await query.skip(skip).limit(page_size).to_list()
+        items = await query.skip(skip).sort([("submit_at", -1)]).limit(page_size).to_list()
 
     exam_ids_list = [get_id_from_other(item.exam_id) for item in items]
     exams_map = await batch_fetch_exams(exam_ids_list)
